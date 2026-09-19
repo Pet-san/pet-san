@@ -4,7 +4,7 @@
    تم ربط هذا الملف بقاعدة بيانات Firebase الخاصة بمشروع San Store.
    ========================================================================== */
 
-const FIREBASE_DB_URL = "https://san-store-9aca8-default-rtdb.firebaseio.com";
+const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
 
 const DB_KEYS = {
   categories: "ws_categories",
