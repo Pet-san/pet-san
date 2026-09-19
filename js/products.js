@@ -9,6 +9,14 @@
 /* ---------------------------------------------------------------------- */
 /* بطاقة المنتج — تُستخدم في كل الشبكات (الرئيسية، المتجر)                  */
 /* ---------------------------------------------------------------------- */
+/* ==========================================================================
+   products.js
+   يُستخدم في: index.html، products.html، product.html.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------- */
+/* بطاقة المنتج                                                             */
+/* ---------------------------------------------------------------------- */
 
 function productMediaHtml(product) {
   if (product.image) {
@@ -74,7 +82,7 @@ function renderGridInto(containerId, products, emptyMessage) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* صفحة المتجر الكاملة (products.html)                                     */
+/* صفحة المتجر الكاملة (products.html) والفلاتر                             */
 /* ---------------------------------------------------------------------- */
 
 const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "" };
@@ -123,12 +131,23 @@ function renderCategoryFilterPanel() {
   if (!panel) return;
   const categories = Store.getCategories();
 
-  const allBtn = '<button data-cat="all" class="' + (shopState.categoryId === "all" ? "active" : "") + '">جميع الأقسام</button>';
-  const catBtns = categories.map(function (c) {
-    return '<button data-cat="' + c.id + '" class="' + (shopState.categoryId === c.id ? "active" : "") + '">' + c.name + "</button>";
-  }).join("");
+  // فصل الأقسام الرئيسية
+  const mainCats = categories.filter(function(c) { return !c.parentId; });
 
-  panel.innerHTML = allBtn + catBtns;
+  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" ? "active" : "") + '">جميع الأقسام</button>';
+
+  mainCats.forEach(function(main) {
+    // رسم القسم الرئيسي
+    html += '<button data-cat="' + main.id + '" class="' + (shopState.categoryId === main.id ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent;">' + main.name + "</button>";
+
+    // رسم الأقسام الفرعية التابعة له
+    const subCats = categories.filter(function(c) { return c.parentId === main.id; });
+    subCats.forEach(function(sub) {
+      html += '<button data-cat="' + sub.id + '" class="' + (shopState.categoryId === sub.id ? "active" : "") + '" style="padding-right: 25px; font-size: 0.9em; opacity: 0.85; border-right: 2px solid var(--primary); margin-bottom: 3px;">↳ ' + sub.name + "</button>";
+    });
+  });
+
+  panel.innerHTML = html;
   panel.querySelectorAll("button").forEach(function (btn) {
     btn.addEventListener("click", function () {
       shopState.categoryId = btn.dataset.cat;
@@ -143,8 +162,13 @@ function renderShopResults() {
   let list = Store.getProducts();
 
   if (shopState.categoryId !== "all") {
-    list = list.filter(function (p) { return p.categoryId === shopState.categoryId; });
+    // جلب المنتجات التابعة للقسم المختار والأقسام المتفرعة منه
+    const subCatIds = Store.getCategories().filter(function(c) { return c.parentId === shopState.categoryId; }).map(function(c) { return c.id; });
+    const allowedCats = [shopState.categoryId].concat(subCatIds);
+
+    list = list.filter(function (p) { return allowedCats.includes(p.categoryId); });
   }
+  
   if (shopState.search) {
     const q = shopState.search.toLowerCase();
     list = list.filter(function (p) {
@@ -158,7 +182,7 @@ function renderShopResults() {
     case "price-asc": list.sort(function (a, b) { return a.price - b.price; }); break;
     case "price-desc": list.sort(function (a, b) { return b.price - a.price; }); break;
     case "name": list.sort(function (a, b) { return a.name.localeCompare(b.name, "ar"); }); break;
-    default: break; // كما وردت (الأحدث أولًا حسب ترتيب الإضافة)
+    default: break; 
   }
 
   renderGridInto("shopGrid", list, "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.");
@@ -187,9 +211,16 @@ function initHomeCollections() {
   }
   if (catEl) {
     const categories = Store.getCategories();
-    catEl.innerHTML = categories.map(function (c) {
+    // عرض الأقسام الرئيسية فقط في الرئيسية لعدم تكديس الواجهة
+    const mainCategories = categories.filter(function(c) { return !c.parentId; });
+    
+    catEl.innerHTML = mainCategories.map(function (c) {
+      const media = c.image 
+        ? '<img src="' + c.image + '" alt="' + c.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' 
+        : iconSvg(c.icon || "box");
+        
       return '<a href="products.html?cat=' + c.id + '" class="cat-chip">' +
-        '<span class="cat-icon">' + iconSvg(c.icon) + "</span>" +
+        '<span class="cat-icon" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">' + media + '</span>' +
         '<span class="name">' + c.name + "</span>" +
       "</a>";
     }).join("");
@@ -273,32 +304,3 @@ document.addEventListener("DOMContentLoaded", function () {
   initShopPage();
   initProductDetailPage();
 });
-/* --- ترقية عرض الأقسام لدعم الصور --- */
-function initHomeCollections() {
-  const featuredEl = document.getElementById("featuredGrid");
-  const newEl = document.getElementById("newGrid");
-  const catEl = document.getElementById("homeCategories");
-  if (!featuredEl && !newEl && !catEl) return;
-
-  const products = Store.getProducts();
-
-  if (featuredEl) {
-    renderGridInto("featuredGrid", products.filter(function (p) { return p.featured; }).slice(0, 4), "لا توجد منتجات مميزة حاليًا.");
-  }
-  if (newEl) {
-    renderGridInto("newGrid", products.filter(function (p) { return p.isNew; }).slice(0, 4), "لا توجد منتجات جديدة حاليًا.");
-  }
-  if (catEl) {
-    const categories = Store.getCategories();
-    catEl.innerHTML = categories.map(function (c) {
-      const media = c.image 
-        ? '<img src="' + c.image + '" alt="' + c.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' 
-        : iconSvg(c.icon || "box");
-        
-      return '<a href="products.html?cat=' + c.id + '" class="cat-chip">' +
-        '<span class="cat-icon" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">' + media + '</span>' +
-        '<span class="name">' + c.name + "</span>" +
-      "</a>";
-    }).join("");
-  }
-}
