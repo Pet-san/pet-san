@@ -76,17 +76,21 @@ function buildProductWhatsAppLink(product, qty, info) {
   const productUrl = location.origin + location.pathname.replace(/[^/]*$/, "") + "product.html?id=" + product.id;
 
   const lines = [
-    "السلام عليكم، أريد طلب المنتج:",
-    "اسم المنتج: " + product.name,
-    "الكمية: " + quantity,
-    "السعر الكلي: " + formatPrice(total),
-    "رابط المنتج: " + productUrl,
-    "",
-    "📍 معلومات التوصيل:",
-    "المحافظة: " + info.gov,
-    "المنطقة: " + info.area,
-    "أقرب نقطة دالة: " + info.landmark
-  ];
+  "👋 السلام عليكم، أود طلب هذا المنتج:",
+  "",
+  "📦 *تفاصيل الطلب:*",
+  "▪️ اسم المنتج: *" + product.name + "*",
+  "▪️ الكمية: " + quantity,
+  "▪️ السعر: *" + formatPrice(total) + "* (غير شامل أجور التوصيل)",
+  "🔗 رابط المنتج: " + productUrl,
+  "",
+  "📍 *معلومات التوصيل:*",
+  "▪️ المحافظة: *" + info.gov + "*",
+  "▪️ المنطقة: *" + info.area + "*",
+  "▪️ أقرب نقطة دالة: " + info.landmark,
+  "",
+  "أنتظر تأكيدكم لإتمام الطلب، شكراً لكم! 🐾"
+];
 
   return buildWhatsAppUrl(lines.join("\n"));
 }
