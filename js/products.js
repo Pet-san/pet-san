@@ -1,11 +1,10 @@
 /* ==========================================================================
    products.js
-   يُستخدم في: index.html (المنتجات المميزة/الجديدة)، products.html (المتجر
-   الكامل مع البحث والفلاتر)، product.html (صفحة تفاصيل المنتج).
+   يُستخدم في: index.html، products.html، product.html.
    ========================================================================== */
 
 /* ---------------------------------------------------------------------- */
-/* بطاقة المنتج — تُستخدم في كل الشبكات (الرئيسية، المتجر)                  */
+/* بطاقة المنتج                                                             */
 /* ---------------------------------------------------------------------- */
 
 function productMediaHtml(product) {
@@ -143,7 +142,7 @@ function renderCategoryFilterPanel() {
     
     html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isMainActive ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent; width:100%; text-align:right; display:flex; justify-content:space-between; align-items:center;">' + main.name + arrow + '</button>';
 
-    // حاوية الأقسام الفرعية (نجعلها مخفية أو ظاهرة بناءً على النشاط)
+    // حاوية الأقسام الفرعية (تظهر أو تختفي حسب النشاط)
     if (hasSubs) {
       html += '<div class="sub-cats" style="display: ' + (isOpen ? "block" : "none") + ';">';
       subCats.forEach(function(sub) {
@@ -181,32 +180,6 @@ function renderCategoryFilterPanel() {
     });
   });
 }
-  // فصل الأقسام الرئيسية
-  const mainCats = categories.filter(function(c) { return !c.parentId; });
-
-  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" ? "active" : "") + '">جميع الأقسام</button>';
-
-  mainCats.forEach(function(main) {
-    // رسم القسم الرئيسي
-    html += '<button data-cat="' + main.id + '" class="' + (shopState.categoryId === main.id ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent;">' + main.name + "</button>";
-
-    // رسم الأقسام الفرعية التابعة له
-    const subCats = categories.filter(function(c) { return c.parentId === main.id; });
-    subCats.forEach(function(sub) {
-      html += '<button data-cat="' + sub.id + '" class="' + (shopState.categoryId === sub.id ? "active" : "") + '" style="padding-right: 25px; font-size: 0.9em; opacity: 0.85; border-right: 2px solid var(--primary); margin-bottom: 3px;">↳ ' + sub.name + "</button>";
-    });
-  });
-
-  panel.innerHTML = html;
-  panel.querySelectorAll("button").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      shopState.categoryId = btn.dataset.cat;
-      panel.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
-      btn.classList.add("active");
-      renderShopResults();
-    });
-  });
-}
 
 function renderShopResults() {
   let list = Store.getProducts();
@@ -218,7 +191,7 @@ function renderShopResults() {
 
     list = list.filter(function (p) { return allowedCats.includes(p.categoryId); });
   }
-
+  
   if (shopState.search) {
     const q = shopState.search.toLowerCase();
     list = list.filter(function (p) {
