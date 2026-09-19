@@ -594,3 +594,56 @@ button { font-family: inherit; cursor: pointer; }
   .cart-item img, .cart-item .placeholder-icon-wrap { grid-area: img; }
   .hero-cta .btn { flex: 1; }
 }
+/* ==========================================================================
+   الإصلاحات النهائية لأخطاء عرض الموبايل (القائمة الجانبية والمودال)
+   ========================================================================== */
+
+/* 1. إصلاح حجم أيقونات تسجيل الخروج والصفحة الرئيسية */
+.admin-logout svg {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0 !important;
+}
+
+.admin-logout a,
+.admin-logout button {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    justify-content: flex-start !important;
+    color: inherit !important;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: right !important;
+    font-size: 0.92rem !important;
+}
+
+/* 2. إصلاح تمركز القائمة الجانبية لتبدأ من اليمين في الهواتف */
+@media (max-width: 980px) {
+    .admin-sidebar.open {
+        right: 0 !important;
+        left: auto !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5) !important;
+    }
+}
+
+/* 3. إصلاح جذري لانزياح النافذة المنبثقة (المودال) في الهواتف */
+.modal-overlay.open {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 15px !important;
+}
+
+.modal-card {
+    margin: 0 !important; /* إزالة margin: auto التي تسبب الانزياح في الوضع العربي */
+    width: 100% !important;
+    max-width: calc(100vw - 30px) !important; /* إجبار المتصفح على احترام حدود الشاشة */
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+}
