@@ -614,3 +614,18 @@ button { font-family: inherit; cursor: pointer; }
     background-color: #eff6ff !important;
     border-color: #bfdbfe !important;
 }
+/* إصلاح الخطوط المتقطعة وتوصيلها بالكامل في جداول لوحة التحكم */
+.admin-table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+}
+
+.admin-table tr {
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.admin-table td, 
+.admin-table th {
+    border-bottom: 1px solid #e2e8f0 !important; /* توحيد لون الخط لجميع الأعمدة */
+}
