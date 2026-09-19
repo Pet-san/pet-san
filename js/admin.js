@@ -166,6 +166,18 @@ function wireProductModal() {
       reader.readAsDataURL(file);
     });
   }
+
+  // برمجة زر مسح صورة المنتج
+  const removeImgBtn = document.getElementById("removeProductImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingProductImage = null;
+      if (document.getElementById("productImageInput")) {
+          document.getElementById("productImageInput").value = "";
+      }
+      document.getElementById("productImagePreview").innerHTML = iconSvg("box");
+    });
+  }
 }
 
 function openProductModal(productId) {
@@ -323,6 +335,18 @@ function wireCategoryModal() {
         if (preview) preview.innerHTML = '<img src="' + reader.result + '">';
       };
       reader.readAsDataURL(file);
+    });
+  }
+
+  // برمجة زر مسح صورة القسم
+  const removeImgBtn = document.getElementById("removeCategoryImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingCategoryImage = null;
+      if (document.getElementById("categoryImageInput")) {
+          document.getElementById("categoryImageInput").value = "";
+      }
+      document.getElementById("categoryImagePreview").innerHTML = iconSvg("box");
     });
   }
 }
