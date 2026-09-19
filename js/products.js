@@ -124,6 +124,66 @@ function renderCategoryFilterPanel() {
   // فصل الأقسام الرئيسية
   const mainCats = categories.filter(function(c) { return !c.parentId; });
 
+  // زر جميع الأقسام
+  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right;">جميع الأقسام</button>';
+
+  mainCats.forEach(function(main) {
+    const subCats = categories.filter(function(c) { return c.parentId === main.id; });
+    const hasSubs = subCats.length > 0;
+    
+    // فحص ما إذا كان القسم أو أحد فروعه نشطاً لكي نبقي القائمة منسدلة
+    const isMainActive = shopState.categoryId === main.id;
+    const isSubActive = subCats.some(function(c) { return c.id === shopState.categoryId; });
+    const isOpen = isMainActive || isSubActive; 
+
+    html += '<div class="cat-group" style="margin-bottom: 2px;">';
+    
+    // زر القسم الرئيسي (نضيف له سهماً إذا كان لديه فروع)
+    const arrow = hasSubs ? '<span class="toggle-arrow" style="font-size:11px; transition: transform 0.3s; ' + (isOpen ? 'transform: rotate(180deg);' : '') + '">▼</span>' : '';
+    
+    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isMainActive ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent; width:100%; text-align:right; display:flex; justify-content:space-between; align-items:center;">' + main.name + arrow + '</button>';
+
+    // حاوية الأقسام الفرعية (نجعلها مخفية أو ظاهرة بناءً على النشاط)
+    if (hasSubs) {
+      html += '<div class="sub-cats" style="display: ' + (isOpen ? "block" : "none") + ';">';
+      subCats.forEach(function(sub) {
+        html += '<button data-cat="' + sub.id + '" class="' + (shopState.categoryId === sub.id ? "active" : "") + '" style="padding-right: 25px; font-size: 0.9em; opacity: 0.85; border-right: 2px solid var(--primary); margin-bottom: 3px; width:100%; text-align:right;">↳ ' + sub.name + "</button>";
+      });
+      html += '</div>';
+    }
+    
+    html += '</div>';
+  });
+
+  panel.innerHTML = html;
+
+  // إضافة تفاعل النقر على الأزرار
+  panel.querySelectorAll("button").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      const clickedCat = btn.dataset.cat;
+      
+      // إذا نقر الزبون على قسم رئيسي مفتوح أصلاً، نكتفي بطي أو فرد القائمة بدون إعادة فلترة المنتجات
+      if (btn.classList.contains('main-cat-btn') && shopState.categoryId === clickedCat) {
+         const subGroup = btn.nextElementSibling;
+         if (subGroup && subGroup.classList.contains('sub-cats')) {
+             const isHidden = subGroup.style.display === "none";
+             subGroup.style.display = isHidden ? "block" : "none";
+             const arrow = btn.querySelector('.toggle-arrow');
+             if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+             return; 
+         }
+      }
+
+      // تحديث القسم النشط وإعادة رسم القائمة والمنتجات
+      shopState.categoryId = clickedCat;
+      renderCategoryFilterPanel(); 
+      renderShopResults();
+    });
+  });
+}
+  // فصل الأقسام الرئيسية
+  const mainCats = categories.filter(function(c) { return !c.parentId; });
+
   let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" ? "active" : "") + '">جميع الأقسام</button>';
 
   mainCats.forEach(function(main) {
