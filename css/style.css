@@ -26,6 +26,7 @@
 
   --line: #e6e5d8;
   --line-strong: #d3d2c2;
+  --border-table: #e2e8f0; /* لون مخصص لجداول لوحة التحكم */
 
   --danger: #b3492f;
   --danger-bg: #f7e9e4;
@@ -120,7 +121,6 @@ button { font-family: inherit; cursor: pointer; }
 .btn-icon:hover { background: var(--olive-500); color: var(--white); }
 .btn-icon svg { width: 19px; height: 19px; }
 
-/* ---------- Header ---------- */
 /* ---------- Header ---------- */
 #site-header {
   position: sticky; top: 0; z-index: 50;
@@ -427,23 +427,69 @@ button { font-family: inherit; cursor: pointer; }
 .admin-panel { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px; margin-bottom: 24px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
 
-.admin-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.admin-table th, .admin-table td { padding: 12px 10px; text-align: start; border-bottom: 1px solid var(--line); }
+/* -- تحسين جداول الإدارة وحل مشكلة الخطوط المتقطعة -- */
+.admin-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    border-spacing: 0;
+    font-size: .9rem; 
+}
+.admin-table th, .admin-table td { 
+    padding: 12px 10px; 
+    text-align: start; 
+    border-bottom: 1px solid var(--border-table); 
+}
 .admin-table th { color: var(--ink-600); font-weight: 700; font-size: .8rem; }
 .admin-table img { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; background: var(--olive-50); }
-.admin-table .row-actions { display: flex; gap: 6px; }
+
+/* -- تحسين أزرار الإجراءات (تعديل/حذف) -- */
+.admin-table .row-actions { 
+    display: flex; 
+    gap: 8px; 
+    align-items: center;
+}
+.row-actions .btn-icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background-color: var(--white);
+    padding: 0;
+}
+.row-actions .btn-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2; /* يعالج مشكلة الخطوط المتقطعة للأيقونات */
+    stroke: currentColor;
+    fill: none;
+}
+.row-actions .btn-icon[title="حذف"] {
+    color: var(--danger);
+    background-color: var(--danger-bg);
+    border-color: #fecaca;
+}
+.row-actions .btn-icon[title="تعديل"] {
+    color: #3b82f6;
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+}
+
 .pill { display: inline-flex; padding: 4px 11px; border-radius: var(--radius-pill); font-size: .75rem; font-weight: 700; }
 .pill-ok { background: var(--olive-100); color: var(--olive-700); }
 .pill-off { background: var(--danger-bg); color: var(--danger); }
 
+/* -- النوافذ المنبثقة (المنتجات / الأقسام) وتوسيطها في كل الشاشات -- */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(34,36,29,.5); display: none; align-items: center; justify-content: center;
-  padding: 20px; z-index: 100;
+  padding: 15px; z-index: 100;
 }
 .modal-overlay.open { display: flex; }
 .modal-card {
-  background: var(--white); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 520px;
-  max-height: 88vh; overflow-y: auto;
+  background: var(--white); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 500px;
+  max-height: 90vh; overflow-y: auto; position: relative; margin: auto; box-sizing: border-box;
 }
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .close-modal { width: 34px; height: 34px; border-radius: 50%; background: var(--olive-100); border: none; display: flex; align-items: center; justify-content: center; }
@@ -469,7 +515,27 @@ button { font-family: inherit; cursor: pointer; }
 .about-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
 .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-/* ---------- Mobile ---------- */
+/* ---------- Small admin helpers ---------- */
+.admin-table-icon {
+  width: 42px; height: 42px; border-radius: 8px; background: var(--olive-50);
+  display: flex; align-items: center; justify-content: center;
+}
+.admin-table-icon svg { width: 55%; color: var(--olive-500); }
+
+.icon-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.icon-choice { position: relative; cursor: pointer; }
+.icon-choice input { position: absolute; opacity: 0; }
+.icon-choice span {
+  display: flex; align-items: center; justify-content: center; height: 44px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink-600);
+}
+.icon-choice span svg { width: 20px; height: 20px; }
+.icon-choice input:checked + span { background: var(--olive-600); border-color: var(--olive-600); color: var(--white); }
+
+/* ==========================================================================
+   Mobile & Responsive (تم تجميعها هنا لضمان عملها بشكل مثالي)
+   ========================================================================== */
+
 @media (max-width: 980px) {
   .hero-inner, .detail-grid, .about-hero { grid-template-columns: 1fr; }
   .hero-art { max-width: 380px; margin-inline: auto; order: -1; }
@@ -485,6 +551,31 @@ button { font-family: inherit; cursor: pointer; }
   .admin-sidebar.open { display: flex; position: fixed; inset: 0; z-index: 80; width: 260px; height: 100vh; }
   .admin-stats { grid-template-columns: repeat(2, 1fr); }
   .value-grid { grid-template-columns: 1fr; }
+  #adminSidebarToggle { display: flex !important; }
+}
+
+@media (max-width: 768px) {
+  .hero-art {
+    transform: scale(0.6);
+    margin-top: -50px;
+    margin-bottom: -50px;
+  }
+  
+  .feature-grid, .product-grid, .grid, .category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .product-card {
+    min-width: 0;
+    padding: 10px;
+  }
+  
+  .product-card h3 { font-size: 13px; margin-bottom: 5px; }
+  .product-card p { font-size: 11px; line-height: 1.4; }
+  .product-card .price { font-size: 13px; margin: 8px 0; }
+  .product-card .btn-primary { padding: 6px; font-size: 11px; width: 100%; }
 }
 
 @media (max-width: 720px) {
@@ -502,130 +593,4 @@ button { font-family: inherit; cursor: pointer; }
   .cart-item { grid-template-columns: 60px 1fr; grid-template-areas: "img name" "img actions"; }
   .cart-item img, .cart-item .placeholder-icon-wrap { grid-area: img; }
   .hero-cta .btn { flex: 1; }
-}
-
-/* ---------- Small admin helpers ---------- */
-.admin-table-icon {
-  width: 42px; height: 42px; border-radius: 8px; background: var(--olive-50);
-  display: flex; align-items: center; justify-content: center;
-}
-.admin-table-icon svg { width: 55%; color: var(--olive-500); }
-
-.icon-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-.icon-choice { position: relative; cursor: pointer; }
-.icon-choice input { position: absolute; opacity: 0; }
-.icon-choice span {
-  display: flex; align-items: center; justify-content: center; height: 44px;
-  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink-600);
-}
-.icon-choice span svg { width: 20px; height: 20px; }
-.icon-choice input:checked + span { background: var(--olive-600); border-color: var(--olive-600); color: var(--white); }
-@media (max-width: 980px) {
-  #adminSidebarToggle { display: flex !important; }
-}
-/* تصغير قسم الشعار في شاشات الهواتف */
-@media (max-width: 768px) {
-  .hero-art {
-    transform: scale(0.6) !important; /* تصغير الحجم بنسبة 40% */
-    margin-top: -50px !important; /* سحب العناصر لتقليل الفراغ من الأعلى */
-    margin-bottom: -50px !important; /* سحب العناصر لتقليل الفراغ من الأسفل */
-  }
-}
-@media (max-width: 768px) {
-  .feature-grid, .products-grid, .grid, .category-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-  .product-card {
-    min-width: 0 !important;
-    padding: 10px !important;
-  }
-  .product-card h3 { font-size: 13px !important; margin-bottom: 5px !important; }
-  .product-card p { font-size: 11px !important; line-height: 1.4 !important; }
-  .product-card .price { font-size: 13px !important; margin: 8px 0 !important; }
-  .product-card .btn-primary { padding: 6px !important; font-size: 11px !important; width: 100% !important; }
-}
-/* إصلاح توسيط النوافذ المنبثقة في الهواتف (المنتجات والأقسام) */
-.modal-overlay.open {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 15px !important;
-}
-
-.modal-card {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    transform: none !important;
-    margin: auto !important;
-    width: 100% !important;
-    max-width: 500px !important;
-    max-height: 90vh !important;
-    overflow-y: auto !important;
-    box-sizing: border-box !important;
-}
-/* ==========================================================================
-   تحسين مظهر أزرار الإجراءات (تعديل وحذف) في جداول لوحة التحكم
-   ========================================================================== */
-
-.row-actions {
-    display: flex !important;
-    gap: 8px !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-/* تصميم الزر الخارجي */
-.row-actions .btn-icon {
-    width: 38px !important;
-    height: 38px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 8px !important; /* شكل مربع بحواف دائرية أنيق بدلاً من الدائرة */
-    border: 1px solid #e2e8f0 !important;
-    background-color: #f8fafc !important;
-    padding: 0 !important;
-}
-
-/* تكبير وتوضيح الأيقونات (SVG) من الداخل لحل مشكلة الخطوط المتقطعة */
-.row-actions .btn-icon svg {
-    width: 20px !important;
-    height: 20px !important;
-    stroke-width: 2.2 !important; /* زيادة سمك الخط لكي لا يبدو منقطعاً */
-    stroke: currentColor !important;
-    fill: none !important;
-}
-
-/* تلوين زر الحذف بالأحمر الفاتح */
-.row-actions .btn-icon[title="حذف"] {
-    color: #ef4444 !important;
-    background-color: #fef2f2 !important;
-    border-color: #fecaca !important;
-}
-
-/* تلوين زر التعديل بالأزرق الفاتح */
-.row-actions .btn-icon[title="تعديل"] {
-    color: #3b82f6 !important;
-    background-color: #eff6ff !important;
-    border-color: #bfdbfe !important;
-}
-/* إصلاح الخطوط المتقطعة وتوصيلها بالكامل في جداول لوحة التحكم */
-.admin-table {
-    border-collapse: collapse !important;
-    border-spacing: 0 !important;
-    width: 100% !important;
-}
-
-.admin-table tr {
-    border-bottom: 1px solid #e2e8f0 !important;
-}
-
-.admin-table td, 
-.admin-table th {
-    border-bottom: 1px solid #e2e8f0 !important; /* توحيد لون الخط لجميع الأعمدة */
 }
