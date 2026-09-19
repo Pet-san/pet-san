@@ -83,7 +83,7 @@ function renderFooter() {
       "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة. | اعداد و تطوير | <span style='color: #a5d6a7; font-weight: bold;'>م.امير</span></span>" +
       "<span>انستغرام : <a href='https://instagram.com/az_6ui' target='_blank' style='color: #a5d6a7; text-decoration: none;'>az_6ui</a></span>" +
       "<span>واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: #a5d6a7; text-decoration: none;' dir='ltr'>07813623682</a></span>" +
-      "<a href='login.html'>لوحة التحكم</a>" +
+      
       "</div>" +
       "</div>" +
       "</footer>";
