@@ -1,13 +1,13 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). كل شيء هنا يقرأ ويكتب عبر
-   Store (store.js) الذي يخزّن البيانات في localStorage — لا حاجة لمس الكود
-   لإضافة/تعديل/حذف منتج أو قسم أو لتغيير إعدادات المتجر.
+   Store (store.js) الذي يخزّن البيانات في localStorage.
    ========================================================================== */
 
 let editingProductId = null;
 let editingCategoryId = null;
-let pendingProductImage = null; // base64 مؤقت أثناء تعديل نموذج المنتج
+let pendingProductImage = null; // base64 مؤقت لصور المنتجات
+let pendingCategoryImage = null; // base64 مؤقت لصور الأقسام
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -240,7 +240,7 @@ function saveProductForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الأقسام                                                                  */
+/* الأقسام (دعم الصور والأيقونات والأقسام الفرعية)                          */
 /* ---------------------------------------------------------------------- */
 
 function renderCategoriesTable() {
@@ -256,10 +256,18 @@ function renderCategoriesTable() {
 
   tbody.innerHTML = categories.map(function (c) {
     const count = products.filter(function (p) { return p.categoryId === c.id; }).length;
+    const img = c.image ? '<img src="' + c.image + '">' : '<div class="admin-table-icon">' + iconSvg(c.icon || "box") + "</div>";
+    
+    // تمييز القسم الفرعي في الجدول
+    const parent = c.parentId ? categories.find(function(x) { return x.id === c.parentId; }) : null;
+    const displayName = parent 
+        ? c.name + '<br><small style="color:#888;">↳ فرعي من: ' + parent.name + '</small>' 
+        : '<strong>' + c.name + '</strong>';
+
     return (
       "<tr>" +
-        '<td><div class="admin-table-icon">' + iconSvg(c.icon) + "</div></td>" +
-        "<td>" + c.name + "</td>" +
+        "<td>" + img + "</td>" +
+        "<td>" + displayName + "</td>" +
         "<td>" + count + " منتج</td>" +
         '<td class="row-actions">' +
           '<button class="btn-icon btn-sm" title="تعديل" onclick="openCategoryModal(\'' + c.id + '\')">' + iconSvg("edit") + "</button>" +
@@ -302,27 +310,72 @@ function wireCategoryModal() {
   if (closeBtn) closeBtn.addEventListener("click", closeCategoryModal);
   const form = document.getElementById("categoryForm");
   if (form) form.addEventListener("submit", saveCategoryForm);
+
+  const imageInput = document.getElementById("categoryImageInput");
+  if (imageInput) {
+    imageInput.addEventListener("change", function () {
+      const file = imageInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        pendingCategoryImage = reader.result;
+        const preview = document.getElementById("categoryImagePreview");
+        if (preview) preview.innerHTML = '<img src="' + reader.result + '">';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 }
 
 function openCategoryModal(categoryId) {
   editingCategoryId = categoryId;
+  pendingCategoryImage = null;
   populateIconPicker();
+  
   const modal = document.getElementById("categoryModal");
   const title = document.getElementById("categoryModalTitle");
   const form = document.getElementById("categoryForm");
   form.reset();
 
+  const preview = document.getElementById("categoryImagePreview");
+  const nameInput = document.getElementById("categoryName");
+
+  // زرع القائمة المنسدلة لاختيار القسم الأب برمجياً
+  let parentContainer = document.getElementById("categoryParentContainer");
+  if (!parentContainer) {
+    parentContainer = document.createElement("div");
+    parentContainer.id = "categoryParentContainer";
+    parentContainer.style.marginTop = "15px";
+    parentContainer.innerHTML = '<label style="display:block;margin-bottom:5px;">يتبع لقسم (اختياري - لجعله قسم فرعي)</label><select id="categoryParent" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;"></select>';
+    nameInput.parentNode.insertBefore(parentContainer, nameInput.nextSibling);
+  }
+
+  const parentSelect = document.getElementById("categoryParent");
+  const allCats = Store.getCategories();
+  
+  // السماح للأقسام الرئيسية فقط بأن تكون "أباً" لمنع التداخل اللانهائي
+  parentSelect.innerHTML = '<option value="">-- قسم رئيسي مستقل --</option>' +
+    allCats.filter(function(c) { return c.id !== categoryId && !c.parentId; })
+           .map(function(c) { return '<option value="' + c.id + '">' + c.name + '</option>'; }).join("");
+
   if (categoryId) {
-    const c = Store.getCategories().find(function (cc) { return cc.id === categoryId; });
+    const c = allCats.find(function (cc) { return cc.id === categoryId; });
     title.textContent = "تعديل القسم";
-    document.getElementById("categoryName").value = c.name;
+    nameInput.value = c.name;
+    parentSelect.value = c.parentId || "";
+    pendingCategoryImage = c.image || null;
+    
+    if (preview) preview.innerHTML = c.image ? '<img src="' + c.image + '">' : iconSvg(c.icon || "box");
     const radio = form.querySelector('input[name="categoryIcon"][value="' + c.icon + '"]');
     if (radio) radio.checked = true;
   } else {
     title.textContent = "إضافة قسم جديد";
+    parentSelect.value = "";
+    if (preview) preview.innerHTML = iconSvg("box");
     const first = form.querySelector('input[name="categoryIcon"]');
     if (first) first.checked = true;
   }
+  
   modal.classList.add("open");
 }
 
@@ -334,16 +387,17 @@ function closeCategoryModal() {
 function saveCategoryForm(e) {
   e.preventDefault();
   const name = document.getElementById("categoryName").value.trim();
+  const parentId = document.getElementById("categoryParent") ? document.getElementById("categoryParent").value : "";
   const iconInput = document.querySelector('input[name="categoryIcon"]:checked');
   const icon = iconInput ? iconInput.value : "box";
 
   if (!name) { showToast("يرجى إدخال اسم القسم"); return; }
 
   if (editingCategoryId) {
-    Store.updateCategory(editingCategoryId, { name: name, icon: icon });
+    Store.updateCategory(editingCategoryId, { name: name, image: pendingCategoryImage, icon: icon, parentId: parentId });
     showToast("تم تحديث القسم");
   } else {
-    Store.addCategory({ name: name, icon: icon });
+    Store.addCategory({ name: name, image: pendingCategoryImage, icon: icon, parentId: parentId });
     showToast("تمت إضافة القسم");
   }
 
@@ -443,99 +497,3 @@ function wireSettingsForm() {
 }
 
 document.addEventListener("DOMContentLoaded", initAdminPage);
-
-/* --- ترقية الأقسام لدعم الصور --- */
-let pendingCategoryImage = null;
-
-function renderCategoriesTable() {
-  const tbody = document.getElementById("categoriesTableBody");
-  if (!tbody) return;
-  const categories = Store.getCategories();
-  const products = Store.getProducts();
-
-  if (!categories.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--ink-300);">لا توجد أقسام</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = categories.map(function (c) {
-    const count = products.filter(function (p) { return p.categoryId === c.id; }).length;
-    const img = c.image ? '<img src="' + c.image + '">' : '<div class="admin-table-icon">' + iconSvg(c.icon || "box") + "</div>";
-    return (
-      "<tr>" +
-        "<td>" + img + "</td>" +
-        "<td>" + c.name + "</td>" +
-        "<td>" + count + " منتج</td>" +
-        '<td class="row-actions">' +
-          '<button class="btn-icon btn-sm" title="تعديل" onclick="openCategoryModal(\'' + c.id + '\')">' + iconSvg("edit") + "</button>" +
-          '<button class="btn-icon btn-sm" title="حذف" onclick="deleteCategoryConfirm(\'' + c.id + '\')">' + iconSvg("trash") + "</button>" +
-        "</td>" +
-      "</tr>"
-    );
-  }).join("");
-}
-
-function wireCategoryModal() {
-  const addBtn = document.getElementById("addCategoryBtn");
-  if (addBtn) addBtn.addEventListener("click", function () { openCategoryModal(null); });
-  const closeBtn = document.getElementById("closeCategoryModal");
-  if (closeBtn) closeBtn.addEventListener("click", closeCategoryModal);
-  const form = document.getElementById("categoryForm");
-  if (form) form.addEventListener("submit", saveCategoryForm);
-
-  const imageInput = document.getElementById("categoryImageInput");
-  if (imageInput) {
-    imageInput.addEventListener("change", function () {
-      const file = imageInput.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function () {
-        pendingCategoryImage = reader.result;
-        document.getElementById("categoryImagePreview").innerHTML = '<img src="' + reader.result + '">';
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-}
-
-function openCategoryModal(categoryId) {
-  editingCategoryId = categoryId;
-  pendingCategoryImage = null;
-  const modal = document.getElementById("categoryModal");
-  const title = document.getElementById("categoryModalTitle");
-  const form = document.getElementById("categoryForm");
-  form.reset();
-
-  const preview = document.getElementById("categoryImagePreview");
-
-  if (categoryId) {
-    const c = Store.getCategories().find(function (cc) { return cc.id === categoryId; });
-    title.textContent = "تعديل القسم";
-    document.getElementById("categoryName").value = c.name;
-    pendingCategoryImage = c.image || null;
-    if(preview) preview.innerHTML = c.image ? '<img src="' + c.image + '">' : iconSvg(c.icon || "box");
-  } else {
-    title.textContent = "إضافة قسم جديد";
-    if(preview) preview.innerHTML = iconSvg("box");
-  }
-  modal.classList.add("open");
-}
-
-function saveCategoryForm(e) {
-  e.preventDefault();
-  const name = document.getElementById("categoryName").value.trim();
-
-  if (!name) { showToast("يرجى إدخال اسم القسم"); return; }
-
-  if (editingCategoryId) {
-    Store.updateCategory(editingCategoryId, { name: name, image: pendingCategoryImage });
-    showToast("تم تحديث القسم");
-  } else {
-    Store.addCategory({ name: name, image: pendingCategoryImage, icon: "box" });
-    showToast("تمت إضافة القسم");
-  }
-
-  closeCategoryModal();
-  renderCategoriesTable();
-  populateCategorySelect();
-}
