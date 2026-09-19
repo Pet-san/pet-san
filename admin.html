@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم الأدمن | سان ستور</title>
+<link rel="icon" href="assets/logo/logo.png">
+<link rel="stylesheet" href="css/style.css?v=4">
+</head>
+<body>
+
+<div id="adminApp" class="admin-shell">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="brand">
+      <img src="assets/logo/logo.png" alt="سان ستور" style="width:40px;height:40px;border-radius:50%;">
+      <span class="brand-name">سان ستور<span style="color:rgba(255,255,255,.55);">لوحة التحكم</span></span>
+    </div>
+
+    <nav class="admin-nav">
+      <button type="button" data-panel="dashboard" class="active">__ICON_GAUGE__ الإحصائيات</button>
+      <button type="button" data-panel="products">__ICON_BOX__ المنتجات</button>
+      <button type="button" data-panel="categories">__ICON_LAYERS__ الأقسام</button>
+      <button type="button" data-panel="orders">__ICON_CART__ الطلبات</button>
+      <button type="button" data-panel="settings">__ICON_SETTINGS__ الإعدادات</button>
+    </nav>
+
+    <div class="admin-logout">
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;font-weight:600;font-size:.92rem;">__ICON_HOME__ عرض المتجر</a>
+      <button type="button" id="adminLogoutBtn" style="width:100%;">__ICON_LOGOUT__ تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <button class="btn-icon" id="adminSidebarToggle" style="display:none;">__ICON_MENU__</button>
+      <h2 style="margin:0;">مرحبًا بك 👋</h2>
+    </div>
+
+    <!-- ---- Dashboard panel ---- -->
+    <section class="admin-panel-view" id="panel-dashboard">
+      <div class="admin-stats" id="statsRow"></div>
+      <div class="admin-panel">
+        <div class="panel-head"><h3 style="margin:0;">آخر الطلبات عبر واتساب</h3></div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr><th>التاريخ</th><th>النوع</th><th>المنتجات</th><th>الإجمالي</th></tr></thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Products panel ---- -->
+    <section class="admin-panel-view" id="panel-products" style="display:none;">
+      <div class="admin-panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">إدارة المنتجات</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input type="text" id="adminProductSearch" placeholder="بحث عن منتج..." style="padding:9px 14px;border-radius:999px;border:1px solid var(--line-strong);font-family:inherit;">
+            <button class="btn btn-primary btn-sm" id="addProductBtn">__ICON_PLUS__ إضافة منتج</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr><th>الصورة</th><th>الاسم</th><th>القسم</th><th>السعر</th><th>الكمية</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="productsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Categories panel ---- -->
+    <section class="admin-panel-view" id="panel-categories" style="display:none;">
+      <div class="admin-panel">
+        <div class="panel-head">
+          <h3 style="margin:0;">إدارة الأقسام</h3>
+          <button class="btn btn-primary btn-sm" id="addCategoryBtn">__ICON_PLUS__ إضافة قسم</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr><th>الأيقونة</th><th>الاسم</th><th>عدد المنتجات</th><th>إجراءات</th></tr></thead>
+            <tbody id="categoriesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Orders panel ---- -->
+    <section class="admin-panel-view" id="panel-orders" style="display:none;">
+      <div class="admin-panel">
+        <div class="panel-head"><h3 style="margin:0;">سجلّ الطلبات</h3></div>
+        <p style="margin-top:-8px;">هذا سجلّ استرشادي فقط لكل طلب تم فتحه عبر واتساب من الموقع — إتمام الطلب الفعلي يجري عبر محادثة واتساب مباشرة.</p>
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead><tr><th>التاريخ</th><th>النوع</th><th>المنتجات</th><th>الإجمالي</th></tr></thead>
+            <tbody id="ordersTableBody2"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- Settings panel ---- -->
+    <section class="admin-panel-view" id="panel-settings" style="display:none;">
+      <div class="admin-panel" style="max-width:640px;">
+        <div class="panel-head"><h3 style="margin:0;">إعدادات المتجر</h3></div>
+        <form id="settingsForm">
+          <div class="field"><label>اسم المتجر</label><input name="storeName" required></div>
+          <div class="field"><label>الشعار النصي (Tagline)</label><input name="storeTagline"></div>
+          <div class="field"><label>وصف المتجر</label><textarea name="storeDescription"></textarea></div>
+          <div class="field"><label>رقم واتساب (بصيغة دولية بدون +)</label><input name="whatsapp" required placeholder="9647xxxxxxxxx"></div>
+          <div class="field"><label>رابط انستغرام</label><input name="instagram" required></div>
+          <div class="field"><label>رقم الهاتف</label><input name="phone"></div>
+          <div class="field"><label>العنوان</label><input name="address"></div>
+          <div class="field"><label>ساعات العمل</label><input name="workingHours"></div>
+          <div class="field"><label>معلومات التوصيل</label><textarea name="deliveryInfo"></textarea></div>
+          <div class="field"><label>رمز العملة</label><input name="currencySymbol"></div>
+
+          <hr style="border:none;border-top:1px solid var(--line);margin:22px 0;">
+          <h4 style="margin-bottom:14px;">بيانات دخول الأدمن</h4>
+          <div class="field"><label>اسم المستخدم</label><input name="adminUsername" required></div>
+          <div class="field"><label>كلمة مرور جديدة (اتركها فارغة لعدم التغيير)</label><input type="password" name="newPassword"></div>
+          <div class="field"><label>تأكيد كلمة المرور الجديدة</label><input type="password" name="confirmPassword"></div>
+
+          <button type="submit" class="btn btn-primary btn-block">حفظ الإعدادات</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ Product modal ============ -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="productModalTitle" style="margin:0;">إضافة منتج</h3>
+      <button class="close-modal" id="closeProductModal">__ICON_CLOSE__</button>
+    </div>
+    <form id="productForm">
+      <div class="field">
+        <label>صورة المنتج</label>
+        <div class="image-upload">
+          <div class="preview" id="productImagePreview"></div>
+          <input type="file" id="productImageInput" accept="image/*">
+        </div>
+      </div>
+      <div class="field"><label>اسم المنتج</label><input type="text" id="productName" required></div>
+      <div class="field"><label>الوصف</label><textarea id="productDescription"></textarea></div>
+      <div class="field"><label>السعر (د.ع)</label><input type="number" id="productPrice" min="0" required></div>
+      <div class="field"><label>القسم</label><select id="productCategorySelect" required></select></div>
+      <div class="field"><label>الكمية المتوفرة</label><input type="number" id="productStock" min="0" required></div>
+      <div class="field checkbox-row"><input type="checkbox" id="productAvailable"><label for="productAvailable" style="margin:0;">مفعّل / معروض في المتجر</label></div>
+      <div class="field checkbox-row"><input type="checkbox" id="productFeatured"><label for="productFeatured" style="margin:0;">منتج مميز</label></div>
+      <div class="field checkbox-row"><input type="checkbox" id="productNew"><label for="productNew" style="margin:0;">منتج جديد</label></div>
+      <button type="submit" class="btn btn-primary btn-block">حفظ المنتج</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Category modal ============ -->
+<!-- ============ Category modal ============ -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="categoryModalTitle" style="margin:0;">إضافة قسم</h3>
+      <button class="close-modal" id="closeCategoryModal">__ICON_CLOSE__</button>
+    </div>
+    <form id="categoryForm">
+      <div class="field">
+        <label>صورة القسم</label>
+        <div class="image-upload">
+          <div class="preview" id="categoryImagePreview"></div>
+          <input type="file" id="categoryImageInput" accept="image/*">
+        </div>
+      </div>
+      <div class="field"><label>اسم القسم</label><input type="text" id="categoryName" required></div>
+      <button type="submit" class="btn btn-primary btn-block">حفظ القسم</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/store.js?v=5"></script>
+<script src="js/whatsapp.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin.js"></script>
+<script>
+  // تعبئة الأيقونات الثابتة في الشريط الجانبي والمودالات (نطاق محدود بعناصر
+  // بعينها بدل استبدال كامل الصفحة، لتفادي أي أثر جانبي غير مقصود)
+  document.querySelector(".admin-nav").innerHTML = document.querySelector(".admin-nav").innerHTML
+    .replace("__ICON_GAUGE__", iconSvg("gauge"))
+    .replace("__ICON_BOX__", iconSvg("box"))
+    .replace("__ICON_LAYERS__", iconSvg("layers"))
+    .replace("__ICON_CART__", iconSvg("cart"))
+    .replace("__ICON_SETTINGS__", iconSvg("settings"));
+
+  document.querySelector(".admin-logout").innerHTML = document.querySelector(".admin-logout").innerHTML
+    .replace("__ICON_HOME__", iconSvg("home"))
+    .replace("__ICON_LOGOUT__", iconSvg("logout"));
+
+  document.getElementById("adminSidebarToggle").innerHTML = iconSvg("menu");
+  document.getElementById("addProductBtn").innerHTML = iconSvg("plus") + " إضافة منتج";
+  document.getElementById("addCategoryBtn").innerHTML = iconSvg("plus") + " إضافة قسم";
+  document.getElementById("closeProductModal").innerHTML = iconSvg("close");
+  document.getElementById("closeCategoryModal").innerHTML = iconSvg("close");
+
+  // نسخة سجل الطلبات الثانية داخل تبويب "الطلبات" تستخدم نفس renderOrdersTable
+  // عبر ربط عنصرها بنفس الدالة بمعرّف بديل
+  document.addEventListener("DOMContentLoaded", function () {
+    const original = renderOrdersTable;
+    renderOrdersTable = function () {
+      original();
+      const src = document.getElementById("ordersTableBody");
+      const dst = document.getElementById("ordersTableBody2");
+      if (src && dst) dst.innerHTML = src.innerHTML;
+    };
+    renderOrdersTable();
+  });
+</script>
+</body>
+</html>
