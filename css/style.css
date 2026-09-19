@@ -568,3 +568,49 @@ button { font-family: inherit; cursor: pointer; }
     overflow-y: auto !important;
     box-sizing: border-box !important;
 }
+/* ==========================================================================
+   تحسين مظهر أزرار الإجراءات (تعديل وحذف) في جداول لوحة التحكم
+   ========================================================================== */
+
+.row-actions {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* تصميم الزر الخارجي */
+.row-actions .btn-icon {
+    width: 38px !important;
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important; /* شكل مربع بحواف دائرية أنيق بدلاً من الدائرة */
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    padding: 0 !important;
+}
+
+/* تكبير وتوضيح الأيقونات (SVG) من الداخل لحل مشكلة الخطوط المتقطعة */
+.row-actions .btn-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 2.2 !important; /* زيادة سمك الخط لكي لا يبدو منقطعاً */
+    stroke: currentColor !important;
+    fill: none !important;
+}
+
+/* تلوين زر الحذف بالأحمر الفاتح */
+.row-actions .btn-icon[title="حذف"] {
+    color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+}
+
+/* تلوين زر التعديل بالأزرق الفاتح */
+.row-actions .btn-icon[title="تعديل"] {
+    color: #3b82f6 !important;
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
