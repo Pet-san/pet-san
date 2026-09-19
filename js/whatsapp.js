@@ -97,33 +97,32 @@ function buildProductWhatsAppLink(product, qty, info) {
 
 // بناء رسالة السلة كاملة
 function buildCartWhatsAppLink(cartLines, products, info) {
-  const rows = [];
-  let total = 0;
-
-  cartLines.forEach(function (line) {
-    const product = products.find(function (p) { return p.id === line.productId; });
-    if (!product) return;
-    const subtotal = product.price * line.qty;
-    total += subtotal;
-    rows.push(
-      "— " + product.name + " | الكمية: " + line.qty
-    );
-  });
-
-  const lines = [
-    "السلام عليكم، أريد طلب المنتجات التالية:",
+const messageLines = [
+    "👋 السلام عليكم، أود طلب هذه المنتجات من السلة:",
     "",
-    rows.join("\n"),
-    "",
-    "المجموع الكلي: " + formatPrice(total),
-    "",
-    "📍 معلومات التوصيل:",
-    "المحافظة: " + info.gov,
-    "المنطقة: " + info.area,
-    "أقرب نقطة دالة: " + info.landmark
+    "🛒 *تفاصيل الطلب:*"
   ];
 
-  return buildWhatsAppUrl(lines.join("\n"));
+  let total = 0;
+  cartLines.forEach(function (line) {
+    const p = products.find(function (x) { return x.id === line.productId; });
+    if (p) {
+      messageLines.push("▪️ *" + p.name + "* (الكمية: " + line.qty + ")");
+      total += p.price * line.qty;
+    }
+  });
+
+  messageLines.push("");
+  messageLines.push("💰 *السعر الإجمالي:* *" + formatPrice(total) + "* (غير شامل أجور التوصيل)");
+  messageLines.push("");
+  messageLines.push("📍 *معلومات التوصيل:*");
+  messageLines.push("▪️ المحافظة: *" + info.gov + "*");
+  messageLines.push("▪️ المنطقة: *" + info.area + "*");
+  messageLines.push("▪️ أقرب نقطة دالة: " + info.landmark);
+  messageLines.push("");
+  messageLines.push("أنتظر تأكيدكم لإتمام الطلب، شكراً لكم! 🐾");
+
+  return buildWhatsAppUrl(messageLines.join("\n"));
 }
 
 function buildWhatsAppUrl(message) {
