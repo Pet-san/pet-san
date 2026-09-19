@@ -7,12 +7,32 @@
   <link rel="icon" href="assets/logo/logo.png">
   <link rel="stylesheet" href="css/style.css?v=6">
 <style>
-  /* 1. إصلاح جذري للنافذة المنبثقة (المودال) لتتوسط الشاشة إجبارياً */
+  /* === 1. جدار الحماية ضد تمدد الصفحة (السبب الرئيسي للمشكلة) === */
+  html, body {
+      overflow-x: hidden !important;
+      max-width: 100vw !important;
+  }
+  .admin-main, .admin-shell {
+      min-width: 0 !important; /* هذا السطر السحري يمنع انفجار الصفحة */
+      width: 100% !important;
+      max-width: 100vw !important;
+  }
+  .admin-panel {
+      min-width: 0 !important;
+      width: 100% !important;
+  }
+
+  /* === 2. إصلاح جذري للنافذة المنبثقة (المودال) === */
   .modal-overlay {
       display: none;
       align-items: center !important;
       justify-content: center !important;
       padding: 15px !important;
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      box-sizing: border-box !important;
   }
   .modal-overlay.open {
       display: flex !important;
@@ -29,7 +49,7 @@
       max-width: 90vw !important;
   }
 
-  /* 2. إصلاح القائمة الجانبية لتفتح من اليمين وتلتصق بالحافة */
+  /* === 3. إصلاح القائمة الجانبية في الهاتف === */
   @media (max-width: 980px) {
       .admin-sidebar.open {
           right: 0 !important;
@@ -39,10 +59,11 @@
           margin: 0 !important;
           width: 280px !important;
           max-width: 85vw !important;
+          position: fixed !important;
       }
   }
 
-  /* 3. إصلاح أيقونات الأزرار في الجدول (منع التشوه والتقطع) */
+  /* === 4. إصلاح الأيقونات والأزرار === */
   .row-actions {
       flex-wrap: nowrap !important;
   }
@@ -52,8 +73,6 @@
       stroke-width: 2.2 !important;
       flex-shrink: 0 !important;
   }
-
-  /* 4. إصلاح حجم أيقونة تسجيل الخروج */
   .admin-logout svg {
       width: 22px !important;
       height: 22px !important;
