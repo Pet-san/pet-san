@@ -37,7 +37,7 @@ function renderHeader() {
             iconSvg("cart") +
             '<span class="cart-count" id="cartCount">0</span>' +
           "</a>" +
-          '<a href="login.html" class="btn-icon admin-link" aria-label="دخول الأدمن" title="دخول الأدمن">' + iconSvg("lock") + "</a>" +
+          
           '<button class="btn-icon nav-toggle" id="navToggle" aria-label="القائمة">' + iconSvg("menu") + "</button>" +
         "</div>" +
       "</div>" +
