@@ -2,11 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة تحكم الأدمن | سان ستور</title>
-<link rel="icon" href="assets/logo/logo.png">
-<link rel="stylesheet" href="css/style.css?v=4">
+  <meta charset="UTF-8">
+  <title>لوحة تحكم الأدمن | سان ستور</title>
+  <link rel="icon" href="assets/logo/logo.png">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
@@ -82,7 +81,7 @@
         </div>
         <div style="overflow-x:auto;">
           <table class="admin-table">
-            <thead><tr><th>الأيقونة</th><th>الاسم</th><th>عدد المنتجات</th><th>إجراءات</th></tr></thead>
+            <thead><tr><th>الصورة/الأيقونة</th><th>الاسم</th><th>عدد المنتجات</th><th>إجراءات</th></tr></thead>
             <tbody id="categoriesTableBody"></tbody>
           </table>
         </div>
@@ -135,14 +134,19 @@
 
 <!-- ============ Product modal ============ -->
 <div class="modal-overlay" id="productModal">
-  <div class="modal-card">
+  <!-- أضفنا ستايل للعرض الأقصى لكي لا يخرج عن الشاشة في الهواتف -->
+  <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
     <div class="modal-head">
       <h3 id="productModalTitle" style="margin:0;">إضافة منتج</h3>
       <button class="close-modal" id="closeProductModal">__ICON_CLOSE__</button>
     </div>
     <form id="productForm">
       <div class="field">
-        <label>صورة المنتج</label>
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          صورة المنتج 
+          <!-- زر مسح الصورة الجديد -->
+          <button type="button" id="removeProductImageBtn" class="btn-icon btn-sm" style="color:#d32f2f;" title="مسح الصورة">__ICON_TRASH__</button>
+        </label>
         <div class="image-upload">
           <div class="preview" id="productImagePreview"></div>
           <input type="file" id="productImageInput" accept="image/*">
@@ -162,16 +166,20 @@
 </div>
 
 <!-- ============ Category modal ============ -->
-<!-- ============ Category modal ============ -->
 <div class="modal-overlay" id="categoryModal">
-  <div class="modal-card">
+  <!-- أضفنا ستايل للعرض الأقصى لكي لا يخرج عن الشاشة في الهواتف -->
+  <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
     <div class="modal-head">
       <h3 id="categoryModalTitle" style="margin:0;">إضافة قسم</h3>
       <button class="close-modal" id="closeCategoryModal">__ICON_CLOSE__</button>
     </div>
     <form id="categoryForm">
       <div class="field">
-        <label>صورة القسم</label>
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          صورة القسم 
+          <!-- زر مسح الصورة الجديد -->
+          <button type="button" id="removeCategoryImageBtn" class="btn-icon btn-sm" style="color:#d32f2f;" title="مسح الصورة">__ICON_TRASH__</button>
+        </label>
         <div class="image-upload">
           <div class="preview" id="categoryImagePreview"></div>
           <input type="file" id="categoryImageInput" accept="image/*">
@@ -191,8 +199,7 @@
 <script src="js/auth.js"></script>
 <script src="js/admin.js"></script>
 <script>
-  // تعبئة الأيقونات الثابتة في الشريط الجانبي والمودالات (نطاق محدود بعناصر
-  // بعينها بدل استبدال كامل الصفحة، لتفادي أي أثر جانبي غير مقصود)
+  // تعبئة الأيقونات الثابتة
   document.querySelector(".admin-nav").innerHTML = document.querySelector(".admin-nav").innerHTML
     .replace("__ICON_GAUGE__", iconSvg("gauge"))
     .replace("__ICON_BOX__", iconSvg("box"))
@@ -209,9 +216,15 @@
   document.getElementById("addCategoryBtn").innerHTML = iconSvg("plus") + " إضافة قسم";
   document.getElementById("closeProductModal").innerHTML = iconSvg("close");
   document.getElementById("closeCategoryModal").innerHTML = iconSvg("close");
+  
+  // تعبئة أيقونة سلة المهملات لأزرار مسح الصور الجديدة
+  if(document.getElementById("removeProductImageBtn")) {
+      document.getElementById("removeProductImageBtn").innerHTML = iconSvg("trash");
+  }
+  if(document.getElementById("removeCategoryImageBtn")) {
+      document.getElementById("removeCategoryImageBtn").innerHTML = iconSvg("trash");
+  }
 
-  // نسخة سجل الطلبات الثانية داخل تبويب "الطلبات" تستخدم نفس renderOrdersTable
-  // عبر ربط عنصرها بنفس الدالة بمعرّف بديل
   document.addEventListener("DOMContentLoaded", function () {
     const original = renderOrdersTable;
     renderOrdersTable = function () {
