@@ -19,7 +19,10 @@ function productMediaHtml(product) {
 function renderProductCard(product) {
   const outOfStock = !product.available || product.stock <= 0;
   const badges = [];
-  if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
+  
+  // التعديل: إضافة شارة العرض الخاص
+  if (product.isOffer) badges.push('<span class="badge badge-offer" style="background:var(--danger); color:white;">عرض🔥</span>');
+  else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
 
   return (
@@ -74,7 +77,6 @@ function renderGridInto(containerId, products, emptyMessage) {
 /* صفحة المتجر الكاملة (products.html) والفلاتر                             */
 /* ---------------------------------------------------------------------- */
 
-// التعديل: تمت إضافة mobileMenuOpen لحفظ حالة الستارة (مفتوحة أم مغلقة)
 const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "", mobileMenuOpen: false };
 
 function initShopPage() {
@@ -127,23 +129,19 @@ function renderCategoryFilterPanel() {
 
   let html = '';
 
-  // 1. زر الستارة المنبثقة للموبايل
   html += '<button id="mobileFilterToggle" class="mobile-toggle-btn" style="display:none; width:100%; padding:12px 15px; background:var(--olive-100); color:var(--olive-700); border:none; border-radius:var(--radius-sm); font-weight:bold; align-items:center; justify-content:space-between; margin-bottom:5px; cursor:pointer;">';
   html += '<span style="display:flex; align-items:center; gap:8px;">' + iconSvg("box") + ' تصفية الأقسام</span>';
   html += '<span style="transition: transform 0.3s; transform: rotate(' + (shopState.mobileMenuOpen ? '180deg' : '0deg') + ');">▼</span>';
   html += '</button>';
 
-  // 2. حاوية الأقسام
   html += '<div id="filterListContainer" class="filter-list-container ' + (shopState.mobileMenuOpen ? 'open' : '') + '" style="flex-direction: column;">';
 
-  // زر جميع الأقسام
   html += '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع الأقسام</button>';
   
-  // زر المنتجات المميزة
+  // التعديل: فصل أزرار الفلاتر الافتراضية
   html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--sand-500);">⭐ منتجات مميزة</button>';
-  
-  // زر العروض (يعتمد على المنتجات المُعلمة كـ "جديد")
-  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: var(--danger);">🔥 عروض ووصل حديثاً</button>';
+  html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
+  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: var(--olive-600);">✨ وصل حديثاً</button>';
 
   mainCats.forEach(function(main) {
     const subCats = categories.filter(function(c) { return c.parentId === main.id; });
@@ -170,11 +168,10 @@ function renderCategoryFilterPanel() {
     html += '</div>';
   });
 
-  html += '</div>'; // نهاية الحاوية
+  html += '</div>';
 
   panel.innerHTML = html;
 
-  // تفاعل زر الستارة (موبايل فقط)
   const toggleBtn = document.getElementById("mobileFilterToggle");
   if (toggleBtn) {
     toggleBtn.addEventListener("click", function() {
@@ -183,11 +180,10 @@ function renderCategoryFilterPanel() {
     });
   }
 
-  // تفاعل النقر على الأزرار الداخلية
   panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
       
-      let shouldCloseMobileMenu = true; // نفترض أننا سنغلق الستارة بعد الاختيار
+      let shouldCloseMobileMenu = true; 
 
       if (btn.dataset.filter) {
           shopState.filterMode = btn.dataset.filter;
@@ -204,7 +200,6 @@ function renderCategoryFilterPanel() {
                  const arrow = btn.querySelector('.toggle-arrow');
                  if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
                  
-                 // إذا فتح أو أغلق قسماً فرعياً، لا تغلق الستارة بالكامل
                  shouldCloseMobileMenu = false; 
                  return; 
              }
@@ -213,13 +208,11 @@ function renderCategoryFilterPanel() {
           shopState.filterMode = ""; 
           shopState.categoryId = clickedCat;
           
-          // إذا كان القسم المختار رئيسياً ولديه فروع، لا تغلق الستارة ليتسنى له اختيار الفرع
           if (btn.classList.contains('main-cat-btn') && btn.nextElementSibling && btn.nextElementSibling.classList.contains('sub-cats')) {
               shouldCloseMobileMenu = false;
           }
       }
       
-      // إغلاق الستارة في الموبايل إذا تم اختيار قسم نهائي
       if (window.innerWidth <= 980 && shouldCloseMobileMenu) {
           shopState.mobileMenuOpen = false;
       }
@@ -236,8 +229,11 @@ function renderCategoryFilterPanel() {
 function renderShopResults() {
   let list = Store.getProducts();
 
+  // التعديل: تصفية المنتجات حسب العروض
   if (shopState.filterMode === "featured") {
       list = list.filter(function (p) { return p.featured; });
+  } else if (shopState.filterMode === "offer") {
+      list = list.filter(function (p) { return p.isOffer; });
   } else if (shopState.filterMode === "new") {
       list = list.filter(function (p) { return p.isNew; });
   }
@@ -268,6 +264,8 @@ function renderShopResults() {
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") {
       emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
+  } else if (shopState.filterMode === "offer") {
+      emptyMsg = "عذراً، لا توجد عروض وتخفيضات حالياً.";
   } else if (shopState.filterMode === "new") {
       emptyMsg = "عذراً، لا توجد منتجات جديدة في المتجر حالياً.";
   }
@@ -284,14 +282,17 @@ function renderShopResults() {
 
 function initHomeCollections() {
   const featuredEl = document.getElementById("featuredGrid");
+  const offerEl = document.getElementById("offerGrid"); // التعديل: جلب قسم العروض
   const newEl = document.getElementById("newGrid");
   const catEl = document.getElementById("homeCategories");
-  if (!featuredEl && !newEl && !catEl) return;
-
+  
   const products = Store.getProducts();
 
   if (featuredEl) {
     renderGridInto("featuredGrid", products.filter(function (p) { return p.featured; }).slice(0, 4), "لا توجد منتجات مميزة حاليًا.");
+  }
+  if (offerEl) { // التعديل: رسم منتجات العروض
+    renderGridInto("offerGrid", products.filter(function (p) { return p.isOffer; }).slice(0, 4), "لا توجد عروض حاليًا.");
   }
   if (newEl) {
     renderGridInto("newGrid", products.filter(function (p) { return p.isNew; }).slice(0, 4), "لا توجد منتجات جديدة حاليًا.");
