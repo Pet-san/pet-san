@@ -84,7 +84,7 @@ function initShopPage() {
   if (params.get("cat")) shopState.categoryId = params.get("cat");
   if (params.get("q")) shopState.search = params.get("q");
   
-  // التعديل 1: التقاط كلمة السر (المنتجات المميزة أو الجديدة) من الرابط
+  // التقاط كلمة السر (المنتجات المميزة أو الجديدة) من الرابط
   if (params.get("filter")) shopState.filterMode = params.get("filter");
 
   const searchInput = document.getElementById("searchInput");
@@ -126,16 +126,23 @@ function renderCategoryFilterPanel() {
   // فصل الأقسام الرئيسية
   const mainCats = categories.filter(function(c) { return !c.parentId; });
 
-  // زر جميع الأقسام
-  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right;">جميع الأقسام</button>';
+  // 1. زر جميع الأقسام
+  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع الأقسام</button>';
+  
+  // 2. زر المنتجات المميزة
+  html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--sand-500);">⭐ منتجات مميزة</button>';
+  
+  // 3. زر العروض (يعتمد على المنتجات المُعلمة كـ "جديد")
+  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: var(--danger);">🔥 عروض ووصل حديثاً</button>';
+
 
   mainCats.forEach(function(main) {
     const subCats = categories.filter(function(c) { return c.parentId === main.id; });
     const hasSubs = subCats.length > 0;
     
     // فحص ما إذا كان القسم أو أحد فروعه نشطاً لكي نبقي القائمة منسدلة
-    const isMainActive = shopState.categoryId === main.id;
-    const isSubActive = subCats.some(function(c) { return c.id === shopState.categoryId; });
+    const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
+    const isSubActive = subCats.some(function(c) { return c.id === shopState.categoryId; }) && !shopState.filterMode;
     const isOpen = isMainActive || isSubActive; 
 
     html += '<div class="cat-group" style="margin-bottom: 2px;">';
@@ -143,7 +150,7 @@ function renderCategoryFilterPanel() {
     // زر القسم الرئيسي (نضيف له سهماً إذا كان لديه فروع)
     const arrow = hasSubs ? '<span class="toggle-arrow" style="font-size:11px; transition: transform 0.3s; ' + (isOpen ? 'transform: rotate(180deg);' : '') + '">▼</span>' : '';
     
-    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isMainActive && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent; width:100%; text-align:right; display:flex; justify-content:space-between; align-items:center;">' + main.name + arrow + '</button>';
+    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isMainActive ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent; width:100%; text-align:right; display:flex; justify-content:space-between; align-items:center;">' + main.name + arrow + '</button>';
 
     // حاوية الأقسام الفرعية (تظهر أو تختفي حسب النشاط)
     if (hasSubs) {
@@ -162,25 +169,32 @@ function renderCategoryFilterPanel() {
   // إضافة تفاعل النقر على الأزرار
   panel.querySelectorAll("button").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
-      const clickedCat = btn.dataset.cat;
       
-      // إذا نقر الزبون على قسم رئيسي مفتوح أصلاً، نكتفي بطي أو فرد القائمة بدون إعادة فلترة المنتجات
-      if (btn.classList.contains('main-cat-btn') && shopState.categoryId === clickedCat) {
-         const subGroup = btn.nextElementSibling;
-         if (subGroup && subGroup.classList.contains('sub-cats')) {
-             const isHidden = subGroup.style.display === "none";
-             subGroup.style.display = isHidden ? "block" : "none";
-             const arrow = btn.querySelector('.toggle-arrow');
-             if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
-             return; 
-         }
-      }
+      // إذا ضغط المستخدم على قسم افتراضي (مميزة أو عروض)
+      if (btn.dataset.filter) {
+          shopState.filterMode = btn.dataset.filter;
+          shopState.categoryId = "all"; // تصفير القسم الفعلي
+      } 
+      // إذا ضغط على قسم فعلي (قطط، طيور...)
+      else {
+          const clickedCat = btn.dataset.cat;
+          
+          if (btn.classList.contains('main-cat-btn') && shopState.categoryId === clickedCat && !shopState.filterMode) {
+             const subGroup = btn.nextElementSibling;
+             if (subGroup && subGroup.classList.contains('sub-cats')) {
+                 const isHidden = subGroup.style.display === "none";
+                 subGroup.style.display = isHidden ? "block" : "none";
+                 const arrow = btn.querySelector('.toggle-arrow');
+                 if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+                 return; 
+             }
+          }
 
-      // بمجرد اختيار قسم جديد، يتم إلغاء فلتر (المميزة/الجديدة)
-      shopState.filterMode = "";
-      shopState.categoryId = clickedCat;
+          shopState.filterMode = ""; // إلغاء تفعيل فلتر (مميزة/عروض)
+          shopState.categoryId = clickedCat;
+      }
       
-      // إزالة كلمة السر من الرابط حتى لا تتداخل مع التصفح
+      // إزالة الفلاتر القديمة من الرابط
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.pushState({path:newUrl}, '', newUrl);
 
@@ -193,7 +207,7 @@ function renderCategoryFilterPanel() {
 function renderShopResults() {
   let list = Store.getProducts();
 
-  // التعديل 2: تطبيق فلتر (المنتجات المميزة أو الجديدة) إذا كان موجوداً
+  // تطبيق فلتر (المنتجات المميزة أو الجديدة) إذا كان موجوداً
   if (shopState.filterMode === "featured") {
       list = list.filter(function (p) { return p.featured; });
   } else if (shopState.filterMode === "new") {
