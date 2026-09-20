@@ -218,8 +218,9 @@ const Store = {
   },
   addProduct(prod) {
     const list = this.getProducts();
+    // التعديل هنا: إضافة isOffer: false
     const item = Object.assign({
-      id: uid("prd"), stock: 0, available: true, featured: false, isNew: false, image: null
+      id: uid("prd"), stock: 0, available: true, featured: false, isNew: false, isOffer: false, image: null
     }, prod);
     list.unshift(item);
     this.saveProducts(list);
