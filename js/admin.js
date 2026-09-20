@@ -40,7 +40,46 @@ function initAdminPage() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* التنقّل بين الأقسام                                                       */
+/* ضاغط الصور الذكي لتصغير الحجم قبل الحفظ                                 */
+/* ---------------------------------------------------------------------- */
+
+function compressImage(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // حساب الأبعاد الجديدة مع الحفاظ على التناسب
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        // رسم الصورة بالحجم الجديد
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // ضغط الصورة وتحويلها لـ Base64 خفيف
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = error => reject(error);
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* التنقّل بين الأقسام                                                     */
 /* ---------------------------------------------------------------------- */
 
 function wireSidebarNav() {
@@ -57,7 +96,7 @@ function wireSidebarNav() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* لوحة الإحصائيات                                                          */
+/* لوحة الإحصائيات                                                        */
 /* ---------------------------------------------------------------------- */
 
 function renderStats() {
@@ -77,7 +116,7 @@ function renderStats() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* جدول المنتجات                                                           */
+/* جدول المنتجات                                                          */
 /* ---------------------------------------------------------------------- */
 
 function renderProductsTable() {
@@ -155,15 +194,19 @@ function wireProductModal() {
 
   const imageInput = document.getElementById("productImageInput");
   if (imageInput) {
-    imageInput.addEventListener("change", function () {
+    imageInput.addEventListener("change", async function () {
       const file = imageInput.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function () {
-        pendingProductImage = reader.result;
-        document.getElementById("productImagePreview").innerHTML = '<img src="' + reader.result + '">';
-      };
-      reader.readAsDataURL(file);
+      
+      // التعديل هنا: استخدام دالة الضغط بدلاً من القراءة المباشرة
+      try {
+        const compressedBase64 = await compressImage(file);
+        pendingProductImage = compressedBase64;
+        document.getElementById("productImagePreview").innerHTML = '<img src="' + compressedBase64 + '">';
+      } catch (error) {
+        console.error("Image Compression Error:", error);
+        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+      }
     });
   }
 
@@ -325,16 +368,20 @@ function wireCategoryModal() {
 
   const imageInput = document.getElementById("categoryImageInput");
   if (imageInput) {
-    imageInput.addEventListener("change", function () {
+    imageInput.addEventListener("change", async function () {
       const file = imageInput.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function () {
-        pendingCategoryImage = reader.result;
+
+      // التعديل هنا: استخدام دالة الضغط للأقسام أيضاً
+      try {
+        const compressedBase64 = await compressImage(file);
+        pendingCategoryImage = compressedBase64;
         const preview = document.getElementById("categoryImagePreview");
-        if (preview) preview.innerHTML = '<img src="' + reader.result + '">';
-      };
-      reader.readAsDataURL(file);
+        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '">';
+      } catch (error) {
+        console.error("Image Compression Error:", error);
+        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+      }
     });
   }
 
@@ -459,7 +506,7 @@ function renderOrdersTable() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* إعدادات المتجر                                                           */
+/* إعدادات المتجر                                                         */
 /* ---------------------------------------------------------------------- */
 
 function fillSettingsForm() {
