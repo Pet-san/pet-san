@@ -647,3 +647,28 @@ button { font-family: inherit; cursor: pointer; }
     inset: auto !important;
     transform: none !important;
 }
+/* ==========================================================================
+   تحسين قائمة الأقسام للموبايل (ستارة منبثقة)
+   ========================================================================== */
+@media (max-width: 980px) {
+    .mobile-toggle-btn {
+        display: flex !important;
+    }
+    .filter-list-container {
+        display: none;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+        margin-top: 10px;
+    }
+    .filter-list-container.open {
+        display: flex;
+    }
+}
+@media (min-width: 981px) {
+    .mobile-toggle-btn {
+        display: none !important;
+    }
+    .filter-list-container {
+        display: flex !important;
+    }
+}
