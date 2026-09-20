@@ -587,7 +587,18 @@ button { font-family: inherit; cursor: pointer; }
   }
   .header-inner { position: relative; }
   .feature-grid { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; gap: 26px; }
+  
+  /* إصلاح طول الفوتر في الهواتف بجعله عمودين لتوفير المساحة */
+  .footer-grid { 
+      grid-template-columns: 1fr 1fr; 
+      gap: 20px; 
+  }
+  /* جعل قسم اللوجو (الأول) وقسم التواصل (الأخير) يأخذان العرض كاملاً */
+  .footer-grid > div:first-child,
+  .footer-grid > div:last-child {
+      grid-column: span 2;
+  }
+  
   .admin-main { padding: 20px 16px; }
   .admin-stats { grid-template-columns: 1fr 1fr; }
   .cart-item { grid-template-columns: 60px 1fr; grid-template-areas: "img name" "img actions"; }
@@ -672,3 +683,4 @@ button { font-family: inherit; cursor: pointer; }
         display: flex !important;
     }
 }
+```[The file '' could not be opened]
