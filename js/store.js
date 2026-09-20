@@ -18,28 +18,35 @@ function uid(prefix) {
   return (prefix || "id") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-// --- محرك مزامنة Firebase ---
-let isPushing = false;
+// --- محرك مزامنة Firebase الجديد (نظام الطابور الذكي) ---
+let pushTimeout = null;
 
-async function pushToFirebase() {
-  if (isPushing) return;
-  isPushing = true;
-  try {
-    const data = {
-      products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
-      categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
-      settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
-      orders: JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]")
-    };
-    await fetch(FIREBASE_DB_URL + "/data.json", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-  } catch (e) {
-    console.error("Firebase Sync Error:", e);
+function pushToFirebase() {
+  // إلغاء أي عملية رفع قيد الانتظار إذا حدث تعديل/حذف جديد فوراً
+  if (pushTimeout) {
+    clearTimeout(pushTimeout);
   }
-  isPushing = false;
+  
+  // تجميع الأوامر والانتظار نصف ثانية قبل الرفع لضمان وصول كل التغييرات دفعة واحدة
+  pushTimeout = setTimeout(async () => {
+    try {
+      const data = {
+        products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
+        categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
+        settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
+        orders: JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]")
+      };
+      
+      await fetch(FIREBASE_DB_URL + "/data.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      
+    } catch (e) {
+      console.error("Firebase Sync Error:", e);
+    }
+  }, 600); 
 }
 
 async function pullFromFirebase() {
