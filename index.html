@@ -88,22 +88,34 @@
           <h2>منتجات مميزة</h2>
           <p>الأكثر طلبًا من عملائنا هذا الشهر.</p>
         </div>
-        <!-- التعديل هنا: إضافة كلمة السر filter=featured للرابط -->
         <a href="products.html?filter=featured" class="btn btn-outline btn-sm">عرض الكل</a>
       </div>
       <div class="product-grid" id="featuredGrid"></div>
     </div>
   </section>
 
-  <!-- ============ New products ============ -->
+  <!-- ============ Offers products (القسم الجديد) ============ -->
   <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <h2 style="color: var(--danger);">🔥 عروض خاصة</h2>
+          <p>تخفيضات وأسعار مميزة لفترة محدودة، لا تفوتها!</p>
+        </div>
+        <a href="products.html?filter=offer" class="btn btn-outline btn-sm">عرض الكل</a>
+      </div>
+      <div class="product-grid" id="offerGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ New products ============ -->
+  <section class="section section-alt">
     <div class="container">
       <div class="section-head">
         <div>
           <h2>وصل حديثًا</h2>
           <p>أحدث الإضافات إلى المتجر.</p>
         </div>
-        <!-- التعديل هنا: إضافة كلمة السر filter=new للرابط -->
         <a href="products.html?filter=new" class="btn btn-outline btn-sm">عرض الكل</a>
       </div>
       <div class="product-grid" id="newGrid"></div>
@@ -111,7 +123,7 @@
   </section>
 
   <!-- ============ Why choose us ============ -->
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <div class="section-head">
         <div>
@@ -145,7 +157,7 @@
   </section>
 
   <!-- ============ Contact band ============ -->
-  <section class="section">
+  <section class="section section-alt">
     <div class="container">
       <div class="contact-band" id="contactBand">
         <div>
@@ -162,10 +174,10 @@
 
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
-<script src="js/store.js?v=6"></script>
+<script src="js/store.js?v=7"></script>
 <script src="js/whatsapp.js?v=3"></script>
-<script src="js/app.js?v=19"></script>
-<script src="js/products.js"></script>
+<script src="js/app.js?v=20"></script>
+<script src="js/products.js?v=20"></script>
 <script>
   // تعبئة أيقونات قسم "لماذا تختار وربيرة" ورابط التواصل السريع
   document.addEventListener("DOMContentLoaded", function () {
