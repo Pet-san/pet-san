@@ -1,7 +1,5 @@
-
 /* ==========================================================================
-   store.js (نسخة السحابة - Firebase)
-   تم ربط هذا الملف بقاعدة بيانات Firebase الخاصة بمشروع San Store.
+   store.js (نسخة السحابة - Firebase - مع حل مشكلة الكاش نهائياً)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
@@ -46,7 +44,18 @@ async function pushToFirebase() {
 
 async function pullFromFirebase() {
   try {
-    const res = await fetch(FIREBASE_DB_URL + "/data.json");
+    // 1. توليد رقم عشوائي (طابع زمني) لتجاوز الكاش نهائياً
+    const cacheBuster = new Date().getTime();
+    
+    // 2. إجبار المتصفح على جلب البيانات الحية دائماً من السحابة
+    const res = await fetch(FIREBASE_DB_URL + "/data.json?nocache=" + cacheBuster, {
+        cache: "no-store",
+        headers: {
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache"
+        }
+    });
+    
     const data = await res.json();
     
     // إذا كانت السحابة فارغة (أول مرة)، نرفع البيانات المحلية إليها
