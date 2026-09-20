@@ -74,7 +74,8 @@ function renderGridInto(containerId, products, emptyMessage) {
 /* صفحة المتجر الكاملة (products.html) والفلاتر                             */
 /* ---------------------------------------------------------------------- */
 
-const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "" };
+// التعديل: تمت إضافة mobileMenuOpen لحفظ حالة الستارة (مفتوحة أم مغلقة)
+const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "", mobileMenuOpen: false };
 
 function initShopPage() {
   const grid = document.getElementById("shopGrid");
@@ -84,7 +85,6 @@ function initShopPage() {
   if (params.get("cat")) shopState.categoryId = params.get("cat");
   if (params.get("q")) shopState.search = params.get("q");
   
-  // التقاط كلمة السر (المنتجات المميزة أو الجديدة) من الرابط
   if (params.get("filter")) shopState.filterMode = params.get("filter");
 
   const searchInput = document.getElementById("searchInput");
@@ -123,36 +123,42 @@ function renderCategoryFilterPanel() {
   if (!panel) return;
   const categories = Store.getCategories();
 
-  // فصل الأقسام الرئيسية
   const mainCats = categories.filter(function(c) { return !c.parentId; });
 
-  // 1. زر جميع الأقسام
-  let html = '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع الأقسام</button>';
+  let html = '';
+
+  // 1. زر الستارة المنبثقة للموبايل
+  html += '<button id="mobileFilterToggle" class="mobile-toggle-btn" style="display:none; width:100%; padding:12px 15px; background:var(--olive-100); color:var(--olive-700); border:none; border-radius:var(--radius-sm); font-weight:bold; align-items:center; justify-content:space-between; margin-bottom:5px; cursor:pointer;">';
+  html += '<span style="display:flex; align-items:center; gap:8px;">' + iconSvg("box") + ' تصفية الأقسام</span>';
+  html += '<span style="transition: transform 0.3s; transform: rotate(' + (shopState.mobileMenuOpen ? '180deg' : '0deg') + ');">▼</span>';
+  html += '</button>';
+
+  // 2. حاوية الأقسام
+  html += '<div id="filterListContainer" class="filter-list-container ' + (shopState.mobileMenuOpen ? 'open' : '') + '" style="flex-direction: column;">';
+
+  // زر جميع الأقسام
+  html += '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع الأقسام</button>';
   
-  // 2. زر المنتجات المميزة
+  // زر المنتجات المميزة
   html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--sand-500);">⭐ منتجات مميزة</button>';
   
-  // 3. زر العروض (يعتمد على المنتجات المُعلمة كـ "جديد")
+  // زر العروض (يعتمد على المنتجات المُعلمة كـ "جديد")
   html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: var(--danger);">🔥 عروض ووصل حديثاً</button>';
-
 
   mainCats.forEach(function(main) {
     const subCats = categories.filter(function(c) { return c.parentId === main.id; });
     const hasSubs = subCats.length > 0;
     
-    // فحص ما إذا كان القسم أو أحد فروعه نشطاً لكي نبقي القائمة منسدلة
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isSubActive = subCats.some(function(c) { return c.id === shopState.categoryId; }) && !shopState.filterMode;
     const isOpen = isMainActive || isSubActive; 
 
     html += '<div class="cat-group" style="margin-bottom: 2px;">';
     
-    // زر القسم الرئيسي (نضيف له سهماً إذا كان لديه فروع)
     const arrow = hasSubs ? '<span class="toggle-arrow" style="font-size:11px; transition: transform 0.3s; ' + (isOpen ? 'transform: rotate(180deg);' : '') + '">▼</span>' : '';
     
     html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isMainActive ? "active" : "") + '" style="font-weight:bold; border-right: 4px solid transparent; width:100%; text-align:right; display:flex; justify-content:space-between; align-items:center;">' + main.name + arrow + '</button>';
 
-    // حاوية الأقسام الفرعية (تظهر أو تختفي حسب النشاط)
     if (hasSubs) {
       html += '<div class="sub-cats" style="display: ' + (isOpen ? "block" : "none") + ';">';
       subCats.forEach(function(sub) {
@@ -164,18 +170,29 @@ function renderCategoryFilterPanel() {
     html += '</div>';
   });
 
+  html += '</div>'; // نهاية الحاوية
+
   panel.innerHTML = html;
 
-  // إضافة تفاعل النقر على الأزرار
-  panel.querySelectorAll("button").forEach(function (btn) {
+  // تفاعل زر الستارة (موبايل فقط)
+  const toggleBtn = document.getElementById("mobileFilterToggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", function() {
+      shopState.mobileMenuOpen = !shopState.mobileMenuOpen;
+      renderCategoryFilterPanel();
+    });
+  }
+
+  // تفاعل النقر على الأزرار الداخلية
+  panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
       
-      // إذا ضغط المستخدم على قسم افتراضي (مميزة أو عروض)
+      let shouldCloseMobileMenu = true; // نفترض أننا سنغلق الستارة بعد الاختيار
+
       if (btn.dataset.filter) {
           shopState.filterMode = btn.dataset.filter;
-          shopState.categoryId = "all"; // تصفير القسم الفعلي
+          shopState.categoryId = "all";
       } 
-      // إذا ضغط على قسم فعلي (قطط، طيور...)
       else {
           const clickedCat = btn.dataset.cat;
           
@@ -186,15 +203,27 @@ function renderCategoryFilterPanel() {
                  subGroup.style.display = isHidden ? "block" : "none";
                  const arrow = btn.querySelector('.toggle-arrow');
                  if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+                 
+                 // إذا فتح أو أغلق قسماً فرعياً، لا تغلق الستارة بالكامل
+                 shouldCloseMobileMenu = false; 
                  return; 
              }
           }
 
-          shopState.filterMode = ""; // إلغاء تفعيل فلتر (مميزة/عروض)
+          shopState.filterMode = ""; 
           shopState.categoryId = clickedCat;
+          
+          // إذا كان القسم المختار رئيسياً ولديه فروع، لا تغلق الستارة ليتسنى له اختيار الفرع
+          if (btn.classList.contains('main-cat-btn') && btn.nextElementSibling && btn.nextElementSibling.classList.contains('sub-cats')) {
+              shouldCloseMobileMenu = false;
+          }
       }
       
-      // إزالة الفلاتر القديمة من الرابط
+      // إغلاق الستارة في الموبايل إذا تم اختيار قسم نهائي
+      if (window.innerWidth <= 980 && shouldCloseMobileMenu) {
+          shopState.mobileMenuOpen = false;
+      }
+      
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.pushState({path:newUrl}, '', newUrl);
 
@@ -207,7 +236,6 @@ function renderCategoryFilterPanel() {
 function renderShopResults() {
   let list = Store.getProducts();
 
-  // تطبيق فلتر (المنتجات المميزة أو الجديدة) إذا كان موجوداً
   if (shopState.filterMode === "featured") {
       list = list.filter(function (p) { return p.featured; });
   } else if (shopState.filterMode === "new") {
@@ -215,7 +243,6 @@ function renderShopResults() {
   }
 
   if (shopState.categoryId !== "all" && !shopState.filterMode) {
-    // جلب المنتجات التابعة للقسم المختار والأقسام المتفرعة منه
     const subCatIds = Store.getCategories().filter(function(c) { return c.parentId === shopState.categoryId; }).map(function(c) { return c.id; });
     const allowedCats = [shopState.categoryId].concat(subCatIds);
 
@@ -238,7 +265,6 @@ function renderShopResults() {
     default: break; 
   }
 
-  // تغيير العنوان ليناسب الفلتر المختار
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") {
       emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
@@ -272,7 +298,6 @@ function initHomeCollections() {
   }
   if (catEl) {
     const categories = Store.getCategories();
-    // عرض الأقسام الرئيسية فقط في الرئيسية لعدم تكديس الواجهة
     const mainCategories = categories.filter(function(c) { return !c.parentId; });
     
     catEl.innerHTML = mainCategories.map(function (c) {
