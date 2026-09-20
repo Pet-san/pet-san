@@ -143,11 +143,12 @@ function renderProductsTable() {
     const tags = [];
     if (p.featured) tags.push("مميز");
     if (p.isNew) tags.push("جديد");
+    if (p.isOffer) tags.push("عرض🔥"); // تمييز العروض في الجدول
 
     return (
       "<tr>" +
         "<td>" + img + "</td>" +
-        "<td>" + p.name + (tags.length ? ' <span class="field-hint">(' + tags.join(" / ") + ")</span>" : "") + "</td>" +
+        "<td>" + p.name + (tags.length ? ' <span class="field-hint" style="color:var(--danger);">(' + tags.join(" / ") + ")</span>" : "") + "</td>" +
         "<td>" + Store.getCategoryName(p.categoryId) + "</td>" +
         "<td>" + formatPrice(p.price) + "</td>" +
         "<td>" + p.stock + "</td>" +
@@ -243,9 +244,16 @@ function openProductModal(productId) {
     document.getElementById("productPrice").value = p.price;
     document.getElementById("productCategorySelect").value = p.categoryId;
     document.getElementById("productStock").value = p.stock;
+    
     document.getElementById("productAvailable").checked = p.available;
     document.getElementById("productFeatured").checked = !!p.featured;
     document.getElementById("productNew").checked = !!p.isNew;
+    
+    // استرجاع حالة العرض إن وجدت
+    if (document.getElementById("productOffer")) {
+        document.getElementById("productOffer").checked = !!p.isOffer; 
+    }
+    
     pendingProductImage = p.image || null;
     preview.innerHTML = p.image ? '<img src="' + p.image + '">' : iconSvg("box");
   } else {
@@ -273,6 +281,7 @@ function saveProductForm(e) {
     available: document.getElementById("productAvailable").checked,
     featured: document.getElementById("productFeatured").checked,
     isNew: document.getElementById("productNew").checked,
+    isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, // حفظ حالة العرض
     image: pendingProductImage
   };
 
