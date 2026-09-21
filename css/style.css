@@ -188,15 +188,60 @@ button { font-family: inherit; cursor: pointer; }
 .hero-trust div strong { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--olive-700); }
 .hero-trust div span { font-size: .85rem; color: var(--ink-600); }
 
-.hero-art {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%;
-  background: linear-gradient(155deg, var(--olive-500), var(--olive-700));
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-lift);
+/* ---------- Ads Slider (التصميم المدمج الجديد) ---------- */
+.hero-art { 
+    background: transparent !important; 
+    box-shadow: none !important; 
+    border-radius: 0 !important; 
+    width: 100%; 
+    max-width: 100%; 
+    margin: 0 auto; 
 }
-.hero-art img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
+.ads-slider-container {
+    position: relative; 
+    width: 100%; 
+    /* جعل الأبعاد تناسب الصور المفرغة أو المندمجة */
+    aspect-ratio: 4 / 3; 
+    border-radius: 0; 
+    overflow: hidden;
+    /* إزالة الظل والخلفية لتبدو الصورة جزءاً من الصفحة */
+    box-shadow: none; 
+    background: transparent; 
+    display: flex;
+}
+.ads-slider-track {
+    display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out;
+}
+.ad-slide {
+    flex: 0 0 100%; width: 100%; height: 100%; position: relative;
+}
+.ad-slide img {
+    width: 100%; height: 100%; 
+    /* استخدام contain يمنع قص الصور المفرغة (PNG) ويحافظ على أبعادها */
+    object-fit: contain; 
+}
+.ads-dots {
+    position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 10;
+}
+.ad-dot {
+    width: 10px; height: 10px; border-radius: 50%; 
+    background: var(--olive-300, #c5d1a5); /* لون النقطة غير النشطة */
+    cursor: pointer; transition: background 0.3s, transform 0.3s;
+}
+.ad-dot.active { 
+    background: var(--olive-700); /* لون النقطة النشطة مطابق للون علامتك التجارية */
+    transform: scale(1.2); 
+}
+
+/* اللوجو الافتراضي في حال عدم وجود إعلانات */
+.hero-art-default {
+    position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%;
+    background: linear-gradient(155deg, var(--olive-500), var(--olive-700));
+    display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift);
+}
+.hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
+
 
 /* ---------- Section shells ---------- */
 .section { padding-block: 58px; }
