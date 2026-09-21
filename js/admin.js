@@ -6,8 +6,10 @@
 
 let editingProductId = null;
 let editingCategoryId = null;
-let pendingProductImage = null; // base64 مؤقت لصور المنتجات
-let pendingCategoryImage = null; // base64 مؤقت لصور الأقسام
+let editingAdId = null; // التعديل 1: متغير للإعلانات
+let pendingProductImage = null; 
+let pendingCategoryImage = null; 
+let pendingAdImage = null; // التعديل 2: صورة الإعلان المؤقتة
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -27,12 +29,15 @@ function initAdminPage() {
   renderProductsTable();
   renderCategoriesTable();
   renderOrdersTable();
+  renderAdsTable(); // التعديل 3: تشغيل جدول الإعلانات
+  
   fillSettingsForm();
   populateCategorySelect();
   populateIconPicker();
 
   wireProductModal();
   wireCategoryModal();
+  wireAdModal(); // التعديل 4: تشغيل نوافذ الإعلانات
   wireSettingsForm();
 
   const productSearch = document.getElementById("adminProductSearch");
@@ -143,7 +148,7 @@ function renderProductsTable() {
     const tags = [];
     if (p.featured) tags.push("مميز");
     if (p.isNew) tags.push("جديد");
-    if (p.isOffer) tags.push("عرض🔥"); // تمييز العروض في الجدول
+    if (p.isOffer) tags.push("عرض🔥"); 
 
     return (
       "<tr>" +
@@ -199,7 +204,6 @@ function wireProductModal() {
       const file = imageInput.files[0];
       if (!file) return;
       
-      // التعديل هنا: استخدام دالة الضغط بدلاً من القراءة المباشرة
       try {
         const compressedBase64 = await compressImage(file);
         pendingProductImage = compressedBase64;
@@ -211,7 +215,6 @@ function wireProductModal() {
     });
   }
 
-  // برمجة زر مسح صورة المنتج
   const removeImgBtn = document.getElementById("removeProductImageBtn");
   if (removeImgBtn) {
     removeImgBtn.addEventListener("click", function () {
@@ -245,11 +248,15 @@ function openProductModal(productId) {
     document.getElementById("productCategorySelect").value = p.categoryId;
     document.getElementById("productStock").value = p.stock;
     
+    // التعديل 5: جلب الخيارات/النكهات للمربع النصي
+    if(document.getElementById("productVariants")) {
+        document.getElementById("productVariants").value = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
+    }
+    
     document.getElementById("productAvailable").checked = p.available;
     document.getElementById("productFeatured").checked = !!p.featured;
     document.getElementById("productNew").checked = !!p.isNew;
     
-    // استرجاع حالة العرض إن وجدت
     if (document.getElementById("productOffer")) {
         document.getElementById("productOffer").checked = !!p.isOffer; 
     }
@@ -259,6 +266,9 @@ function openProductModal(productId) {
   } else {
     title.textContent = "إضافة منتج جديد";
     document.getElementById("productAvailable").checked = true;
+    if(document.getElementById("productVariants")) {
+        document.getElementById("productVariants").value = "";
+    }
     preview.innerHTML = iconSvg("box");
   }
 
@@ -272,6 +282,11 @@ function closeProductModal() {
 
 function saveProductForm(e) {
   e.preventDefault();
+  
+  // التعديل 6: تحويل النص المكتوب في مربع الخيارات إلى مصفوفة نظيفة
+  const variantsStr = document.getElementById("productVariants") ? document.getElementById("productVariants").value : "";
+  const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
+  
   const data = {
     name: document.getElementById("productName").value.trim(),
     description: document.getElementById("productDescription").value.trim(),
@@ -281,7 +296,8 @@ function saveProductForm(e) {
     available: document.getElementById("productAvailable").checked,
     featured: document.getElementById("productFeatured").checked,
     isNew: document.getElementById("productNew").checked,
-    isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, // حفظ حالة العرض
+    isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, 
+    variants: variantsArr, // حفظ الخيارات في قاعدة البيانات
     image: pendingProductImage
   };
 
@@ -381,7 +397,6 @@ function wireCategoryModal() {
       const file = imageInput.files[0];
       if (!file) return;
 
-      // التعديل هنا: استخدام دالة الضغط للأقسام أيضاً
       try {
         const compressedBase64 = await compressImage(file);
         pendingCategoryImage = compressedBase64;
@@ -394,7 +409,6 @@ function wireCategoryModal() {
     });
   }
 
-  // برمجة زر مسح صورة القسم
   const removeImgBtn = document.getElementById("removeCategoryImageBtn");
   if (removeImgBtn) {
     removeImgBtn.addEventListener("click", function () {
@@ -420,7 +434,6 @@ function openCategoryModal(categoryId) {
   const preview = document.getElementById("categoryImagePreview");
   const nameInput = document.getElementById("categoryName");
 
-  // زرع القائمة المنسدلة لاختيار القسم الأب برمجياً
   let parentContainer = document.getElementById("categoryParentContainer");
   if (!parentContainer) {
     parentContainer = document.createElement("div");
@@ -433,7 +446,6 @@ function openCategoryModal(categoryId) {
   const parentSelect = document.getElementById("categoryParent");
   const allCats = Store.getCategories();
   
-  // السماح للأقسام الرئيسية فقط بأن تكون "أباً" لمنع التداخل اللانهائي
   parentSelect.innerHTML = '<option value="">-- قسم رئيسي مستقل --</option>' +
     allCats.filter(function(c) { return c.id !== categoryId && !c.parentId; })
            .map(function(c) { return '<option value="' + c.id + '">' + c.name + '</option>'; }).join("");
@@ -484,6 +496,124 @@ function saveCategoryForm(e) {
   closeCategoryModal();
   renderCategoriesTable();
   populateCategorySelect();
+}
+
+/* ---------------------------------------------------------------------- */
+/* الإعلانات (Ads Slider) - التعديل 7                                     */
+/* ---------------------------------------------------------------------- */
+
+function renderAdsTable() {
+  const tbody = document.getElementById("adsTableBody");
+  if (!tbody) return;
+  
+  // ترتيب الإعلانات حسب الرقم المدخل
+  const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  if (!ads.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--ink-300);">لا توجد إعلانات حالياً</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = ads.map(function (ad) {
+    const img = ad.image ? '<img src="' + ad.image + '" style="width:80px;height:40px;border-radius:4px;object-fit:cover;">' : '<div class="admin-table-icon">' + iconSvg("image") + "</div>";
+    const link = ad.link ? '<a href="' + ad.link + '" target="_blank" style="color:var(--olive-700);text-decoration:underline;">عرض الرابط</a>' : '-';
+    
+    return (
+      "<tr>" +
+        "<td>" + img + "</td>" +
+        "<td>" + link + "</td>" +
+        "<td>" + (ad.order || 0) + "</td>" +
+        '<td class="row-actions">' +
+          '<button class="btn-icon btn-sm" title="حذف" onclick="deleteAdConfirm(\'' + ad.id + '\')">' + iconSvg("trash") + "</button>" +
+        "</td>" +
+      "</tr>"
+    );
+  }).join("");
+}
+
+function deleteAdConfirm(id) {
+  if (confirm('هل تريد حذف هذا الإعلان؟')) {
+    Store.deleteAd(id);
+    renderAdsTable();
+    showToast("تم حذف الإعلان");
+  }
+}
+
+function wireAdModal() {
+  const addBtn = document.getElementById("addAdBtn");
+  if (addBtn) addBtn.addEventListener("click", function () { openAdModal(); });
+  
+  const closeBtn = document.getElementById("closeAdModal");
+  if (closeBtn) closeBtn.addEventListener("click", closeAdModal);
+  
+  const form = document.getElementById("adForm");
+  if (form) form.addEventListener("submit", saveAdForm);
+
+  const imageInput = document.getElementById("adImageInput");
+  if (imageInput) {
+    imageInput.addEventListener("change", async function () {
+      const file = imageInput.files[0];
+      if (!file) return;
+      try {
+        // نستخدم جودة أعلى وضغط مختلف لأن الإعلانات تكون عرضية وعادة تحتاج دقة أكبر
+        const compressedBase64 = await compressImage(file, 1000, 0.8);
+        pendingAdImage = compressedBase64;
+        const preview = document.getElementById("adImagePreview");
+        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+      } catch (error) {
+        console.error("Image Compression Error:", error);
+        showToast("فشل ضغط الصورة.");
+      }
+    });
+  }
+
+  const removeImgBtn = document.getElementById("removeAdImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingAdImage = null;
+      if (document.getElementById("adImageInput")) {
+          document.getElementById("adImageInput").value = "";
+      }
+      const preview = document.getElementById("adImagePreview");
+      if(preview) preview.innerHTML = "";
+    });
+  }
+}
+
+function openAdModal() {
+  pendingAdImage = null;
+  const modal = document.getElementById("adModal");
+  const form = document.getElementById("adForm");
+  if(form) form.reset();
+  
+  const preview = document.getElementById("adImagePreview");
+  if (preview) preview.innerHTML = "";
+  
+  if(modal) modal.classList.add("open");
+}
+
+function closeAdModal() {
+  const modal = document.getElementById("adModal");
+  if(modal) modal.classList.remove("open");
+}
+
+function saveAdForm(e) {
+  e.preventDefault();
+  if (!pendingAdImage) {
+      showToast("يرجى رفع صورة للإعلان");
+      return;
+  }
+  
+  const data = {
+    link: document.getElementById("adLink") ? document.getElementById("adLink").value.trim() : "",
+    order: document.getElementById("adOrder") ? Number(document.getElementById("adOrder").value) : 0,
+    image: pendingAdImage
+  };
+
+  Store.addAd(data);
+  showToast("تمت إضافة الإعلان بنجاح");
+  closeAdModal();
+  renderAdsTable();
 }
 
 /* ---------------------------------------------------------------------- */
