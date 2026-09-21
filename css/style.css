@@ -168,7 +168,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative; overflow: hidden;
-  padding-block: 56px 72px;
+  padding-block: 40px 60px; /* تعديل المسافات */
 }
 .hero-blob {
   position: absolute; inset-inline-end: -12%; top: -18%;
@@ -179,17 +179,22 @@ button { font-family: inherit; cursor: pointer; }
 }
 .hero-inner {
   position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center;
+  /* التعديل الجوهري: تحويل العرض إلى عمودي وتوسيط العناصر */
+  display: flex; flex-direction: column; gap: 40px; align-items: center; text-align: center;
 }
-.hero-eyebrow-free { color: var(--olive-700); font-weight: 700; margin-bottom: 10px; }
-.hero-copy p { font-size: 1.08rem; max-width: 46ch; }
-.hero-cta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
-.hero-trust { display: flex; gap: 26px; margin-top: 34px; flex-wrap: wrap; }
-.hero-trust div strong { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--olive-700); }
-.hero-trust div span { font-size: .85rem; color: var(--ink-600); }
+.hero-copy { 
+  order: 2; /* جعل النص يظهر أسفل الإعلان */
+  max-width: 800px; margin: 0 auto; 
+}
+.hero-eyebrow-free { color: var(--olive-700); font-weight: 700; margin-bottom: 10px; display: inline-block; }
+.hero-copy h1 { margin-bottom: 16px; }
+.hero-copy p { font-size: 1.08rem; max-width: 100%; margin: 0 auto; }
+.hero-cta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.hero-trust { display: flex; gap: 26px; margin-top: 34px; flex-wrap: wrap; justify-content: center; width: 100%; }
 
-/* ---------- Ads Slider (التصميم المدمج الجديد) ---------- */
+/* ---------- Ads Slider (التصميم العريض الجديد) ---------- */
 .hero-art { 
+    order: 1; /* جعل الإعلان يظهر أولاً بالأعلى */
     background: transparent !important; 
     box-shadow: none !important; 
     border-radius: 0 !important; 
@@ -200,11 +205,9 @@ button { font-family: inherit; cursor: pointer; }
 .ads-slider-container {
     position: relative; 
     width: 100%; 
-    /* جعل الأبعاد تناسب الصور المفرغة أو المندمجة */
-    aspect-ratio: 4 / 3; 
-    border-radius: 0; 
+    aspect-ratio: 21 / 8; /* إعلان عريض جداً يغطي المساحة بمظهر سينمائي ممتاز للكمبيوتر */
+    border-radius: var(--radius-lg); 
     overflow: hidden;
-    /* إزالة الظل والخلفية لتبدو الصورة جزءاً من الصفحة */
     box-shadow: none; 
     background: transparent; 
     display: flex;
@@ -217,7 +220,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .ad-slide img {
     width: 100%; height: 100%; 
-    /* استخدام contain يمنع قص الصور المفرغة (PNG) ويحافظ على أبعادها */
     object-fit: contain; 
 }
 .ads-dots {
@@ -226,11 +228,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 .ad-dot {
     width: 10px; height: 10px; border-radius: 50%; 
-    background: var(--olive-300, #c5d1a5); /* لون النقطة غير النشطة */
+    background: var(--olive-300, #c5d1a5); 
     cursor: pointer; transition: background 0.3s, transform 0.3s;
 }
 .ad-dot.active { 
-    background: var(--olive-700); /* لون النقطة النشطة مطابق للون علامتك التجارية */
+    background: var(--olive-700); 
     transform: scale(1.2); 
 }
 
@@ -582,8 +584,10 @@ button { font-family: inherit; cursor: pointer; }
    ========================================================================== */
 
 @media (max-width: 980px) {
-  .hero-inner, .detail-grid, .about-hero { grid-template-columns: 1fr; }
-  .hero-art { max-width: 380px; margin-inline: auto; order: -1; }
+  /* التعديلات لشاشات الوسط (الآيباد مثلاً) */
+  .detail-grid, .about-hero { grid-template-columns: 1fr; }
+  .hero-art { order: 1; }
+  
   .feature-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-band { grid-template-columns: 1fr; padding: 30px; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -600,7 +604,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 @media (max-width: 768px) {
-  
+  /* التعديلات للموبايل */
+  .ads-slider-container {
+    aspect-ratio: 16 / 9; /* جعل الإعلان متناسق أكثر للموبايل */
+  }
+
   .feature-grid, .product-grid, .grid, .category-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -645,6 +653,7 @@ button { font-family: inherit; cursor: pointer; }
   .cart-item img, .cart-item .placeholder-icon-wrap { grid-area: img; }
   .hero-cta .btn { flex: 1; }
 }
+
 /* ==========================================================================
    الإصلاحات النهائية لأخطاء عرض الموبايل (القائمة الجانبية والمودال)
    ========================================================================== */
@@ -698,6 +707,7 @@ button { font-family: inherit; cursor: pointer; }
     inset: auto !important;
     transform: none !important;
 }
+
 /* ==========================================================================
    تحسين قائمة الأقسام للموبايل (ستارة منبثقة)
    ========================================================================== */
