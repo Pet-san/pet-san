@@ -255,32 +255,28 @@ button { font-family: inherit; cursor: pointer; }
 .section-alt { background: var(--white); }
 
 /* ---------- Category chips ---------- */
+/* ---------- Category chips ---------- */
 .cat-scroller {
-  display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px;
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; /* تم تقليل المسافة (gap) بين الأقسام */
   scrollbar-width: none;
+  justify-content: center; /* توسيط الأقسام بشكل أنيق */
+  flex-wrap: wrap; /* السماح لها بالنزول لسطر جديد إذا لزم الأمر */
 }
 .cat-scroller::-webkit-scrollbar { display: none; }
 .cat-chip {
   flex: 0 0 auto;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: 118px; padding: 18px 12px;
-  background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: 135px; padding: 16px 10px; /* تكبير عرض وسعت البطاقة لتحديد القسم بوضوح */
+  background: var(--white); border: 2px solid var(--line); border-radius: var(--radius-md); /* تحديد إطار القسم بوضوح */
   text-align: center; transition: border-color .15s ease, transform .15s ease;
 }
-.cat-chip:hover { border-color: var(--olive-500); transform: translateY(-2px); }
+.cat-chip:hover { border-color: var(--olive-600); transform: translateY(-2px); }
 .cat-chip .cat-icon {
-  width: 52px; height: 52px; border-radius: 50%;
+  width: 64px; height: 64px; border-radius: 50%; /* تكبير حجم أيقونة القسم */
   background: var(--olive-100); display: flex; align-items: center; justify-content: center;
 }
-.cat-chip .cat-icon svg { width: 26px; height: 26px; color: var(--olive-700); }
-.cat-chip span.name { font-weight: 600; font-size: .88rem; }
-
-.filter-chip {
-  padding: 9px 18px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong);
-  background: var(--white); font-weight: 600; font-size: .88rem; color: var(--ink-600);
-  white-space: nowrap;
-}
-.filter-chip.active, .filter-chip:hover { background: var(--olive-600); border-color: var(--olive-600); color: var(--white); }
+.cat-chip .cat-icon svg { width: 32px; height: 32px; color: var(--olive-700); } /* تكبير رمز الـ SVG داخل الأيقونة */
+.cat-chip span.name { font-weight: 700; font-size: .95rem; }
 
 /* ---------- Product grid & cards ---------- */
 .product-grid {
