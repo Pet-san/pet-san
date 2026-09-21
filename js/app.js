@@ -79,11 +79,9 @@ function renderFooter() {
             "<li>" + settings.address + "</li>" +
           "</ul></div>" +
         "</div>" +
-      "<div class='footer-bottom' style='padding: 15px; line-height: 2; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;'>" +
-      "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة. | اعداد و تطوير | <span style='color: #a5d6a7; font-weight: bold;'>م.امير</span></span>" +
-      "<span>انستغرام : <a href='https://instagram.com/az_6ui' target='_blank' style='color: #a5d6a7; text-decoration: none;'>az_6ui</a></span>" +
-      "<span>واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: #a5d6a7; text-decoration: none;' dir='ltr'>07813623682</a></span>" +
-      
+      "<div class='footer-bottom' style='padding: 20px 15px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.7);'>" +
+      "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة.</span>" +
+      "<span style='font-size: 0.8rem; opacity: 0.8;'>تصميم وتطوير | <a href='https://instagram.com/az_6ui' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;'>م. أمير (az_6ui)</a> | واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;' dir='ltr'>+964 781 362 3682</a></span>" +
       "</div>" +
       "</div>" +
       "</footer>";
