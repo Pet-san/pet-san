@@ -8,31 +8,101 @@
 <link rel="icon" href="assets/logo/logo.png">
 <link rel="stylesheet" href="css/style.css?v=5">
 <style>
+  /* === التعديلات الجديدة (النسخة 2.0) === */
+  
+  /* 1. تقويس حواف المنتجات */
+  .product-media img, .product-media {
+      border-radius: 12px !important;
+  }
+  .product-card {
+      border-radius: 14px !important;
+  }
+
+  /* 2. تصميم سلايدر الإعلانات */
+  .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
+  .ads-slider-container {
+      position: relative; width: 100%; aspect-ratio: 16 / 9;
+      border-radius: var(--radius-lg, 16px); overflow: hidden;
+      box-shadow: var(--shadow-lift); background: var(--olive-50); display: flex;
+  }
+  .ads-slider-track {
+      display: flex; width: 100%; height: 100%; transition: transform 0.4s ease-in-out;
+  }
+  .ad-slide {
+      flex: 0 0 100%; width: 100%; height: 100%; position: relative;
+  }
+  .ad-slide img {
+      width: 100%; height: 100%; object-fit: cover;
+  }
+  .ads-dots {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px; z-index: 10;
+  }
+  .ad-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5);
+      cursor: pointer; transition: background 0.3s, transform 0.3s;
+  }
+  .ad-dot.active { background: var(--white, #fff); transform: scale(1.3); }
+  
+  /* اللوجو الافتراضي في حال عدم وجود إعلانات */
+  .hero-art-default {
+      position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%;
+      background: linear-gradient(155deg, var(--olive-500), var(--olive-700));
+      display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift);
+  }
+  .hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
+
   @media (max-width: 768px) {
+    /* 3. تقليل المسافات بين الأقسام */
+    .section { padding-block: 28px !important; }
+    .hero { padding-block: 30px 40px !important; }
+
+    /* 4. تكبير أيقونات الأقسام (تسوق حسب القسم) */
+    .cat-chip { width: 100px !important; padding: 14px 10px !important; gap: 6px !important; }
+    .cat-chip .cat-icon { width: 68px !important; height: 68px !important; }
+    .cat-chip .cat-icon svg { width: 34px !important; height: 34px !important; }
+    .cat-chip span.name { font-size: 1rem !important; font-weight: 700 !important; }
+
     /* قسم: لماذا تختارنا */
-    .feature-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 10px !important;
-    }
+    .feature-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
     
-    /* شبكة المنتجات (مميزة، حديثة، وكل المتجر) */
-    .product-grid, #shopGrid {
+    /* 5. شبكة المنتجات (سحب أفقي في الرئيسية) */
+    .product-grid {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      padding-bottom: 15px !important;
+      -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important;
+    }
+    .product-grid::-webkit-scrollbar { display: none !important; }
+    .product-grid .product-card {
+      flex: 0 0 75% !important; /* حجم البطاقة ليظهر جزء من البطاقة التالية */
+      scroll-snap-align: center !important; /* التوقف في المنتصف */
+      margin-left: 10px !important;
+    }
+    
+    /* إبقاء شبكة المنتجات في صفحة (كل المنتجات) كشبكة عادية */
+    #shopGrid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
       gap: 8px !important;
     }
-    .product-card {
-      min-width: 0 !important;
-      padding: 8px !important;
+    #shopGrid .product-card {
+       flex: unset !important; margin-left: 0 !important;
     }
-    /* تصغير نصوص المنتج وإخفاء الوصف الطويل لتوفير المساحة */
-    .product-card .product-name { font-size: 12px !important; margin-bottom: 4px !important; line-height: 1.4 !important; }
+
+    /* تصغير نصوص المنتج وتنسيقها للموبايل */
+    .product-card { min-width: 0 !important; padding: 10px !important; }
+    .product-card .product-name { font-size: 13px !important; margin-bottom: 4px !important; line-height: 1.4 !important; }
     .product-card .product-desc { display: none !important; } 
-    .product-card .stock-line { font-size: 10px !important; margin-bottom: 4px !important; }
-    .product-card .price { font-size: 13px !important; margin: 6px 0 !important; }
-    .product-card .product-actions .btn { padding: 6px !important; font-size: 11px !important; }
+    .product-card .stock-line { font-size: 11px !important; margin-bottom: 4px !important; }
+    .product-card .price { font-size: 14px !important; margin: 6px 0 !important; }
+    .product-card .product-actions .btn { padding: 8px !important; font-size: 12px !important; }
   }
 </style>
 </head>
@@ -55,13 +125,12 @@
           <a href="#categories" class="btn btn-outline">تصفح الأقسام</a>
         </div>
         <div class="hero-trust">
-          
           <div><strong>+20</strong><span>منتج متنوع</span></div>
           <div><strong>24س</strong><span>توصيل سريع</span></div>
         </div>
       </div>
-       <div class="hero-art">
-        <img src="assets/logo/logo.png" alt="شعار سان ستور">
+       <div class="hero-art" id="heroAdsContainer">
+        <!-- سيتم توليد الإعلانات أو اللوجو هنا بواسطة الجافاسكربت -->
       </div>
     </div>
   </section>
@@ -94,7 +163,7 @@
     </div>
   </section>
 
-  <!-- ============ Offers products (القسم الجديد) ============ -->
+  <!-- ============ Offers products ============ -->
   <section class="section">
     <div class="container">
       <div class="section-head">
@@ -179,8 +248,8 @@
 <script src="js/app.js?v=20"></script>
 <script src="js/products.js?v=20"></script>
 <script>
-  // تعبئة أيقونات قسم "لماذا تختار وربيرة" ورابط التواصل السريع
   document.addEventListener("DOMContentLoaded", function () {
+    // 1. تعبئة أيقونات قسم "لماذا تختار وربيرة" ورابط التواصل
     document.querySelector(".feature-grid").innerHTML = document.querySelector(".feature-grid").innerHTML
       .replace("__ICON_TRUCK__", iconSvg("truck"))
       .replace("__ICON_SHIELD__", iconSvg("shield"))
@@ -192,6 +261,68 @@
       '<a href="https://wa.me/' + whatsappDigitsOnly(s.whatsapp) + '" target="_blank" rel="noopener">' + iconSvg("whatsapp") + "واتساب</a>" +
     '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
 '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
+
+    // 2. نظام سلايدر الإعلانات الذكي
+    const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
+    const heroArt = document.getElementById("heroAdsContainer");
+    
+    if (ads.length > 0) {
+        let trackHtml = '<div class="ads-slider-container"><div class="ads-slider-track" id="adsTrack">';
+        let dotsHtml = '<div class="ads-dots">';
+        
+        ads.forEach((ad, index) => {
+            const imgWrap = ad.link 
+                ? `<a href="${ad.link}" target="_blank" style="display:block;width:100%;height:100%;"><img src="${ad.image}"></a>` 
+                : `<img src="${ad.image}">`;
+            trackHtml += `<div class="ad-slide" data-index="${index}">${imgWrap}</div>`;
+            dotsHtml += `<div class="ad-dot ${index === 0 ? 'active' : ''}" data-target="${index}"></div>`;
+        });
+        
+        trackHtml += '</div>' + dotsHtml + '</div></div>';
+        heroArt.innerHTML = trackHtml;
+        
+        // تفعيل السحب والتمرير التلقائي
+        const track = document.getElementById("adsTrack");
+        const dots = document.querySelectorAll(".ad-dot");
+        let currentIndex = 0;
+        let slideInterval;
+        
+        function goToSlide(index) {
+            if(index < 0) index = ads.length - 1;
+            if(index >= ads.length) index = 0;
+            currentIndex = index;
+            track.style.transform = `translateX(${currentIndex * 100}%)`; // الاتجاه اليمين للغة العربية
+            dots.forEach(d => d.classList.remove('active'));
+            if(dots[currentIndex]) dots[currentIndex].classList.add('active');
+        }
+        
+        function nextSlide() { goToSlide(currentIndex + 1); }
+        function startAutoSlide() { slideInterval = setInterval(nextSlide, 3500); }
+        function stopAutoSlide() { clearInterval(slideInterval); }
+        
+        dots.forEach(dot => {
+            dot.addEventListener("click", function() {
+                stopAutoSlide();
+                goToSlide(parseInt(this.dataset.target));
+                startAutoSlide();
+            });
+        });
+        
+        startAutoSlide();
+        
+        // السحب باللمس للموبايل (Swipe)
+        let startX = 0, endX = 0;
+        track.addEventListener('touchstart', e => { stopAutoSlide(); startX = e.changedTouches[0].screenX; });
+        track.addEventListener('touchend', e => { 
+            endX = e.changedTouches[0].screenX; 
+            if (startX - endX > 50) nextSlide(); // سحب يسار
+            else if (endX - startX > 50) goToSlide(currentIndex - 1); // سحب يمين
+            startAutoSlide();
+        });
+    } else {
+        // لوغو افتراضي في حال لم يتم رفع إعلانات
+        heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>';
+    }
   });
 </script>
 </body>
