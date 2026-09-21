@@ -1,5 +1,5 @@
 /* ==========================================================================
-   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات)
+   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
    يُستخدم في: index.html، products.html، product.html.
    ========================================================================== */
 
@@ -239,7 +239,7 @@ function renderShopResults() {
     default: break; 
   }
 
-  // التعديل الجديد: شريط الأقسام الفرعية السحابي (أفقي)
+  // التعديل: شريط الأقسام الفرعية السحابي (أفقي ومثبت)
   const subCatContainerId = "subCategoryScroller";
   let subCatContainer = document.getElementById(subCatContainerId);
   
@@ -255,8 +255,17 @@ function renderShopResults() {
                   subCatContainer = document.createElement("div");
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
-                  subCatContainer.style.marginBottom = "20px";
-                  subCatContainer.style.paddingBottom = "10px";
+                  
+                  // تقليص الهوامش
+                  subCatContainer.style.marginBottom = "10px";
+                  subCatContainer.style.padding = "10px 0";
+                  
+                  // تثبيت الشريط
+                  subCatContainer.style.position = "sticky";
+                  subCatContainer.style.top = "60px"; // يلتصق أسفل الهيدر
+                  subCatContainer.style.zIndex = "90";
+                  subCatContainer.style.backgroundColor = "#fefcf4"; // لون خلفية الموقع لكي لا تظهر المنتجات تحته
+
                   const grid = document.getElementById("shopGrid");
                   grid.parentNode.insertBefore(subCatContainer, grid);
               }
