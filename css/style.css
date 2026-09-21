@@ -735,3 +735,23 @@ button { font-family: inherit; cursor: pointer; }
         display: flex !important;
     }
 }
+/* ---------- تحسين تصميم الأقسام الفرعية (الفلاتر) لتطابق التصميم المطلوب ---------- */
+.filter-chip {
+  padding: 10px 22px !important;
+  border-radius: var(--radius-pill) !important; /* جعل الحواف دائرية بالكامل مثل الأقسام في المربع الأحمر */
+  border: 1px solid var(--line-strong) !important;
+  background: var(--white) !important;
+  font-weight: 600 !important;
+  font-size: .92rem !important;
+  color: var(--ink-600) !important;
+  white-space: nowrap !important;
+  transition: all 0.2s ease !important;
+}
+
+.filter-chip.active, 
+.filter-chip:hover {
+  background: var(--olive-700) !important; /* لون متناسق مع هوية المتجر عند التحديد */
+  border-color: var(--olive-700) !important;
+  color: var(--white) !important;
+  box-shadow: var(--shadow-soft);
+}
