@@ -27,13 +27,13 @@
         box-shadow: none !important; 
         border-radius: 0 !important; 
         width: 100%; 
-        max-width: 100%; /* تم تكبير العرض ليأخذ المساحة كاملة */
+        max-width: 100%; 
         margin: 0 auto; 
     }
     .ads-slider-container {
         position: relative; 
         width: 100%; 
-        aspect-ratio: 16 / 9; /* تم ضبط الأبعاد لتناسب الحجم الكبير */
+        aspect-ratio: 16 / 9; 
         border-radius: var(--radius-lg, 16px); 
         overflow: hidden;
         box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
@@ -96,12 +96,11 @@
       }
       .product-grid::-webkit-scrollbar { display: none !important; }
       .product-grid .product-card {
-        flex: 0 0 75% !important; /* حجم البطاقة ليظهر جزء من البطاقة التالية */
-        scroll-snap-align: center !important; /* التوقف في المنتصف */
+        flex: 0 0 75% !important;
+        scroll-snap-align: center !important;
         margin-left: 10px !important;
       }
       
-      /* إبقاء شبكة المنتجات في صفحة (كل المنتجات) كشبكة عادية */
       #shopGrid {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
@@ -111,7 +110,6 @@
          flex: unset !important; margin-left: 0 !important;
       }
 
-      /* تصغير نصوص المنتج وتنسيقها للموبايل */
       .product-card { min-width: 0 !important; padding: 10px !important; }
       .product-card .product-name { font-size: 13px !important; margin-bottom: 4px !important; line-height: 1.4 !important; }
       .product-card .product-desc { display: none !important; } 
@@ -140,8 +138,8 @@
           <a href="#categories" class="btn btn-outline">تصفح الأقسام</a>
         </div>
         <div class="hero-trust">
-          <div><strong>+100</strong><span>منتج متنوع</span></div>
-          <div><strong>24 س</strong><span>توصيل سريع</span></div>
+          <div><strong dir="ltr" style="display: inline-block;">+100</strong> <span dir="rtl">منتج متنوع</span></div>
+          <div><strong dir="ltr" style="display: inline-block;">24 س</strong> <span dir="rtl">توصيل سريع</span></div>
         </div>
       </div>
        <div class="hero-art" id="heroAdsContainer">
@@ -264,7 +262,6 @@
 <script src="js/products.js?v=21"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // 1. تعبئة أيقونات قسم "لماذا تختار وربيرة" ورابط التواصل
     document.querySelector(".feature-grid").innerHTML = document.querySelector(".feature-grid").innerHTML
       .replace("__ICON_TRUCK__", iconSvg("truck"))
       .replace("__ICON_SHIELD__", iconSvg("shield"))
@@ -277,7 +274,6 @@
       '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
       '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
 
-    // 2. نظام سلايدر الإعلانات الذكي (تمرير تلقائي ويدوي)
     const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
     const heroArt = document.getElementById("heroAdsContainer");
     
@@ -296,30 +292,27 @@
         trackHtml += '</div>' + dotsHtml + '</div></div>';
         heroArt.innerHTML = trackHtml;
         
-        // تفعيل السحب والتمرير
         const track = document.getElementById("adsTrack");
         const dots = document.querySelectorAll(".ad-dot");
         let currentIndex = 0;
-        let slideInterval; // متغير التوقيت التلقائي
+        let slideInterval;
         
         function goToSlide(index) {
             if(index < 0) index = ads.length - 1;
             if(index >= ads.length) index = 0;
             currentIndex = index;
-            track.style.transform = `translateX(${currentIndex * 100}%)`; // الاتجاه اليمين للغة العربية
+            track.style.transform = `translateX(${currentIndex * 100}%)`;
             dots.forEach(d => d.classList.remove('active'));
             if(dots[currentIndex]) dots[currentIndex].classList.add('active');
         }
         
         function nextSlide() { goToSlide(currentIndex + 1); }
 
-        // --- دوال التشغيل التلقائي ---
         function startAutoSlide() { slideInterval = setInterval(nextSlide, 3500); }
         function stopAutoSlide() { clearInterval(slideInterval); }
         
-        startAutoSlide(); // تشغيل التمرير التلقائي
+        startAutoSlide();
         
-        // النقر على النقاط السفلية
         dots.forEach(dot => {
             dot.addEventListener("click", function() {
                 stopAutoSlide();
@@ -328,20 +321,18 @@
             });
         });
         
-        // السحب باللمس للموبايل (Swipe)
         let startX = 0, endX = 0;
         track.addEventListener('touchstart', e => { 
-            stopAutoSlide(); // إيقاف التلقائي عند بداية اللمس
+            stopAutoSlide();
             startX = e.changedTouches[0].screenX; 
         });
         track.addEventListener('touchend', e => { 
             endX = e.changedTouches[0].screenX; 
-            if (startX - endX > 50) nextSlide(); // سحب لليسار
-            else if (endX - startX > 50) goToSlide(currentIndex - 1); // سحب لليمين
-            startAutoSlide(); // إعادة التلقائي بعد السحب
+            if (startX - endX > 50) nextSlide();
+            else if (endX - startX > 50) goToSlide(currentIndex - 1);
+            startAutoSlide();
         });
     } else {
-        // لوغو افتراضي في حال لم يتم رفع إعلانات
         heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>';
     }
   });
