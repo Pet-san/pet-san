@@ -585,7 +585,6 @@ button { font-family: inherit; cursor: pointer; }
    ========================================================================== */
 
 @media (max-width: 980px) {
-  /* التعديلات لشاشات الوسط (الآيباد مثلاً) */
   .detail-grid, .about-hero { grid-template-columns: 1fr; }
   .hero-art { order: 1; }
   
@@ -605,9 +604,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 @media (max-width: 768px) {
-  /* التعديلات للموبايل */
   .ads-slider-container {
-    aspect-ratio: 16 / 9; /* جعل الإعلان متناسق أكثر للموبايل */
+    aspect-ratio: 16 / 9; 
   }
 
   .feature-grid, .category-grid {
@@ -626,95 +624,120 @@ button { font-family: inherit; cursor: pointer; }
     padding-bottom: 15px !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    gap: 12px !important; /* مسافة متناسقة بين المنتجات */
+    gap: 14px !important; 
   }
   .product-grid::-webkit-scrollbar { display: none !important; }
   
   .product-grid .product-card {
-    /* التعديل 1: العرض لظهور 2.5 منتج */
-    flex: 0 0 38% !important; 
-    min-width: 135px !important; 
-    max-width: 155px !important;
+    flex: 0 0 auto !important; 
+    width: 175px !important; /* حجم ثابت يعرض منتجين وجزء من الثالث لتشجيع السحب */
     scroll-snap-align: start !important;
     margin-left: 0 !important; 
   }
   
-  /* إبقاء شبكة المنتجات في صفحة (كل المنتجات) كشبكة عادية */
   #shopGrid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
+    gap: 12px !important;
   }
   #shopGrid .product-card {
      flex: unset !important; margin-left: 0 !important;
-     max-width: 100% !important;
+     width: 100% !important; 
   }
 
-  /* التعديل 2: تصغير الحشوات لتقليل الطول الكلي للبطاقة */
+  /* تنسيق البطاقة لتطابق التصميم الاحترافي 100% */
   .product-card { 
       min-width: 0 !important; 
-      padding: 8px !important; 
+      padding: 12px !important; 
+      border-radius: 16px !important;
+  }
+  
+  .product-media {
+      aspect-ratio: 1 / 1 !important; /* صورة مربعة لتقصير الطول الكلي */
       border-radius: 12px !important;
   }
   
-  /* جعل الصورة مربعة تماماً لتوفير مساحة عمودية كبيرة */
-  .product-media {
-      aspect-ratio: 1 / 1 !important;
-      border-radius: 8px !important;
-  }
-
-  /* التعديل 4: ترتيب العناصر عبر flex (السعر فوق الزر وتحت العنوان مباشرة) */
   .product-body { 
-      padding: 8px 4px 4px !important; 
+      position: relative !important;
+      padding: 12px 0 45px 0 !important; /* مساحة سفلية ثابتة للسعر والزر */
       display: flex !important;
       flex-direction: column !important;
-      gap: 4px !important; 
+      align-items: center !important; /* توسيط جميع النصوص */
+      text-align: center !important;
+      flex: 1 !important;
   }
   
-  .product-card .product-cat { font-size: 10px !important; order: 1 !important; margin-bottom: 0 !important;}
+  .product-card .product-cat { 
+      font-size: 11px !important; 
+      color: var(--olive-600) !important;
+      margin-bottom: 6px !important; 
+  }
   
-  /* التعديل 3: إجبار العنوان على سطرين لتوحيد الأطوال */
   .product-card .product-name { 
-      font-size: 12px !important; 
-      margin-bottom: 2px !important; 
+      font-size: 13px !important; 
+      font-weight: 700 !important;
+      margin-bottom: 6px !important; 
       line-height: 1.4 !important; 
-      order: 2 !important;
       display: -webkit-box !important;
-      -webkit-line-clamp: 2 !important;
+      -webkit-line-clamp: 2 !important; /* السماح بسطرين فقط للاسم لتوحيد الطول */
       -webkit-box-orient: vertical !important;
       overflow: hidden !important;
-      min-height: 33px !important; /* ضمان استواء البطاقات */
+      min-height: 36px !important; 
   }
   
-  .product-card .product-desc { display: none !important; } 
+  .product-card .product-desc { 
+      display: -webkit-box !important; /* إظهار الوصف الصغير */
+      font-size: 10px !important;
+      color: var(--ink-300) !important;
+      line-height: 1.5 !important;
+      -webkit-line-clamp: 2 !important; /* سطرين كحد أقصى للوصف */
+      -webkit-box-orient: vertical !important;
+      overflow: hidden !important;
+      margin-bottom: 0 !important;
+      min-height: 30px !important;
+  } 
   
-  .product-card .price, .product-foot { 
-      order: 3 !important; 
-      margin-top: 2px !important;
-  }
+  .product-card .stock-line { display: none !important; } /* إخفاء سطر المخزون لتنظيف التصميم */
+  
+  .product-card .product-foot { margin: 0 !important; } 
+  
+  /* السعر والزر في الأسفل بجانب بعضهما */
   .product-card .price { 
+      position: absolute !important;
+      bottom: 0 !important;
+      right: 0 !important; /* السعر على اليمين */
       font-size: 15px !important; 
-      margin: 4px 0 !important; 
-      color: var(--olive-900) !important;
+      margin: 0 !important; 
+      line-height: 36px !important; /* التوسيط العمودي مع الزر */
   }
   
-  .product-card .stock-line { 
-      font-size: 10px !important; 
-      margin-bottom: 4px !important; 
-      order: 4 !important;
+  .product-card .product-actions { 
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important; /* الزر على اليسار */
+      margin: 0 !important; 
   }
   
-  .product-card .product-actions {
-      order: 5 !important;
-      margin-top: 2px !important;
+  /* تحويل الزر إلى مربع صغير (أيقونة فقط) لتوفير المساحة */
+  .product-card .product-actions .btn { 
+      width: 36px !important;
+      height: 36px !important;
+      padding: 0 !important; 
+      border-radius: 10px !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      font-size: 0 !important; /* إخفاء نص "أضف للسلة" */
   }
   
-  .product-card .product-actions .btn, .product-card .btn-primary { 
-      padding: 8px !important; 
-      font-size: 12px !important; 
-      width: 100%; 
-      border-radius: 8px !important;
+  .product-card .product-actions .btn svg { 
+      width: 18px !important; 
+      height: 18px !important; 
+      margin: 0 !important;
   }
+  
+  .product-card h3 { font-size: 13px; margin-bottom: 5px; }
+  .product-card p { font-size: 11px; line-height: 1.4; }
 }
 
 @media (max-width: 720px) {
@@ -727,12 +750,10 @@ button { font-family: inherit; cursor: pointer; }
   .header-inner { position: relative; }
   .feature-grid { grid-template-columns: 1fr; }
   
-  /* إصلاح طول الفوتر في الهواتف بجعله عمودين لتوفير المساحة */
   .footer-grid { 
       grid-template-columns: 1fr 1fr; 
       gap: 20px; 
   }
-  /* جعل قسم اللوجو (الأول) وقسم التواصل (الأخير) يأخذان العرض كاملاً */
   .footer-grid > div:first-child,
   .footer-grid > div:last-child {
       grid-column: span 2;
@@ -746,10 +767,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* ==========================================================================
-   الإصلاحات النهائية لأخطاء عرض الموبايل (القائمة الجانبية والمودال)
+   الإصلاحات النهائية لأخطاء عرض الموبايل
    ========================================================================== */
-
-/* 1. إصلاح حجم أيقونات تسجيل الخروج والصفحة الرئيسية */
 .admin-logout svg {
     width: 22px !important;
     height: 22px !important;
@@ -771,7 +790,6 @@ button { font-family: inherit; cursor: pointer; }
     font-size: 0.92rem !important;
 }
 
-/* 2. إصلاح تمركز القائمة الجانبية لتبدأ من اليمين في الهواتف */
 @media (max-width: 980px) {
     .admin-sidebar.open {
         right: 0 !important;
@@ -782,7 +800,6 @@ button { font-family: inherit; cursor: pointer; }
     }
 }
 
-/* 3. إصلاح جذري لانزياح النافذة المنبثقة (المودال) في الهواتف */
 .modal-overlay.open {
     display: flex !important;
     justify-content: center !important;
@@ -791,17 +808,14 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .modal-card {
-    margin: 0 !important; /* إزالة margin: auto التي تسبب الانزياح في الوضع العربي */
+    margin: 0 !important; 
     width: 100% !important;
-    max-width: calc(100vw - 30px) !important; /* إجبار المتصفح على احترام حدود الشاشة */
+    max-width: calc(100vw - 30px) !important; 
     position: relative !important;
     inset: auto !important;
     transform: none !important;
 }
 
-/* ==========================================================================
-   تحسين قائمة الأقسام للموبايل (ستارة منبثقة)
-   ========================================================================== */
 @media (max-width: 980px) {
     .mobile-toggle-btn {
         display: flex !important;
@@ -828,7 +842,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- تحسين تصميم الأقسام الفرعية (الفلاتر) لتطابق التصميم المطلوب ---------- */
 .filter-chip {
   padding: 10px 22px !important;
-  border-radius: var(--radius-pill) !important; /* جعل الحواف دائرية بالكامل مثل الأقسام في المربع الأحمر */
+  border-radius: var(--radius-pill) !important; 
   border: 1px solid var(--line-strong) !important;
   background: var(--white) !important;
   font-weight: 600 !important;
@@ -840,7 +854,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .filter-chip.active, 
 .filter-chip:hover {
-  background: var(--olive-700) !important; /* لون متناسق مع هوية المتجر عند التحديد */
+  background: var(--olive-700) !important; 
   border-color: var(--olive-700) !important;
   color: var(--white) !important;
   box-shadow: var(--shadow-soft);
