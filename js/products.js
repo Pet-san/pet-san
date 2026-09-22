@@ -115,6 +115,15 @@ window.updateCategory = function(catId) {
     shopState.filterMode = "";
     renderCategoryFilterPanel();
     renderShopResults();
+
+    // إعادة التمرير لأعلى شبكة المنتجات مع مراعاة ارتفاع الهيدر الثابت
+    const grid = document.getElementById("shopGrid");
+    if (grid) {
+        const headerEl = document.querySelector(".site-header");
+        const offset = (headerEl ? headerEl.offsetHeight : 80) + 10;
+        const top = grid.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: top, behavior: "smooth" });
+    }
 };
 
 function renderCategoryFilterPanel() {
