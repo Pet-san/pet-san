@@ -30,8 +30,7 @@ function renderProductCard(product) {
         '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
         '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
         '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
-          '<span class="price" style="font-size:1rem; font-weight:900; color:#d9381e;">' + formatPrice(product.price) + "</span>" +
-        "</div>" +
+'<span class="price" style="font-size:1rem; font-weight:900; color:var(--olive-700);">' + formatPrice(product.price) + "</span>" +        "</div>" +
         '<div class="product-actions" style="margin-top:0;">' +
           '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
             ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
