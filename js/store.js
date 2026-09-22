@@ -1,5 +1,5 @@
 /* ==========================================================================
-   store.js (النسخة 4.0 - السحابة الآمنة والمزامنة الذكية بدون اختفاء المنتجات)
+   store.js (النسخة 4.1 - المزامنة الشاملة لكل أجزاء المتجر)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
@@ -41,8 +41,8 @@ function seedProducts() {
   }, opts || {});
 
   return [
-    p(uid("prd"), "طعام قطط رويال كانين بالدجاج", "طعام جاف متكامل للقطط البالغة، كيس 2 كغم، يدعم صحة الفراء والجهاز الهضمي.", 28000, "cat_cat_food", 24, { featured: true, isNew: true, variants: ["دجاج", "لحم", "تونة"] }),
-    p(uid("prd"), "طعام قطط تونة وسمك", "وجبة رطبة غنية بالبروتين، علبة 400 غرام، مناسبة لجميع الأعمار.", 6000, "cat_cat_food", 40),
+    p(uid("prd"), "طعام قطط رويال كانين بالدجاج", "طعام جاف متكامل للقطط البالغة، كيس 2 كغم.", 28000, "cat_cat_food", 24, { featured: true, isNew: true, variants: ["دجاج", "لحم", "تونة"] }),
+    p(uid("prd"), "طعام قطط تونة وسمك", "وجبة رطبة غنية بالبروتين، علبة 400 غرام.", 6000, "cat_cat_food", 40),
     p(uid("prd"), "طعام كلاب بيدجري باللحم", "طعام جاف متوازن للكلاب البالغة، كيس 3 كغم.", 35000, "cat_dog_food", 18, { featured: true }),
     p(uid("prd"), "طعام جراء دجاج وأرز", "تركيبة خاصة لدعم نمو الجراء، كيس 1.5 كغم.", 22000, "cat_dog_food", 0, { isNew: true }),
     p(uid("prd"), "خلطة بذور كناري وحسون", "بذور طبيعية مغذية لطيور الزينة، كيس 1 كغم.", 7000, "cat_bird_food", 30),
@@ -95,7 +95,7 @@ function seedIfNeeded() {
 seedIfNeeded();
 
 /* ---------------------------------------------------------------------- */
-/* المزامنة السحابية الذكية والآمنة                                         */
+/* المزامنة السحابية الذكية والآمنة الشاملة                               */
 /* ---------------------------------------------------------------------- */
 
 let pushTimeout = null;
@@ -132,27 +132,35 @@ async function syncWithFirebase() {
       return;
     }
 
-    const localProductsStr = localStorage.getItem(DB_KEYS.products) || "[]";
-    const localProducts = JSON.parse(localProductsStr);
+    const localProducts = JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]");
     const remoteProducts = remoteData.products || [];
 
-    // جدار الحماية: إذا كانت السحابة فارغة لكن لدينا منتجات محلياً، نرفض مسحها ونرفعها للسحابة
     if (remoteProducts.length === 0 && localProducts.length > 0) {
         pushToFirebase();
         return;
     }
 
-    const remoteProductsStr = JSON.stringify(remoteProducts);
+    // بناء نصوص شاملة للمقارنة تتضمن المنتجات والإعلانات والأقسام معاً (هنا كان الخطأ السابق)
+    const localHash = JSON.stringify({
+        products: localProducts,
+        ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]"),
+        categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]")
+    });
 
-    // إذا استشعر النظام وجود تحديثات من السحابة، يطبقها فوراً
-    if (localProductsStr !== remoteProductsStr) {
-        localStorage.setItem(DB_KEYS.products, remoteProductsStr);
+    const remoteHash = JSON.stringify({
+        products: remoteProducts,
+        ads: remoteData.ads || [],
+        categories: remoteData.categories || []
+    });
+
+    // التحديث الشامل: يطبق التحديث إذا تغيّر أي شيء (إعلان، منتج، أو قسم)
+    if (localHash !== remoteHash) {
+        localStorage.setItem(DB_KEYS.products, JSON.stringify(remoteProducts));
         localStorage.setItem(DB_KEYS.categories, JSON.stringify(remoteData.categories || []));
         localStorage.setItem(DB_KEYS.settings, JSON.stringify(remoteData.settings || {}));
         localStorage.setItem(DB_KEYS.ads, JSON.stringify(remoteData.ads || []));
         if (remoteData.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(remoteData.orders));
         
-        // تحديث واجهة المستخدم فوراً بدون عمل Refresh للصفحة
         document.dispatchEvent(new CustomEvent("store:synced"));
     }
   } catch (e) {
@@ -160,19 +168,11 @@ async function syncWithFirebase() {
   }
 }
 
-// تشغيل المزامنة بهدوء بعد ثانية واحدة من تحميل الموقع
 setTimeout(syncWithFirebase, 1000);
 
-// تحديث الشاشة تلقائياً للمشتري عند وصول منتجات جديدة
 document.addEventListener("store:synced", function() {
-    if (window.location.pathname.includes("admin.html")) {
-        window.location.reload(); 
-    } else {
-        if (typeof initHomeCollections === "function") initHomeCollections();
-        if (typeof initShopPage === "function") initShopPage();
-        if (typeof initProductDetailPage === "function") initProductDetailPage();
-        if (typeof renderCartPage === "function") renderCartPage();
-    }
+    // بمجرد التحديث نعيد تحميل الصفحة لضمان تشغيل الإعلانات والمنتجات الجديدة بسلاسة تامة
+    window.location.reload(); 
 });
 
 /* ---------------------------------------------------------------------- */
