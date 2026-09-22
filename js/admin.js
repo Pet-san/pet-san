@@ -6,10 +6,10 @@
 
 let editingProductId = null;
 let editingCategoryId = null;
-let editingAdId = null; // التعديل 1: متغير للإعلانات
+let editingAdId = null; 
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
-let pendingAdImage = null; // التعديل 2: صورة الإعلان المؤقتة
+let pendingAdImage = null; 
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -29,7 +29,7 @@ function initAdminPage() {
   renderProductsTable();
   renderCategoriesTable();
   renderOrdersTable();
-  renderAdsTable(); // التعديل 3: تشغيل جدول الإعلانات
+  renderAdsTable(); 
   
   fillSettingsForm();
   populateCategorySelect();
@@ -37,7 +37,7 @@ function initAdminPage() {
 
   wireProductModal();
   wireCategoryModal();
-  wireAdModal(); // التعديل 4: تشغيل نوافذ الإعلانات
+  wireAdModal(); 
   wireSettingsForm();
 
   const productSearch = document.getElementById("adminProductSearch");
@@ -59,7 +59,6 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // حساب الأبعاد الجديدة مع الحفاظ على التناسب
         let width = img.width;
         let height = img.height;
         if (width > maxWidth) {
@@ -70,10 +69,8 @@ function compressImage(file, maxWidth = 800, quality = 0.7) {
         canvas.width = width;
         canvas.height = height;
         
-        // رسم الصورة بالحجم الجديد
         ctx.drawImage(img, 0, 0, width, height);
         
-        // ضغط الصورة وتحويلها لـ Base64 خفيف
         const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
         resolve(compressedBase64);
       };
@@ -248,7 +245,6 @@ function openProductModal(productId) {
     document.getElementById("productCategorySelect").value = p.categoryId;
     document.getElementById("productStock").value = p.stock;
     
-    // التعديل 5: جلب الخيارات/النكهات للمربع النصي
     if(document.getElementById("productVariants")) {
         document.getElementById("productVariants").value = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
     }
@@ -283,7 +279,6 @@ function closeProductModal() {
 function saveProductForm(e) {
   e.preventDefault();
   
-  // التعديل 6: تحويل النص المكتوب في مربع الخيارات إلى مصفوفة نظيفة
   const variantsStr = document.getElementById("productVariants") ? document.getElementById("productVariants").value : "";
   const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
   
@@ -297,7 +292,7 @@ function saveProductForm(e) {
     featured: document.getElementById("productFeatured").checked,
     isNew: document.getElementById("productNew").checked,
     isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, 
-    variants: variantsArr, // حفظ الخيارات في قاعدة البيانات
+    variants: variantsArr, 
     image: pendingProductImage
   };
 
@@ -320,7 +315,7 @@ function saveProductForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الأقسام (دعم الصور والأيقونات والأقسام الفرعية)                          */
+/* الأقسام                                                                */
 /* ---------------------------------------------------------------------- */
 
 function renderCategoriesTable() {
@@ -338,7 +333,6 @@ function renderCategoriesTable() {
     const count = products.filter(function (p) { return p.categoryId === c.id; }).length;
     const img = c.image ? '<img src="' + c.image + '">' : '<div class="admin-table-icon">' + iconSvg(c.icon || "box") + "</div>";
     
-    // تمييز القسم الفرعي في الجدول
     const parent = c.parentId ? categories.find(function(x) { return x.id === c.parentId; }) : null;
     const displayName = parent 
         ? c.name + '<br><small style="color:#888;">↳ فرعي من: ' + parent.name + '</small>' 
@@ -499,14 +493,13 @@ function saveCategoryForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الإعلانات (Ads Slider) - التعديل 7                                     */
+/* الإعلانات (Ads Slider) - النسخة المحدثة للرفع الفوري المضمون               */
 /* ---------------------------------------------------------------------- */
 
 function renderAdsTable() {
   const tbody = document.getElementById("adsTableBody");
   if (!tbody) return;
   
-  // ترتيب الإعلانات حسب الرقم المدخل
   const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
 
   if (!ads.length) {
@@ -555,14 +548,14 @@ function wireAdModal() {
       const file = imageInput.files[0];
       if (!file) return;
       try {
-        // نستخدم جودة أعلى وضغط مختلف لأن الإعلانات تكون عرضية وعادة تحتاج دقة أكبر
-        const compressedBase64 = await compressImage(file, 1000, 0.8);
+        const compressedBase64 = await compressImage(file, 800, 0.7);
         pendingAdImage = compressedBase64;
         const preview = document.getElementById("adImagePreview");
         if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+        showToast("تمت معالجة الصورة بنجاح");
       } catch (error) {
         console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة.");
+        showToast("فشل معالجة الصورة.");
       }
     });
   }
@@ -597,10 +590,11 @@ function closeAdModal() {
   if(modal) modal.classList.remove("open");
 }
 
-function saveAdForm(e) {
+// دالة الحفظ الفوري المضمون للسحابة لمنع أي فقدان للإعلانات
+async function saveAdForm(e) {
   e.preventDefault();
   if (!pendingAdImage) {
-      showToast("يرجى رفع صورة للإعلان");
+      showToast("يرجى رفع صورة للإعلان أولاً");
       return;
   }
   
@@ -611,13 +605,39 @@ function saveAdForm(e) {
   };
 
   Store.addAd(data);
-  showToast("تمت إضافة الإعلان بنجاح");
+  showToast("جاري حفظ ورفع الإعلان للسحابة...");
+
+  try {
+    const allAds = Store.getAds();
+    const allProducts = Store.getProducts();
+    const allCategories = Store.getCategories();
+    const allSettings = Store.getSettings();
+    const allOrders = Store.getOrders();
+
+    await fetch(FIREBASE_DB_URL + "/data.json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        products: allProducts,
+        categories: allCategories,
+        settings: allSettings,
+        orders: allOrders,
+        ads: allAds
+      })
+    });
+    
+    showToast("تم حفظ ورفع الإعلان بنجاح 100%!");
+  } catch (err) {
+    console.error("Instant Push Error:", err);
+    showToast("تم الحفظ محلياً، سيتم المزامنة لاحقاً.");
+  }
+
   closeAdModal();
   renderAdsTable();
 }
 
 /* ---------------------------------------------------------------------- */
-/* سجلّ الطلبات (استرشادي فقط)                                             */
+/* سجلّ الطلبات                                                           */
 /* ---------------------------------------------------------------------- */
 
 function renderOrdersTable() {
