@@ -9,13 +9,8 @@
   <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=25">
 <style>
-  /* تقويس الحواف */
-  .product-media img, .product-media { border-radius: 12px !important; }
-  .product-card { border-radius: 14px !important; }
-
-  /* سلايدر الإعلانات */
   .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
   .ads-slider-container {
       position: relative; width: 100%; aspect-ratio: 16 / 9;
@@ -33,21 +28,6 @@
   .hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
 
   @media (max-width: 768px) {
-    .section { padding-block: 14px !important; }
-    .hero { padding-block: 16px 20px !important; }
-    .section-head { margin-bottom: 10px !important; }
-
-    /* جعل أبعاد الصورة مربعة ومطابقة لصفحة المنتجات */
-    .product-media {
-        aspect-ratio: 1 / 1 !important;
-        background: transparent !important;
-        margin-bottom: 6px !important;
-    }
-    .product-media img {
-        object-fit: contain !important;
-        padding: 4px !important;
-    }
-
     .cat-chip { width: 95px !important; padding: 12px 8px !important; gap: 6px !important; }
     .cat-chip .cat-icon { width: 62px !important; height: 62px !important; }
     .cat-chip .cat-icon svg { width: 30px !important; height: 30px !important; }
@@ -56,49 +36,6 @@
     .feature-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
-    
-    /* سحب أفقي متوازن يعرض عنصرين فقط جنباً إلى جنب */
-    .product-grid {
-      display: flex !important; 
-      flex-wrap: nowrap !important; 
-      overflow-x: auto !important; 
-      scroll-snap-type: x mandatory !important; 
-      scroll-behavior: smooth !important; 
-      padding-bottom: 15px !important; 
-      -webkit-overflow-scrolling: touch !important; 
-      scrollbar-width: none !important; 
-      align-items: stretch !important;
-      gap: 10px !important;
-    }
-    .product-grid::-webkit-scrollbar { display: none !important; }
-    
-    .product-grid .product-card {
-      flex: 0 0 calc(50% - 5px) !important;
-      max-width: none !important;
-      scroll-snap-align: start !important;
-      margin-left: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      height: auto !important;
-    }
-    
-    #shopGrid { 
-      display: grid !important; 
-      grid-template-columns: repeat(2, 1fr) !important; 
-      gap: 10px !important; 
-      align-items: stretch !important; 
-    }
-    #shopGrid .product-card { 
-      flex: unset !important; 
-      margin-left: 0 !important; 
-      max-width: none !important; 
-      height: auto !important; 
-      display: flex !important; 
-      flex-direction: column !important; 
-    }
-
-    .product-card { min-width: 0 !important; padding: 8px !important; }
-    .product-card .product-desc { display: none !important; } 
   }
 </style>
 </head>
@@ -231,7 +168,7 @@
 <script src="js/store.js?v=8"></script>
 <script src="js/whatsapp.js?v=4"></script>
 <script src="js/app.js?v=22"></script>
-<script src="js/products.js?v=23"></script>
+<script src="js/products.js?v=30"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelector(".feature-grid").innerHTML = document.querySelector(".feature-grid").innerHTML
