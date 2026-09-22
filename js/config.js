@@ -27,17 +27,3 @@ const STORE_CONFIG = {
   adminUsername: "admin",
   adminPassword: "PetShop@2025"
 };
-
-/* ==========================================================================
-   إعداد Firebase SDK — مطلوب فقط لرفع الصور إلى Firebase Storage من لوحة
-   التحكم. الصق هنا نفس القيم التي حصلت عليها من Firebase Console →
-   Project settings → Your apps → firebaseConfig.
-   ========================================================================== */
-const FIREBASE_SDK_CONFIG = {
-  apiKey: "ضع_القيمة_هنا",
-  authDomain: "ضع_القيمة_هنا",
-  projectId: "ضع_القيمة_هنا",
-  storageBucket: "ضع_القيمة_هنا",
-  messagingSenderId: "ضع_القيمة_هنا",
-  appId: "ضع_القيمة_هنا"
-};
