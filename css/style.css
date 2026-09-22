@@ -451,14 +451,51 @@ button { font-family: inherit; cursor: pointer; }
     .filter-list-container { display: flex !important; }
 }
 
-/* تحسين تصميم الأقسام الفرعية (الفلاتر) */
-.filter-chip { padding: 10px 22px !important; border-radius: var(--radius-pill) !important; border: 1px solid var(--line-strong) !important; background: var(--white) !important; font-weight: 600 !important; font-size: .92rem !important; color: var(--ink-600) !important; white-space: nowrap !important; transition: all 0.2s ease !important; }
-.filter-chip.active, .filter-chip:hover { background: var(--olive-700) !important; border-color: var(--olive-700) !important; color: var(--white) !important; box-shadow: var(--shadow-soft); }
-
 /* ==========================================================================
-   التصميم الاحترافي لبطاقات المنتجات على الموبايل (النسخة النهائية)
+   التصميم الاحترافي الجديد: تقليص الفراغات وتجميل أزرار الأقسام (الفلاتر)
    ========================================================================== */
 @media (max-width: 768px) {
+  /* تقليص المسافات والفراغات الكبيرة بين الأقسام في الموبايل */
+  .section {
+    padding-block: 24px !important;
+  }
+  .hero {
+    padding-block: 25px 35px !important;
+  }
+  .section-head {
+    margin-bottom: 16px !important;
+  }
+
+  /* تصميم أزرار الأقسام (الفلاتر الجانبية) لتصبح كبسولات دائرية ناعمة ومريحة */
+  .filter-list-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+  }
+  .filter-list-container button {
+    background: var(--white) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: var(--radius-pill) !important; /* تحويلها لشكل كبسولة دائرية ناعمة */
+    padding: 10px 18px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    color: var(--ink-600) !important;
+    text-align: right !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
+  }
+  .filter-list-container button.active,
+  .filter-list-container button:hover {
+    background: var(--olive-700) !important;
+    border-color: var(--olive-700) !important;
+    color: var(--white) !important;
+    box-shadow: var(--shadow-soft) !important;
+    transform: translateY(-1px);
+  }
+
+  /* الإعلانات والسلايدر */
   .ads-slider-container {
     aspect-ratio: 16 / 9; 
   }
@@ -476,7 +513,7 @@ button { font-family: inherit; cursor: pointer; }
     overflow-x: auto !important;
     scroll-snap-type: x mandatory !important;
     scroll-behavior: smooth !important;
-    padding-bottom: 15px !important;
+    padding-bottom: 10px !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
     gap: 10px !important; 
