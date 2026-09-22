@@ -82,13 +82,14 @@ async function pullFromFirebase() {
       ads: data.ads || [] // التعديل 4: مقارنة الإعلانات من السحابة
     });
 
-    if (localHash !== remoteHash) {
+      if (localHash !== remoteHash) {
         localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products || []));
         localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories || []));
         localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings || {}));
-        localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || [])); // التعديل 5: حفظ الإعلانات المسحوبة
+        localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || []));
         if (data.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(data.orders));
-        window.location.reload();
+        // بدل إعادة تحميل الصفحة بالكامل، نبعث حدث ليحدّث كل جزء نفسه فقط
+        document.dispatchEvent(new CustomEvent("store:synced"));
     }
   } catch (e) {
     console.error("Firebase Pull Error:", e);
