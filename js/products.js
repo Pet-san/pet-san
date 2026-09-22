@@ -1,5 +1,5 @@
 /* ==========================================================================
-   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
+   products.js (النسخة 2.3 - توحيد أبعاد البطاقات، قص العناوين، والتمرير التلقائي)
    ========================================================================== */
 
 function productMediaHtml(product) {
@@ -20,24 +20,32 @@ function renderProductCard(product) {
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
 
   return (
-    '<article class="product-card">' +
+    '<article class="product-card" style="display:flex; flex-direction:column; justify-content:space-between; height:100%;">' +
       '<a href="product.html?id=' + product.id + '" class="product-media">' +
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      // تم إلغاء التمدد هنا لتصبح البطاقة مضغوطة
-      '<div class="product-body" style="padding-top: 6px;">' +
-        '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
-        '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
-          '<span class="price" style="font-size:1rem; font-weight:900; color:#d9381e;">' + formatPrice(product.price) + "</span>" +
-        "</div>" +
-        '<div class="product-actions" style="margin-top:0;">' +
-          '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
-            ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
-            (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
-          "</button>" +
-        "</div>" +
+      '<div class="product-body" style="display:flex; flex-direction:column; justify-content:space-between; flex:1; padding:8px 6px;">' +
+        '<div>' +
+          '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-600); font-weight:700; display:block; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + Store.getCategoryName(product.categoryId) + "</span>" +
+          
+          /* تثبيت ارتفاع العنوان بحد أقصى سطرين وقص الزائد */
+          '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700; height:2.8em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+          
+          /* السعر بلون زيتي داكن فاخر ومتناسق مع ثيم المتجر */
+          '<div class="product-foot" style="margin:2px 0 6px 0; justify-content:center; display:flex;">' +
+            '<span class="price" style="font-size:0.95rem; font-weight:900; color:#37421f;">' + formatPrice(product.price) + "</span>" +
+          "</div>" +
+        '</div>' +
+        
+        '<div style="margin-top:auto;">' +
+          '<div class="product-actions" style="margin-top:0;">' +
+            '<button class="btn btn-primary btn-sm btn-block" style="padding:7px; font-size:0.78rem; font-weight:700;" ' + (outOfStock ? "disabled" : "") +
+              ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
+              (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
+            "</button>" +
+          "</div>" +
+        '</div>' +
       "</div>" +
     "</article>"
   );
@@ -111,11 +119,20 @@ function initShopPage() {
   renderShopResults();
 }
 
+/* التمرير التلقائي لأول القائمة عند اختيار أي قسم فرعي */
 window.updateCategory = function(catId) {
     shopState.categoryId = catId;
     shopState.filterMode = "";
     renderCategoryFilterPanel();
     renderShopResults();
+    
+    // الصعود للأعلى بسلاسة إلى شريط الأقسام الفرعية أو بداية شبكة المنتجات
+    const target = document.getElementById("subCategoryScroller") || document.getElementById("shopGrid");
+    if (target) {
+        const yOffset = -80; // تعويض ارتفاع الهيدر المثبت
+        const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+    }
 };
 
 function renderCategoryFilterPanel() {
@@ -215,12 +232,16 @@ function renderShopResults() {
                   subCatContainer = document.createElement("div");
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
-                  subCatContainer.style.marginBottom = "10px";
-                  subCatContainer.style.padding = "10px 0";
+                  
+                  // ضبط موقع التثبيت لمنع التداخل مع شريط العنوان تماماً
                   subCatContainer.style.position = "sticky";
                   subCatContainer.style.top = "75px"; 
-                  subCatContainer.style.zIndex = "40"; 
-                  subCatContainer.style.backgroundColor = "#fefcf4"; 
+                  subCatContainer.style.zIndex = "45"; 
+                  subCatContainer.style.backgroundColor = "var(--cream)"; 
+                  subCatContainer.style.padding = "10px 0";
+                  subCatContainer.style.marginBottom = "14px";
+                  subCatContainer.style.boxShadow = "0 4px 10px -4px rgba(0,0,0,0.06)";
+
                   const grid = document.getElementById("shopGrid");
                   if (grid && grid.parentNode) grid.parentNode.insertBefore(subCatContainer, grid);
               }
@@ -228,9 +249,13 @@ function renderShopResults() {
               subHtml += subCats.map(sub => { return '<button class="filter-chip ' + (shopState.categoryId === sub.id ? 'active' : '') + '" onclick="updateCategory(\'' + sub.id + '\')">' + sub.name + '</button>'; }).join('');
               subCatContainer.innerHTML = subHtml;
               subCatContainer.style.display = "flex";
-          } else if (subCatContainer) subCatContainer.style.display = "none";
+          } else if (subCatContainer) {
+              subCatContainer.style.display = "none";
+          }
       }
-  } else if (subCatContainer) subCatContainer.style.display = "none";
+  } else if (subCatContainer) {
+      subCatContainer.style.display = "none";
+  }
 
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
