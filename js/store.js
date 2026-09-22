@@ -1,5 +1,5 @@
 /* ==========================================================================
-   store.js (النسخة 4.1 - المزامنة الشاملة لكل أجزاء المتجر)
+   store.js (النسخة 4.2 - إزالة البيانات الوهمية القديمة لتنظيف الواجهة)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
@@ -11,7 +11,7 @@ const DB_KEYS = {
   cart: "ws_cart",
   orders: "ws_orders",
   session: "ws_admin_session",
-  seeded: "ws_seeded_v1",
+  seeded: "ws_seeded_v2", // تم التغيير لفرض تفريغ الكاش القديم
   ads: "ws_ads"
 };
 
@@ -19,53 +19,13 @@ function uid(prefix) {
   return (prefix || "id") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-// --- البيانات الافتراضية ---
-const SEED_CATEGORIES = [
-  { id: "cat_cat_food",   name: "طعام قطط",     icon: "bag" },
-  { id: "cat_dog_food",   name: "طعام كلاب",    icon: "bone" },
-  { id: "cat_bird_food",  name: "طعام طيور",    icon: "feather" },
-  { id: "cat_toys",       name: "ألعاب",         icon: "toy" },
-  { id: "cat_beds",       name: "أسرّة ووسائد",  icon: "bed" },
-  { id: "cat_cages",      name: "أقفاص",         icon: "cage" },
-  { id: "cat_collars",    name: "أطواق وأحزمة",  icon: "collar" },
-  { id: "cat_grooming",   name: "عناية وتنظيف",  icon: "brush" },
-  { id: "cat_cleaning",   name: "منظفات",        icon: "spray" },
-  { id: "cat_aquarium",   name: "مستلزمات أحواض", icon: "fish" },
-  { id: "cat_accessories",name: "إكسسوارات",     icon: "box" }
-];
-
+// تفريغ المنتجات الوهمية القديمة كلياً
 function seedProducts() {
-  const p = (id, name, desc, price, cat, stock, opts) => Object.assign({
-    id, name, description: desc, price, categoryId: cat, stock,
-    available: stock > 0, featured: false, isNew: false, isOffer: false, image: null, variants: []
-  }, opts || {});
-
-  return [
-    p(uid("prd"), "طعام قطط رويال كانين بالدجاج", "طعام جاف متكامل للقطط البالغة، كيس 2 كغم.", 28000, "cat_cat_food", 24, { featured: true, isNew: true, variants: ["دجاج", "لحم", "تونة"] }),
-    p(uid("prd"), "طعام قطط تونة وسمك", "وجبة رطبة غنية بالبروتين، علبة 400 غرام.", 6000, "cat_cat_food", 40),
-    p(uid("prd"), "طعام كلاب بيدجري باللحم", "طعام جاف متوازن للكلاب البالغة، كيس 3 كغم.", 35000, "cat_dog_food", 18, { featured: true }),
-    p(uid("prd"), "طعام جراء دجاج وأرز", "تركيبة خاصة لدعم نمو الجراء، كيس 1.5 كغم.", 22000, "cat_dog_food", 0, { isNew: true }),
-    p(uid("prd"), "خلطة بذور كناري وحسون", "بذور طبيعية مغذية لطيور الزينة، كيس 1 كغم.", 7000, "cat_bird_food", 30),
-    p(uid("prd"), "طعام ببغاء متكامل", "خليط حبوب وفواكه مجففة للببغاوات المتوسطة.", 12000, "cat_bird_food", 15),
-    p(uid("prd"), "فأر قماشي بصوت صرير", "لعبة تفاعلية للقطط بحشوة نعناع برّي.", 4000, "cat_toys", 50, { isNew: true }),
-    p(uid("prd"), "كرة مطاطية صامدة للكلاب", "لعبة مضغ متينة لتنظيف الأسنان وتسلية الكلب.", 6500, "cat_toys", 35),
-    p(uid("prd"), "عمود خدش وتسلق للقطط", "برج خدش بثلاث طبقات مع كرة معلقة، ارتفاع 90 سم.", 45000, "cat_toys", 8, { featured: true }),
-    p(uid("prd"), "سرير دائري ناعم للقطط", "سرير مبطّن بحواف مرتفعة يمنح دفئًا وراحة، قطر 45 سم.", 21000, "cat_beds", 20, { featured: true, variants: ["صغير", "متوسط", "كبير"] }),
-    p(uid("prd"), "وسادة مقاومة للماء للكلاب", "قماش متين قابل للغسل، مقاس متوسط.", 26000, "cat_beds", 12),
-    p(uid("prd"), "قفص طائر معدني متوسط", "قفص مع أدراج ومساكن، سهل التنظيف.", 38000, "cat_cages", 10, { isNew: true }),
-    p(uid("prd"), "قفص نقل صغير للقطط", "قفص بلاستيكي مهوّى مناسب للسفر والزيارات البيطرية.", 32000, "cat_cages", 0),
-    p(uid("prd"), "طوق جلدي مزخرف", "طوق جلد طبيعي بمشبك معدني، مقاسات متعددة.", 9000, "cat_collars", 45),
-    p(uid("prd"), "حزام مشي مع مقود", "حزام صدري مريح مع مقود 1.5 متر.", 15000, "cat_collars", 22),
-    p(uid("prd"), "فرشاة إزالة الشعر المتساقط", "فرشاة سيليكون لطيفة على البشرة تقلل تساقط الفرو.", 8500, "cat_grooming", 28),
-    p(uid("prd"), "شامبو مرطب للقطط والكلاب", "تركيبة خالية من العطور القوية، 250 مل.", 11000, "cat_grooming", 33, { isNew: true }),
-    p(uid("prd"), "مزيل روائح ومعقم للأرضيات", "منظف آمن للحيوانات الأليفة، عبوة 1 لتر.", 9500, "cat_cleaning", 26),
-    p(uid("prd"), "أكياس نظافة قابلة للتحلل", "لفة 60 كيس لنظافة نزهات الكلب.", 5000, "cat_cleaning", 60),
-    p(uid("prd"), "فلتر مياه لحوض السمك", "فلتر داخلي هادئ لأحواض حتى 60 لتر.", 27000, "cat_aquarium", 14),
-    p(uid("prd"), "إضاءة LED لحوض الزينة", "إضاءة موفرة للطاقة تبرز ألوان السمك والنباتات.", 19000, "cat_aquarium", 9, { featured: true }),
-    p(uid("prd"), "وعاء طعام مزدوج ستانلس", "وعاءان متصلان لطعام وماء الحيوانات الأليفة.", 8000, "cat_accessories", 40),
-    p(uid("prd"), "بطاقة اسم معدنية للطوق", "بطاقة قابلة للنقش تحتوي رقم التواصل.", 3500, "cat_accessories", 50, { isNew: true })
-  ];
+  return []; 
 }
+
+// تفريغ الأقسام الوهمية القديمة
+const SEED_CATEGORIES = [];
 
 const SEED_SETTINGS = () => ({
   storeName: "سان ستور",
@@ -140,7 +100,6 @@ async function syncWithFirebase() {
         return;
     }
 
-    // بناء نصوص شاملة للمقارنة تتضمن المنتجات والإعلانات والأقسام معاً (هنا كان الخطأ السابق)
     const localHash = JSON.stringify({
         products: localProducts,
         ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]"),
@@ -153,7 +112,6 @@ async function syncWithFirebase() {
         categories: remoteData.categories || []
     });
 
-    // التحديث الشامل: يطبق التحديث إذا تغيّر أي شيء (إعلان، منتج، أو قسم)
     if (localHash !== remoteHash) {
         localStorage.setItem(DB_KEYS.products, JSON.stringify(remoteProducts));
         localStorage.setItem(DB_KEYS.categories, JSON.stringify(remoteData.categories || []));
@@ -168,10 +126,9 @@ async function syncWithFirebase() {
   }
 }
 
-setTimeout(syncWithFirebase, 1000);
+setTimeout(syncWithFirebase, 100); // تسريع طلب التحديث فوراً
 
 document.addEventListener("store:synced", function() {
-    // بمجرد التحديث نعيد تحميل الصفحة لضمان تشغيل الإعلانات والمنتجات الجديدة بسلاسة تامة
     window.location.reload(); 
 });
 
