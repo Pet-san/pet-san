@@ -48,8 +48,8 @@ function initAdminPage() {
 /* ضاغط الصور الذكي لتصغير الحجم قبل الحفظ                                 */
 /* ---------------------------------------------------------------------- */
 
-function compressImage(file, maxWidth = 800, quality = 0.7) {
-  return new Promise((resolve, reject) => {
+function compressImage(file, maxWidth = 650, quality = 0.55) {
+   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = event => {
