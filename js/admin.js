@@ -48,6 +48,41 @@ function initAdminPage() {
 /* ضاغط الصور الذكي لتصغير الحجم قبل الحفظ                                 */
 /* ---------------------------------------------------------------------- */
 
+function compressImageToBlob(file, maxWidth = 800, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+      };
+      img.onerror = error => reject(error);
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
+function uploadImageAndGetUrl(blob, folder) {
+  const filename = folder + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + ".jpg";
+  const storageRef = firebase.storage().ref(filename);
+  return storageRef.put(blob).then(function () {
+    return storageRef.getDownloadURL();
+  });
+}
+
 function compressImage(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -204,13 +239,15 @@ function wireProductModal() {
       const file = imageInput.files[0];
       if (!file) return;
       
+      document.getElementById("productImagePreview").innerHTML = "جاري رفع الصورة...";
       try {
-        const compressedBase64 = await compressImage(file);
-        pendingProductImage = compressedBase64;
-        document.getElementById("productImagePreview").innerHTML = '<img src="' + compressedBase64 + '">';
+        const blob = await compressImageToBlob(file);
+        const url = await uploadImageAndGetUrl(blob, "products");
+        pendingProductImage = url;
+        document.getElementById("productImagePreview").innerHTML = '<img src="' + url + '">';
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+        console.error("Image Upload Error:", error);
+        showToast("فشل رفع الصورة. يرجى المحاولة بصورة أخرى.");
       }
     });
   }
@@ -397,14 +434,17 @@ function wireCategoryModal() {
       const file = imageInput.files[0];
       if (!file) return;
 
+      const catPreviewLoading = document.getElementById("categoryImagePreview");
+      if (catPreviewLoading) catPreviewLoading.innerHTML = "جاري رفع الصورة...";
       try {
-        const compressedBase64 = await compressImage(file);
-        pendingCategoryImage = compressedBase64;
+        const blob = await compressImageToBlob(file);
+        const url = await uploadImageAndGetUrl(blob, "categories");
+        pendingCategoryImage = url;
         const preview = document.getElementById("categoryImagePreview");
-        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '">';
+        if (preview) preview.innerHTML = '<img src="' + url + '">';
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+        console.error("Image Upload Error:", error);
+        showToast("فشل رفع الصورة. يرجى المحاولة بصورة أخرى.");
       }
     });
   }
@@ -554,15 +594,18 @@ function wireAdModal() {
     imageInput.addEventListener("change", async function () {
       const file = imageInput.files[0];
       if (!file) return;
+      const adPreviewLoading = document.getElementById("adImagePreview");
+      if (adPreviewLoading) adPreviewLoading.innerHTML = "جاري رفع الصورة...";
       try {
         // نستخدم جودة أعلى وضغط مختلف لأن الإعلانات تكون عرضية وعادة تحتاج دقة أكبر
-        const compressedBase64 = await compressImage(file, 1000, 0.8);
-        pendingAdImage = compressedBase64;
+        const blob = await compressImageToBlob(file, 1000, 0.8);
+        const url = await uploadImageAndGetUrl(blob, "ads");
+        pendingAdImage = url;
         const preview = document.getElementById("adImagePreview");
-        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+        if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة.");
+        console.error("Image Upload Error:", error);
+        showToast("فشل رفع الصورة.");
       }
     });
   }
