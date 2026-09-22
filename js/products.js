@@ -217,8 +217,9 @@ function renderShopResults() {
                   subCatContainer.className = "cat-scroller";
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
-                  subCatContainer.style.position = "sticky";
-                  subCatContainer.style.top = "75px"; 
+                              subCatContainer.style.position = "sticky";
+              const headerElForOffset = document.querySelector(".site-header");
+              subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
                   subCatContainer.style.zIndex = "40"; 
                   subCatContainer.style.backgroundColor = "#fefcf4"; 
                   const grid = document.getElementById("shopGrid");
