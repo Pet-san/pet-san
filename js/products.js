@@ -1,11 +1,6 @@
 /* ==========================================================================
-   products.js (النسخة 3.0 - تصميم البطاقات الاحترافي للموبايل)
-   يُستخدم في: index.html، products.html، product.html.
+   products.js (النسخة النهائية - دعم تصفية الأقسام للموبايل وتنسيق الفلاتر)
    ========================================================================== */
-
-/* ---------------------------------------------------------------------- */
-/* بطاقة المنتج                                                           */
-/* ---------------------------------------------------------------------- */
 
 function productMediaHtml(product) {
   if (product.image) {
@@ -24,7 +19,6 @@ function renderProductCard(product) {
   else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
 
-  // تعديل هيكل البطاقة لتطابق التصميم الاحترافي المطلوب للموبايل
   return (
     '<article class="product-card">' +
       '<a href="product.html?id=' + product.id + '" class="product-media">' +
@@ -81,10 +75,6 @@ function renderGridInto(containerId, products, emptyMessage) {
   }
   el.innerHTML = products.map(renderProductCard).join("");
 }
-
-/* ---------------------------------------------------------------------- */
-/* صفحة المتجر الكاملة (products.html) والفلاتر                             */
-/* ---------------------------------------------------------------------- */
 
 const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "", mobileMenuOpen: false };
 
@@ -145,25 +135,25 @@ function renderCategoryFilterPanel() {
 
   let html = '';
 
-  html += '<button id="mobileFilterToggle" class="mobile-toggle-btn" style="display:none; width:100%; padding:12px 15px; background:var(--olive-100); color:var(--olive-700); border:none; border-radius:var(--radius-sm); font-weight:bold; align-items:center; justify-content:space-between; margin-bottom:5px; cursor:pointer;">';
+  // زر تصفية الأقسام المخصص للموبايل
+  html += '<button id="mobileFilterToggle" class="mobile-toggle-btn" type="button">';
   html += '<span style="display:flex; align-items:center; gap:8px;">' + iconSvg("box") + ' تصفية الأقسام</span>';
   html += '<span style="transition: transform 0.3s; transform: rotate(' + (shopState.mobileMenuOpen ? '180deg' : '0deg') + ');">▼</span>';
   html += '</button>';
 
-  html += '<div id="filterListContainer" class="filter-list-container ' + (shopState.mobileMenuOpen ? 'open' : '') + '" style="flex-direction: column;">';
+  html += '<div id="filterListContainer" class="filter-list-container ' + (shopState.mobileMenuOpen ? 'open' : '') + '">';
 
-  html += '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع المنتجات</button>';
-  
-  html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--sand-500);">⭐ منتجات مميزة</button>';
-  html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
-  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: #2563eb;">✨ وصل حديثاً</button>';
+  html += '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '">جميع المنتجات</button>';
+  html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '">⭐ منتجات مميزة</button>';
+  html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '">🔥 عروض خاصة</button>';
+  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '">✨ وصل حديثاً</button>';
   
   mainCats.forEach(function(main) {
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
     const isActive = isMainActive || (isChildActive && !shopState.filterMode);
     
-    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isActive ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">' + main.name + '</button>';
+    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isActive ? "active" : "") + '">' + main.name + '</button>';
   });
 
   html += '</div>';
@@ -290,10 +280,6 @@ function renderShopResults() {
   if (countEl) countEl.textContent = list.length + " منتج";
 }
 
-/* ---------------------------------------------------------------------- */
-/* الرئيسية — المنتجات المميزة / الجديدة / الأقسام الشائعة                  */
-/* ---------------------------------------------------------------------- */
-
 function initHomeCollections() {
   const featuredEl = document.getElementById("featuredGrid");
   const offerEl = document.getElementById("offerGrid"); 
@@ -327,10 +313,6 @@ function initHomeCollections() {
     }).join("");
   }
 }
-
-/* ---------------------------------------------------------------------- */
-/* صفحة تفاصيل المنتج (product.html) - دعم الخيارات/النكهات                */
-/* ---------------------------------------------------------------------- */
 
 function initProductDetailPage() {
   const mount = document.getElementById("productDetail");
