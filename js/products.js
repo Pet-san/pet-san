@@ -1,5 +1,5 @@
 /* ==========================================================================
-   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
+   products.js (النسخة 3.0 - تصميم البطاقات الاحترافي للموبايل)
    يُستخدم في: index.html، products.html، product.html.
    ========================================================================== */
 
@@ -24,6 +24,7 @@ function renderProductCard(product) {
   else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
 
+  // تعديل هيكل البطاقة لتطابق التصميم الاحترافي المطلوب للموبايل
   return (
     '<article class="product-card">' +
       '<a href="product.html?id=' + product.id + '" class="product-media">' +
@@ -33,17 +34,23 @@ function renderProductCard(product) {
       '<div class="product-body">' +
         '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
         '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        '<p class="product-desc">' + truncate(product.description, 70) + "</p>" +
+        // تم إخفاء الوصف بناءً على التصميم المطلوب للموبايل لتوفير المساحة
+        '<p class="product-desc">' + truncate(product.description, 50) + "</p>" +
+        
         '<div class="stock-line">' +
           '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
-          (outOfStock ? "غير متوفر حاليًا" : "متوفر — الكمية " + product.stock) +
+          (outOfStock ? "غير متوفر" : "متوفر") +
         "</div>" +
+        
         '<div class="product-foot">' +
           '<span class="price">' + formatPrice(product.price) + "</span>" +
-        "</div>" +
-        '<div class="product-actions">' +
-          '<button class="btn btn-primary btn-sm btn-block" ' + (outOfStock ? "disabled" : "") +
-            ' onclick="quickAddToCart(\'' + product.id + '\')">' + iconSvg("cart") + "أضف للسلة</button>" +
+          '<div class="product-actions">' +
+            '<button class="btn btn-primary btn-sm" ' + (outOfStock ? "disabled" : "") +
+              ' onclick="quickAddToCart(\'' + product.id + '\')" title="أضف للسلة">' + 
+              iconSvg("cart") + 
+              '<span class="btn-text">أضف للسلة</span>' + // تمت إضافة class للنص للتحكم بظهوره وإخفائه في CSS
+            '</button>' +
+          "</div>" +
         "</div>" +
       "</div>" +
     "</article>"
@@ -157,7 +164,7 @@ function renderCategoryFilterPanel() {
   html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
   html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: #2563eb;">✨ وصل حديثاً</button>';
   
-  // رسم الأقسام الرئيسية فقط (تم إزالة القوائم المنسدلة للفرعية)
+  // رسم الأقسام الرئيسية فقط
   mainCats.forEach(function(main) {
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
@@ -245,7 +252,6 @@ function renderShopResults() {
   
   if (shopState.categoryId !== "all" && !shopState.filterMode) {
       const currentCat = Store.getCategories().find(c => c.id === shopState.categoryId);
-      // معرفة ما إذا كان القسم الحالي أباً أم ابناً
       const parentId = currentCat ? (currentCat.parentId || currentCat.id) : null;
       
       if (parentId) {
@@ -256,15 +262,13 @@ function renderShopResults() {
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
                   
-                  // تقليص الهوامش
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
                   
-                  // تثبيت الشريط
                   subCatContainer.style.position = "sticky";
-                  subCatContainer.style.top = "60px"; // يلتصق أسفل الهيدر
+                  subCatContainer.style.top = "60px"; 
                   subCatContainer.style.zIndex = "90";
-                  subCatContainer.style.backgroundColor = "#fefcf4"; // لون خلفية الموقع لكي لا تظهر المنتجات تحته
+                  subCatContainer.style.backgroundColor = "#fefcf4"; 
 
                   const grid = document.getElementById("shopGrid");
                   grid.parentNode.insertBefore(subCatContainer, grid);
