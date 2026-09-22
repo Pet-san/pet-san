@@ -270,7 +270,7 @@ button { font-family: inherit; cursor: pointer; }
 .product-name a:hover { color: var(--olive-700); }
 .product-desc { font-size: .87rem; color: var(--ink-600); flex: 1; }
 .product-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-.price { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--ink-900); }
+.price { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--olive-700); }
 .price small { font-size: .7rem; font-weight: 500; color: var(--ink-600); }
 .product-actions { display: flex; gap: 8px; margin-top: 10px; }
 .stock-line { font-size: .8rem; color: var(--ink-600); display: flex; align-items: center; gap: 6px; }
