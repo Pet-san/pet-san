@@ -119,6 +119,7 @@ button { font-family: inherit; cursor: pointer; }
   transition: background .15s ease;
 }
 .btn-icon:hover { background: var(--olive-500); color: var(--white); }
+
 .btn-icon svg { width: 19px; height: 19px; }
 
 /* ---------- Header ---------- */
