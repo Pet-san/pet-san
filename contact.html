@@ -2,13 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>تواصل معنا | سان ستور</title>
-  <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=35">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تواصل معنا | سان ستور</title>
+<link rel="icon" href="assets/logo/logo.png">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
@@ -41,18 +39,20 @@
 
 <div id="site-footer"></div>
 
-<script src="js/config.js?v=35"></script>
-<script src="js/icons.js?v=35"></script>
-<script src="js/store.js?v=35"></script>
-<script src="js/whatsapp.js?v=35"></script>
-<script src="js/app.js?v=35"></script>
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/store.js"></script>
+<script src="js/whatsapp.js"></script>
+<script src="js/app.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const s = Store.getSettings();
 
     const cards = [
       { icon: "whatsapp", title: "واتساب", desc: "أسرع طريقة للطلب والاستفسار", link: "https://wa.me/" + whatsappDigitsOnly(s.whatsapp), label: "راسلنا الآن" },
-      { icon: "instagram", title: "انستغرام", desc: "تابع جديدنا وعروضنا", link: "https://www.instagram.com/pet_san1?stkn=MWo1c256d3RzM2V6Nw==", label: "زيارة الحساب" },
+        { icon: "instagram", title: "انستغرام", desc: "تابع جديدنا وعروضنا", link: "https://www.instagram.com/pet_san1?stkn=MWo1c256d3RzM2V6Nw==", label: "زيارة الحساب" },
+      
+      // تم إضافة تيك توك هنا
       { 
         customIcon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 448 512" fill="currentColor"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>', 
         title: "تيك توك", 
@@ -65,6 +65,7 @@
     ];
 
     document.getElementById("contactCards").innerHTML = cards.map(function (c) {
+      // قراءة الأيقونة المخصصة أو الأيقونة الافتراضية
       const iconHtml = c.customIcon ? c.customIcon : iconSvg(c.icon);
       
       return '<div class="feature-card">' +
