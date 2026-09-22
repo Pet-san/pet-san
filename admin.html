@@ -2,94 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8">
-  <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
-  <title>لوحة تحكم الأدمن | سان ستور</title>
-  <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=6">
-<style>
-  /* === 1. جدار الحماية ضد تمدد الصفحة === */
-  html, body {
-      overflow-x: hidden !important;
-      max-width: 100vw !important;
-  }
-  .admin-main, .admin-shell {
-      min-width: 0 !important;
-      width: 100% !important;
-      max-width: 100vw !important;
-  }
-  .admin-panel {
-      min-width: 0 !important;
-      width: 100% !important;
-  }
-
-  /* === 2. إصلاح النافذة المنبثقة (المودال) === */
-  .modal-overlay {
-      display: none;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: 15px !important;
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      box-sizing: border-box !important;
-  }
-  .modal-overlay.open {
-      display: flex !important;
-  }
-  .modal-card {
-      margin: 0 !important;
-      position: relative !important;
-      top: auto !important;
-      left: auto !important;
-      right: auto !important;
-      bottom: auto !important;
-      transform: none !important;
-      width: 100% !important;
-      max-width: 90vw !important;
-  }
-
-  /* === 3. إصلاح القائمة الجانبية في الهاتف === */
-  @media (max-width: 980px) {
-      .admin-sidebar.open {
-          right: 0 !important;
-          left: auto !important;
-          top: 0 !important;
-          bottom: 0 !important;
-          margin: 0 !important;
-          width: 280px !important;
-          max-width: 85vw !important;
-          position: fixed !important;
-      }
-  }
-
-  /* === 4. إصلاح الأيقونات والأزرار === */
-  .row-actions {
-      flex-wrap: nowrap !important;
-  }
-  .row-actions .btn-icon svg {
-      width: 20px !important;
-      height: 20px !important;
-      stroke-width: 2.2 !important;
-      flex-shrink: 0 !important;
-  }
-  .admin-logout svg {
-      width: 22px !important;
-      height: 22px !important;
-      flex-shrink: 0 !important;
-  }
-  .admin-logout a, .admin-logout button {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-      text-align: right !important;
-  }
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم الأدمن | سان ستور</title>
+<link rel="icon" href="assets/logo/logo.png">
+<link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
@@ -106,10 +23,6 @@
       <button type="button" data-panel="dashboard" class="active">__ICON_GAUGE__ الإحصائيات</button>
       <button type="button" data-panel="products">__ICON_BOX__ المنتجات</button>
       <button type="button" data-panel="categories">__ICON_LAYERS__ الأقسام</button>
-      
-      <!-- التعديل 1: إضافة زر قسم الإعلانات -->
-      <button type="button" data-panel="ads">__ICON_IMAGE__ الإعلانات</button>
-      
       <button type="button" data-panel="orders">__ICON_CART__ الطلبات</button>
       <button type="button" data-panel="settings">__ICON_SETTINGS__ الإعدادات</button>
     </nav>
@@ -169,25 +82,8 @@
         </div>
         <div style="overflow-x:auto;">
           <table class="admin-table">
-            <thead><tr><th>الصورة/الأيقونة</th><th>الاسم</th><th>عدد المنتجات</th><th>إجراءات</th></tr></thead>
+            <thead><tr><th>الأيقونة</th><th>الاسم</th><th>عدد المنتجات</th><th>إجراءات</th></tr></thead>
             <tbody id="categoriesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ---- Ads panel (القسم الجديد) ---- -->
-    <section class="admin-panel-view" id="panel-ads" style="display:none;">
-      <div class="admin-panel">
-        <div class="panel-head">
-          <h3 style="margin:0;">إدارة إعلانات السلايدر</h3>
-          <button class="btn btn-primary btn-sm" id="addAdBtn">__ICON_PLUS__ إضافة إعلان</button>
-        </div>
-        <p style="margin-top:-8px;">تُعرض هذه الإعلانات في الشريط المتحرك أعلى الصفحة الرئيسية.</p>
-        <div style="overflow-x:auto;">
-          <table class="admin-table">
-            <thead><tr><th>صورة الإعلان</th><th>رابط التوجيه</th><th>الترتيب</th><th>إجراءات</th></tr></thead>
-            <tbody id="adsTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -239,17 +135,14 @@
 
 <!-- ============ Product modal ============ -->
 <div class="modal-overlay" id="productModal">
-  <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
+  <div class="modal-card">
     <div class="modal-head">
       <h3 id="productModalTitle" style="margin:0;">إضافة منتج</h3>
       <button class="close-modal" id="closeProductModal">__ICON_CLOSE__</button>
     </div>
     <form id="productForm">
       <div class="field">
-        <label style="display:flex; justify-content:space-between; align-items:center;">
-          صورة المنتج 
-          <button type="button" id="removeProductImageBtn" class="btn-icon btn-sm" style="color:#d32f2f;" title="مسح الصورة">__ICON_TRASH__</button>
-        </label>
+        <label>صورة المنتج</label>
         <div class="image-upload">
           <div class="preview" id="productImagePreview"></div>
           <input type="file" id="productImageInput" accept="image/*">
@@ -259,41 +152,26 @@
       <div class="field"><label>الوصف</label><textarea id="productDescription"></textarea></div>
       <div class="field"><label>السعر (د.ع)</label><input type="number" id="productPrice" min="0" required></div>
       <div class="field"><label>القسم</label><select id="productCategorySelect" required></select></div>
-      
-      <!-- التعديل 2: حقل إضافة النكهات/الأحجام -->
-      <div class="field">
-        <label>الخيارات (مثل: نكهات أو أحجام) - افصل بينها بفاصلة ،</label>
-        <input type="text" id="productVariants" placeholder="مثال: دجاج, لحم, سمك - اتركها فارغة إذا لم تكن هناك خيارات">
-      </div>
-
-      <div class="field"><label>الكمية المتوفرة الكلية</label><input type="number" id="productStock" min="0" required></div>
+      <div class="field"><label>الكمية المتوفرة</label><input type="number" id="productStock" min="0" required></div>
       <div class="field checkbox-row"><input type="checkbox" id="productAvailable"><label for="productAvailable" style="margin:0;">مفعّل / معروض في المتجر</label></div>
       <div class="field checkbox-row"><input type="checkbox" id="productFeatured"><label for="productFeatured" style="margin:0;">منتج مميز</label></div>
       <div class="field checkbox-row"><input type="checkbox" id="productNew"><label for="productNew" style="margin:0;">منتج جديد</label></div>
-      
-      <div class="field checkbox-row">
-        <input type="checkbox" id="productOffer">
-        <label for="productOffer" style="margin:0; color: var(--danger); font-weight: bold;">منتج عليه عرض خاص 🔥</label>
-      </div>
-
       <button type="submit" class="btn btn-primary btn-block">حفظ المنتج</button>
     </form>
   </div>
 </div>
 
 <!-- ============ Category modal ============ -->
+<!-- ============ Category modal ============ -->
 <div class="modal-overlay" id="categoryModal">
-  <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
+  <div class="modal-card">
     <div class="modal-head">
       <h3 id="categoryModalTitle" style="margin:0;">إضافة قسم</h3>
       <button class="close-modal" id="closeCategoryModal">__ICON_CLOSE__</button>
     </div>
     <form id="categoryForm">
       <div class="field">
-        <label style="display:flex; justify-content:space-between; align-items:center;">
-          صورة القسم 
-          <button type="button" id="removeCategoryImageBtn" class="btn-icon btn-sm" style="color:#d32f2f;" title="مسح الصورة">__ICON_TRASH__</button>
-        </label>
+        <label>صورة القسم</label>
         <div class="image-upload">
           <div class="preview" id="categoryImagePreview"></div>
           <input type="file" id="categoryImageInput" accept="image/*">
@@ -305,53 +183,20 @@
   </div>
 </div>
 
-<!-- ============ Ad modal (النافذة الجديدة) ============ -->
-<div class="modal-overlay" id="adModal">
-  <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
-    <div class="modal-head">
-      <h3 id="adModalTitle" style="margin:0;">إضافة إعلان للسلايدر</h3>
-      <button class="close-modal" id="closeAdModal">__ICON_CLOSE__</button>
-    </div>
-    <form id="adForm">
-      <div class="field">
-        <label style="display:flex; justify-content:space-between; align-items:center;">
-          صورة الإعلان (يفضل أن تكون عرضية ومناسبة للموبايل)
-          <button type="button" id="removeAdImageBtn" class="btn-icon btn-sm" style="color:#d32f2f;" title="مسح الصورة">__ICON_TRASH__</button>
-        </label>
-        <div class="image-upload">
-          <div class="preview" id="adImagePreview" style="width: 140px; height: 70px; border-radius: 8px;"></div>
-          <input type="file" id="adImageInput" accept="image/*">
-        </div>
-      </div>
-      <div class="field">
-        <label>رابط التوجيه (اختياري)</label>
-        <input type="text" id="adLink" placeholder="مثال: https://... أو رابط منتج معين">
-        <div class="field-hint">سيتم توجيه الزبون لهذا الرابط عند الضغط على الإعلان.</div>
-      </div>
-      <div class="field">
-        <label>ترتيب العرض (رقم)</label>
-        <input type="number" id="adOrder" value="0">
-        <div class="field-hint">الأرقام الأصغر تُعرض أولاً (مثلاً: 1 يظهر قبل 2).</div>
-      </div>
-      <button type="submit" class="btn btn-primary btn-block">حفظ الإعلان</button>
-    </form>
-  </div>
-</div>
-
 <script src="js/config.js"></script>
 <script src="js/icons.js"></script>
-<script src="js/store.js?v=8"></script>
+<script src="js/store.js?v=5"></script>
 <script src="js/whatsapp.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/admin.js?v=12"></script>
+<script src="js/admin.js"></script>
 <script>
-  // تعبئة الأيقونات الثابتة
+  // تعبئة الأيقونات الثابتة في الشريط الجانبي والمودالات (نطاق محدود بعناصر
+  // بعينها بدل استبدال كامل الصفحة، لتفادي أي أثر جانبي غير مقصود)
   document.querySelector(".admin-nav").innerHTML = document.querySelector(".admin-nav").innerHTML
     .replace("__ICON_GAUGE__", iconSvg("gauge"))
     .replace("__ICON_BOX__", iconSvg("box"))
     .replace("__ICON_LAYERS__", iconSvg("layers"))
-    .replace("__ICON_IMAGE__", iconSvg("image")) // التعديل 3: استبدال أيقونة الصور
     .replace("__ICON_CART__", iconSvg("cart"))
     .replace("__ICON_SETTINGS__", iconSvg("settings"));
 
@@ -364,22 +209,9 @@
   document.getElementById("addCategoryBtn").innerHTML = iconSvg("plus") + " إضافة قسم";
   document.getElementById("closeProductModal").innerHTML = iconSvg("close");
   document.getElementById("closeCategoryModal").innerHTML = iconSvg("close");
-  
-  // أزرار الإعلانات الجديدة
-  document.getElementById("addAdBtn").innerHTML = iconSvg("plus") + " إضافة إعلان";
-  document.getElementById("closeAdModal").innerHTML = iconSvg("close");
-  
-  // تعبئة أيقونة سلة المهملات لأزرار مسح الصور 
-  if(document.getElementById("removeProductImageBtn")) {
-      document.getElementById("removeProductImageBtn").innerHTML = iconSvg("trash");
-  }
-  if(document.getElementById("removeCategoryImageBtn")) {
-      document.getElementById("removeCategoryImageBtn").innerHTML = iconSvg("trash");
-  }
-  if(document.getElementById("removeAdImageBtn")) {
-      document.getElementById("removeAdImageBtn").innerHTML = iconSvg("trash");
-  }
 
+  // نسخة سجل الطلبات الثانية داخل تبويب "الطلبات" تستخدم نفس renderOrdersTable
+  // عبر ربط عنصرها بنفس الدالة بمعرّف بديل
   document.addEventListener("DOMContentLoaded", function () {
     const original = renderOrdersTable;
     renderOrdersTable = function () {
