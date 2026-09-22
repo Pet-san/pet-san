@@ -1,5 +1,5 @@
 /* ==========================================================================
-   store.js (نسخة السحابة المحسنة - تحميل فوري بدون تأخير - النسخة 2.1)
+   store.js (النسخة 4.0 - السحابة الآمنة والمزامنة الذكية بدون اختفاء المنتجات)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
@@ -19,7 +19,7 @@ function uid(prefix) {
   return (prefix || "id") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-// --- البيانات الافتراضية السريعة للظهور الفوري ---
+// --- البيانات الافتراضية ---
 const SEED_CATEGORIES = [
   { id: "cat_cat_food",   name: "طعام قطط",     icon: "bag" },
   { id: "cat_dog_food",   name: "طعام كلاب",    icon: "bone" },
@@ -68,18 +68,18 @@ function seedProducts() {
 }
 
 const SEED_SETTINGS = () => ({
-  storeName: STORE_CONFIG.storeName,
-  storeTagline: STORE_CONFIG.storeTagline,
-  storeDescription: STORE_CONFIG.storeDescription,
-  whatsapp: STORE_CONFIG.whatsappNumber,
-  instagram: STORE_CONFIG.instagram,
-  phone: STORE_CONFIG.phone,
-  address: STORE_CONFIG.address,
-  workingHours: STORE_CONFIG.workingHours,
-  deliveryInfo: STORE_CONFIG.deliveryInfo,
-  currencySymbol: STORE_CONFIG.currencySymbol,
-  adminUsername: STORE_CONFIG.adminUsername,
-  adminPassword: STORE_CONFIG.adminPassword
+  storeName: "سان ستور",
+  storeTagline: "كل ما يحتاجه صديقك الأليف",
+  storeDescription: "متجر عراقي متخصص بمستلزمات الحيوانات الأليفة.",
+  whatsapp: "9647701234567",
+  instagram: "https://instagram.com/pet_san1",
+  phone: "+964 770 123 4567",
+  address: "كربلاء، العراق",
+  workingHours: "يوميًا من 9 صباحًا حتى 10 مساءً",
+  deliveryInfo: "توصيل خلال 24 ساعة داخل العراق.",
+  currencySymbol: "د.ع",
+  adminUsername: "admin",
+  adminPassword: "PetShop@2025"
 });
 
 function seedIfNeeded() {
@@ -94,7 +94,10 @@ function seedIfNeeded() {
 }
 seedIfNeeded();
 
-// --- نظام مزامنة ذكي يعمل في الخلفية بدون حجب العرض ---
+/* ---------------------------------------------------------------------- */
+/* المزامنة السحابية الذكية والآمنة                                         */
+/* ---------------------------------------------------------------------- */
+
 let pushTimeout = null;
 
 function pushToFirebase() {
@@ -119,131 +122,98 @@ function pushToFirebase() {
   }, 1000);
 }
 
-async function pullFromFirebaseInBackground() {
+async function syncWithFirebase() {
   try {
-    const res = await fetch(FIREBASE_DB_URL + "/data.json", { cache: "no-store" });
-    const data = await res.json();
+    const res = await fetch(FIREBASE_DB_URL + "/data.json?nocache=" + Date.now(), { cache: "no-store" });
+    const remoteData = await res.json();
     
-    if (data === null) {
+    if (!remoteData) {
       pushToFirebase();
       return;
     }
 
-    // إذا كانت السحابة تحتوي على بيانات، نقوم بتحديث التخزين المحلي بهدوء
-    if (data.products && data.products.length > 0) {
-      localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products));
+    const localProductsStr = localStorage.getItem(DB_KEYS.products) || "[]";
+    const localProducts = JSON.parse(localProductsStr);
+    const remoteProducts = remoteData.products || [];
+
+    // جدار الحماية: إذا كانت السحابة فارغة لكن لدينا منتجات محلياً، نرفض مسحها ونرفعها للسحابة
+    if (remoteProducts.length === 0 && localProducts.length > 0) {
+        pushToFirebase();
+        return;
     }
-    if (data.categories && data.categories.length > 0) {
-      localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories));
-    }
-    if (data.settings && Object.keys(data.settings).length > 0) {
-      localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings));
-    }
-    if (data.ads) {
-      localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads));
+
+    const remoteProductsStr = JSON.stringify(remoteProducts);
+
+    // إذا استشعر النظام وجود تحديثات من السحابة، يطبقها فوراً
+    if (localProductsStr !== remoteProductsStr) {
+        localStorage.setItem(DB_KEYS.products, remoteProductsStr);
+        localStorage.setItem(DB_KEYS.categories, JSON.stringify(remoteData.categories || []));
+        localStorage.setItem(DB_KEYS.settings, JSON.stringify(remoteData.settings || {}));
+        localStorage.setItem(DB_KEYS.ads, JSON.stringify(remoteData.ads || []));
+        if (remoteData.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(remoteData.orders));
+        
+        // تحديث واجهة المستخدم فوراً بدون عمل Refresh للصفحة
+        document.dispatchEvent(new CustomEvent("store:synced"));
     }
   } catch (e) {
-    console.error("Firebase Background Pull Error:", e);
+    console.error("Sync error", e);
   }
 }
 
-// تنفيذ الجلب في الخلفية بعد تحميل الصفحة بـ 1 ثانية لضمان ظهور الموقع فوراً
-setTimeout(pullFromFirebaseInBackground, 1000);
+// تشغيل المزامنة بهدوء بعد ثانية واحدة من تحميل الموقع
+setTimeout(syncWithFirebase, 1000);
+
+// تحديث الشاشة تلقائياً للمشتري عند وصول منتجات جديدة
+document.addEventListener("store:synced", function() {
+    if (window.location.pathname.includes("admin.html")) {
+        window.location.reload(); 
+    } else {
+        if (typeof initHomeCollections === "function") initHomeCollections();
+        if (typeof initShopPage === "function") initShopPage();
+        if (typeof initProductDetailPage === "function") initProductDetailPage();
+        if (typeof renderCartPage === "function") renderCartPage();
+    }
+});
 
 /* ---------------------------------------------------------------------- */
 /* Store API                                                              */
 /* ---------------------------------------------------------------------- */
 
 const Store = {
-  getCategories() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]");
-  },
-  saveCategories(list) {
-    localStorage.setItem(DB_KEYS.categories, JSON.stringify(list));
-    pushToFirebase();
-  },
-  addCategory(cat) {
-    const list = this.getCategories();
-    list.push(Object.assign({ id: uid("cat"), icon: "box" }, cat));
-    this.saveCategories(list);
-  },
-  updateCategory(id, patch) {
-    const list = this.getCategories().map(c => c.id === id ? Object.assign({}, c, patch) : c);
-    this.saveCategories(list);
-  },
-  deleteCategory(id) {
-    this.saveCategories(this.getCategories().filter(c => c.id !== id));
-  },
-  getCategoryName(id) {
-    const c = this.getCategories().find(c => c.id === id);
-    return c ? c.name : "";
-  },
+  getCategories() { return JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"); },
+  saveCategories(list) { localStorage.setItem(DB_KEYS.categories, JSON.stringify(list)); pushToFirebase(); },
+  addCategory(cat) { const list = this.getCategories(); list.push(Object.assign({ id: uid("cat"), icon: "box" }, cat)); this.saveCategories(list); },
+  updateCategory(id, patch) { const list = this.getCategories().map(c => c.id === id ? Object.assign({}, c, patch) : c); this.saveCategories(list); },
+  deleteCategory(id) { this.saveCategories(this.getCategories().filter(c => c.id !== id)); },
+  getCategoryName(id) { const c = this.getCategories().find(c => c.id === id); return c ? c.name : ""; },
 
-  getProducts() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]");
-  },
-  saveProducts(list) {
-    localStorage.setItem(DB_KEYS.products, JSON.stringify(list));
-    pushToFirebase();
-  },
-  getProduct(id) {
-    return this.getProducts().find(p => p.id === id) || null;
-  },
+  getProducts() { return JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"); },
+  saveProducts(list) { localStorage.setItem(DB_KEYS.products, JSON.stringify(list)); pushToFirebase(); },
+  getProduct(id) { return this.getProducts().find(p => p.id === id) || null; },
   addProduct(prod) {
     const list = this.getProducts();
-    const item = Object.assign({
-      id: uid("prd"), stock: 0, available: true, featured: false, isNew: false, isOffer: false, image: null, variants: []
-    }, prod);
+    const item = Object.assign({ id: uid("prd"), stock: 0, available: true, featured: false, isNew: false, isOffer: false, image: null, variants: [] }, prod);
     list.unshift(item);
     this.saveProducts(list);
     return item;
   },
-  updateProduct(id, patch) {
-    const list = this.getProducts().map(p => p.id === id ? Object.assign({}, p, patch) : p);
-    this.saveProducts(list);
-  },
-  deleteProduct(id) {
-    this.saveProducts(this.getProducts().filter(p => p.id !== id));
-  },
+  updateProduct(id, patch) { const list = this.getProducts().map(p => p.id === id ? Object.assign({}, p, patch) : p); this.saveProducts(list); },
+  deleteProduct(id) { this.saveProducts(this.getProducts().filter(p => p.id !== id)); },
 
-  getSettings() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}");
-  },
-  saveSettings(patch) {
-    const current = this.getSettings();
-    localStorage.setItem(DB_KEYS.settings, JSON.stringify(Object.assign(current, patch)));
-    pushToFirebase();
-  },
+  getSettings() { return JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"); },
+  saveSettings(patch) { const current = this.getSettings(); localStorage.setItem(DB_KEYS.settings, JSON.stringify(Object.assign(current, patch))); pushToFirebase(); },
   
-  getAds() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]");
-  },
-  saveAds(list) {
-    localStorage.setItem(DB_KEYS.ads, JSON.stringify(list));
-    pushToFirebase();
-  },
-  addAd(adData) {
-    const list = this.getAds();
-    list.push(Object.assign({ id: uid("ad") }, adData));
-    this.saveAds(list);
-  },
-  deleteAd(id) {
-    this.saveAds(this.getAds().filter(a => a.id !== id));
-  },
+  getAds() { return JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]"); },
+  saveAds(list) { localStorage.setItem(DB_KEYS.ads, JSON.stringify(list)); pushToFirebase(); },
+  addAd(adData) { const list = this.getAds(); list.push(Object.assign({ id: uid("ad") }, adData)); this.saveAds(list); },
+  deleteAd(id) { this.saveAds(this.getAds().filter(a => a.id !== id)); },
 
-  getCart() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.cart) || "[]");
-  },
-  saveCart(cart) {
-    localStorage.setItem(DB_KEYS.cart, JSON.stringify(cart));
-    document.dispatchEvent(new CustomEvent("cart:updated"));
-  },
+  getCart() { return JSON.parse(localStorage.getItem(DB_KEYS.cart) || "[]"); },
+  saveCart(cart) { localStorage.setItem(DB_KEYS.cart, JSON.stringify(cart)); document.dispatchEvent(new CustomEvent("cart:updated")); },
   addToCart(itemKey, qty, variantName = null) {
     const cart = this.getCart();
     const line = cart.find(l => l.itemKey === itemKey);
-    if (line) {
-        line.qty += qty;
-    } else {
+    if (line) { line.qty += qty; } else {
         const productId = itemKey.split('|')[0];
         cart.push({ itemKey: itemKey, productId: productId, qty: qty, variant: variantName });
     }
@@ -251,23 +221,14 @@ const Store = {
   },
   setQty(itemKey, qty) {
     let cart = this.getCart();
-    if (qty <= 0) cart = cart.filter(l => l.itemKey !== itemKey);
-    else cart.forEach(l => { if (l.itemKey === itemKey) l.qty = qty; });
+    if (qty <= 0) cart = cart.filter(l => l.itemKey !== itemKey); else cart.forEach(l => { if (l.itemKey === itemKey) l.qty = qty; });
     this.saveCart(cart);
   },
-  removeFromCart(itemKey) {
-    this.saveCart(this.getCart().filter(l => l.itemKey !== itemKey));
-  },
-  clearCart() {
-    this.saveCart([]);
-  },
-  cartCount() {
-    return this.getCart().reduce((sum, l) => sum + l.qty, 0);
-  },
+  removeFromCart(itemKey) { this.saveCart(this.getCart().filter(l => l.itemKey !== itemKey)); },
+  clearCart() { this.saveCart([]); },
+  cartCount() { return this.getCart().reduce((sum, l) => sum + l.qty, 0); },
 
-  getOrders() {
-    return JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]");
-  },
+  getOrders() { return JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]"); },
   logOrder(order) {
     const list = this.getOrders();
     list.unshift(Object.assign({ id: uid("ord"), date: new Date().toISOString() }, order));
@@ -277,16 +238,9 @@ const Store = {
 
   login(username, password) {
     const s = this.getSettings();
-    if (username === s.adminUsername && password === s.adminPassword) {
-      sessionStorage.setItem(DB_KEYS.session, "1");
-      return true;
-    }
+    if (username === s.adminUsername && password === s.adminPassword) { sessionStorage.setItem(DB_KEYS.session, "1"); return true; }
     return false;
   },
-  isLoggedIn() {
-    return sessionStorage.getItem(DB_KEYS.session) === "1";
-  },
-  logout() {
-    sessionStorage.removeItem(DB_KEYS.session);
-  }
+  isLoggedIn() { return sessionStorage.getItem(DB_KEYS.session) === "1"; },
+  logout() { sessionStorage.removeItem(DB_KEYS.session); }
 };
