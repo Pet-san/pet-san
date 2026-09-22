@@ -343,3 +343,9 @@ document.addEventListener("DOMContentLoaded", function () {
   initShopPage();
   initProductDetailPage();
 });
+document.addEventListener("store:synced", function () {
+  initHomeCollections();
+  renderCategoryFilterPanel();
+  renderShopResults();
+  initProductDetailPage();
+});
