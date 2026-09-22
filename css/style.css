@@ -221,7 +221,7 @@ button { font-family: inherit; cursor: pointer; }
 .stock-line { font-size: .8rem; color: var(--ink-600); display: flex; align-items: center; gap: 6px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--olive-500); }
 
-/* ---------- Shop layout & Filters (الأقسام الفرعية العلوية وفلتر السعر) ---------- */
+/* ---------- Shop layout & Filters (الشاشة الكبيرة / الحاسوب) ---------- */
 .shop-layout { display: grid; grid-template-columns: 260px 1fr; gap: 30px; align-items: start; }
 .shop-toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
 .search-box { position: relative; flex: 1; min-width: 220px; }
@@ -232,6 +232,33 @@ button { font-family: inherit; cursor: pointer; }
 .search-box svg { position: absolute; inset-inline-end: 15px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-300); }
 .sort-select { padding: 12px 16px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong); background: var(--white); font-family: inherit; font-weight: 600; font-size: .88rem; }
 .filter-panel { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px; display: flex; flex-direction: column; gap: 22px; }
+
+/* تنسيق اللوحة الجانبية للأقسام في الحاسوب لتكون مرتبة واحترافية */
+.filter-panel h4 { font-size: 1.05rem; margin-bottom: 12px; color: var(--olive-900); border-bottom: 2px solid var(--olive-100); padding-bottom: 6px; }
+.filter-panel .filter-list-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+.filter-panel .filter-list-container button {
+  background: var(--white) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  font-weight: 600 !important;
+  font-size: 0.92rem !important;
+  color: var(--ink-600) !important;
+  text-align: right !important;
+  width: 100% !important;
+  transition: all 0.2s ease !important;
+}
+.filter-panel .filter-list-container button.active,
+.filter-panel .filter-list-container button:hover {
+  background: var(--olive-700) !important;
+  border-color: var(--olive-700) !important;
+  color: var(--white) !important;
+  box-shadow: var(--shadow-soft) !important;
+}
 
 /* تنسيق الأقسام الفرعية الأفقية (داخل المتجر عند اختيار قسم رئيسي) */
 #subCategoryScroller.cat-scroller {
@@ -244,7 +271,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 #subCategoryScroller.cat-scroller::-webkit-scrollbar { display: none !important; }
 
-/* تحويل الأقسام الفرعية إلى كبسولات دائرية ناعمة ومتناسقة مع الثيم */
 #subCategoryScroller .filter-chip {
   display: inline-flex !important;
   align-items: center !important;
@@ -268,25 +294,11 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: var(--shadow-soft) !important;
 }
 
-/* تنسيق حقول نطاق السعر (من - إلى) لتكون نظيفة واحترافية */
-.filter-panel .range-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* نطاق السعر في الحاسوب */
+.filter-panel .range-row { display: flex; align-items: center; gap: 10px; }
 .filter-panel .range-row input {
-  width: 100% !important;
-  padding: 10px 14px !important;
-  border-radius: var(--radius-pill) !important;
-  border: 1px solid var(--line-strong) !important;
-  background: var(--white) !important;
-  font-family: inherit !important;
-  font-size: 0.88rem !important;
-  text-align: center !important;
-}
-.filter-panel .range-row input:focus {
-  border-color: var(--olive-600) !important;
-  outline: none;
+  width: 100% !important; padding: 10px 14px !important; border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--line-strong) !important; background: var(--white); font-family: inherit; font-size: 0.88rem; text-align: center;
 }
 
 /* ---------- Admin & Footer ---------- */
@@ -307,7 +319,7 @@ button { font-family: inherit; cursor: pointer; }
   .hero { padding-block: 20px 30px !important; }
   .section-head { margin-bottom: 14px !important; }
 
-  /* زر تصفية الأقسام في الموبايل (مربع منسدل أنيق ومستدير الحواف) */
+  /* زر تصفية الأقسام في الموبايل */
   .mobile-toggle-btn {
     display: flex !important;
     width: 100% !important;
@@ -337,8 +349,8 @@ button { font-family: inherit; cursor: pointer; }
     display: flex !important;
   }
 
-  /* أزرار الفلتر والأقسام لتصبح كبسولات ناعمة متناسقة مع الثيم */
-  .filter-list-container button {
+  /* أزرار الفلتر والأقسام في الموبايل لتصبح كبسولات ناعمة */
+  .filter-panel .filter-list-container button {
     background: var(--white) !important;
     border: 1px solid var(--line) !important;
     border-radius: var(--radius-pill) !important;
@@ -351,8 +363,8 @@ button { font-family: inherit; cursor: pointer; }
     transition: all 0.2s ease !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
   }
-  .filter-list-container button.active,
-  .filter-list-container button:hover {
+  .filter-panel .filter-list-container button.active,
+  .filter-panel .filter-list-container button:hover {
     background: var(--olive-700) !important;
     border-color: var(--olive-700) !important;
     color: var(--white) !important;
@@ -397,7 +409,7 @@ button { font-family: inherit; cursor: pointer; }
      max-width: none !important;
   }
 
-  /* تصميم البطاقة الاحترافي المربع */
+  /* تصميم البطاقة الاحترافي المربع للموبايل */
   .product-card {
       min-width: 0 !important;
       padding: 10px !important;
