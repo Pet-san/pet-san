@@ -30,21 +30,25 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      '<div class="product-body">' +
-        '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
-        '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        '<p class="product-desc">' + truncate(product.description, 70) + "</p>" +
-        '<div class="stock-line">' +
-          '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
-          (outOfStock ? "غير متوفر حاليًا" : "متوفر — الكمية " + product.stock) +
-        "</div>" +
-        '<div class="product-foot">' +
-          '<span class="price">' + formatPrice(product.price) + "</span>" +
-        "</div>" +
-        '<div class="product-actions">' +
-          '<button class="btn btn-primary btn-sm btn-block" ' + (outOfStock ? "disabled" : "") +
-            ' onclick="quickAddToCart(\'' + product.id + '\')">' + iconSvg("cart") + "أضف للسلة</button>" +
-        "</div>" +
+      '<div class="product-body" style="display:flex; flex-direction:column; justify-content:space-between; flex:1;">' +
+        '<div>' +
+          '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+          '<h3 class="product-name" style="margin-bottom:4px;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+          '<div class="product-foot" style="margin:4px 0 8px 0; justify-content:flex-start;">' +
+            '<span class="price" style="font-size:1.15rem;">' + formatPrice(product.price) + "</span>" +
+          "</div>" +
+          '<p class="product-desc">' + truncate(product.description, 70) + "</p>" +
+        '</div>' +
+        '<div style="margin-top:auto; padding-top:8px;">' +
+          '<div class="stock-line" style="margin-bottom:8px;">' +
+            '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
+            (outOfStock ? "غير متوفر" : "متوفر — الكمية " + product.stock) +
+          "</div>" +
+          '<div class="product-actions" style="margin-top:0;">' +
+            '<button class="btn btn-primary btn-sm btn-block" ' + (outOfStock ? "disabled" : "") +
+              ' onclick="quickAddToCart(\'' + product.id + '\')">' + iconSvg("cart") + "أضف للسلة</button>" +
+          "</div>" +
+        '</div>' +
       "</div>" +
     "</article>"
   );
@@ -59,7 +63,6 @@ function quickAddToCart(productId) {
   const product = Store.getProduct(productId);
   if (!product || !product.available || product.stock <= 0) return;
   
-  // إذا كان للمنتج خيارات، نوجه الزبون لصفحة المنتج ليختار منها
   if (product.variants && product.variants.length > 0) {
       window.location.href = 'product.html?id=' + productId;
       return;
@@ -126,7 +129,6 @@ function initShopPage() {
   renderShopResults();
 }
 
-// دالة مساعدة لتحديث القسم من الأزرار العلوية (الأقسام الفرعية)
 window.updateCategory = function(catId) {
     shopState.categoryId = catId;
     shopState.filterMode = "";
@@ -139,7 +141,6 @@ function renderCategoryFilterPanel() {
   if (!panel) return;
   const categories = Store.getCategories();
 
-  // جلب الأقسام الرئيسية فقط للقائمة الجانبية
   const mainCats = categories.filter(function(c) { return !c.parentId; });
 
   let html = '';
@@ -157,20 +158,18 @@ function renderCategoryFilterPanel() {
   html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
   html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: #2563eb;">✨ وصل حديثاً</button>';
   
-  // رسم الأقسام الرئيسية وإضافة علامة التفرعات إن وجدت
   mainCats.forEach(function(main) {
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
     const isActive = isMainActive || (isChildActive && !shopState.filterMode);
     
-    // التحقق مما إذا كان القسم يمتلك أقساماً فرعية
     const hasSubCats = categories.some(c => c.parentId === main.id);
     let btnLabel = main.name;
     
     if (hasSubCats) {
         btnLabel = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
                       '<span>' + main.name + '</span>' +
-                      '<span style="font-size:0.7rem; font-weight:600; color:var(--olive-600); background:var(--olive-100); padding:2px 8px; border-radius:10px;">+ المزيد</span>' +
+                      '<span style="font-size:0.7rem; font-weight:600; color:var(--olive-600); background:var(--olive-100); padding:2px 8px; border-radius:10px;">+ تفرعات</span>' +
                    '</div>';
     }
     
@@ -191,12 +190,10 @@ function renderCategoryFilterPanel() {
 
   panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
-      
       if (btn.dataset.filter) {
           shopState.filterMode = btn.dataset.filter;
           shopState.categoryId = "all";
-      } 
-      else {
+      } else {
           shopState.filterMode = ""; 
           shopState.categoryId = btn.dataset.cat;
       }
@@ -217,7 +214,6 @@ function renderCategoryFilterPanel() {
 function renderShopResults() {
   let list = Store.getProducts();
 
-  // تصفية المنتجات حسب العروض
   if (shopState.filterMode === "featured") {
       list = list.filter(function (p) { return p.featured; });
   } else if (shopState.filterMode === "offer") {
@@ -226,7 +222,6 @@ function renderShopResults() {
       list = list.filter(function (p) { return p.isNew; });
   }
 
-  // فلترة حسب القسم
   if (shopState.categoryId !== "all" && !shopState.filterMode) {
     const subCatIds = Store.getCategories().filter(function(c) { return c.parentId === shopState.categoryId; }).map(function(c) { return c.id; });
     const allowedCats = [shopState.categoryId].concat(subCatIds);
@@ -250,13 +245,11 @@ function renderShopResults() {
     default: break; 
   }
 
-  // التعديل: شريط الأقسام الفرعية السحابي (أفقي ومثبت)
   const subCatContainerId = "subCategoryScroller";
   let subCatContainer = document.getElementById(subCatContainerId);
   
   if (shopState.categoryId !== "all" && !shopState.filterMode) {
       const currentCat = Store.getCategories().find(c => c.id === shopState.categoryId);
-      // معرفة ما إذا كان القسم الحالي أباً أم ابناً
       const parentId = currentCat ? (currentCat.parentId || currentCat.id) : null;
       
       if (parentId) {
@@ -267,11 +260,9 @@ function renderShopResults() {
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
                   
-                  // تقليص الهوامش
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
                   
-                  // تثبيت الشريط وإصلاح التداخل مع الهيدر
                   subCatContainer.style.position = "sticky";
                   subCatContainer.style.top = "75px"; 
                   subCatContainer.style.zIndex = "40"; 
@@ -298,7 +289,6 @@ function renderShopResults() {
       subCatContainer.style.display = "none";
   }
 
-  // عرض رسائل الفراغ
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") {
       emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
@@ -337,7 +327,6 @@ function initHomeCollections() {
   }
   if (catEl) {
     const categories = Store.getCategories();
-    // عرض الأقسام الرئيسية فقط في الصفحة الرئيسية لتجنب الزحام
     const mainCategories = categories.filter(function(c) { return !c.parentId; });
     
     catEl.innerHTML = mainCategories.map(function (c) {
@@ -374,7 +363,6 @@ function initProductDetailPage() {
   document.title = product.name + " — " + Store.getSettings().storeName;
   const outOfStock = !product.available || product.stock <= 0;
 
-  // إنشاء قائمة الخيارات (النكهات/الأحجام) إذا وجدت
   let variantsHtml = "";
   if (product.variants && product.variants.length > 0) {
       variantsHtml = '<div class="field" style="margin-bottom: 20px;">' +
@@ -396,10 +384,7 @@ function initProductDetailPage() {
         "</div>" +
         '<div class="detail-price">' + formatPrice(product.price) + "</div>" +
         "<p>" + product.description + "</p>" +
-        
-        // إدراج قائمة الخيارات هنا
         variantsHtml + 
-
         (outOfStock ? "" :
           '<div class="qty-stepper">' +
             '<button type="button" id="qtyMinus">−</button>' +
@@ -435,7 +420,6 @@ function initProductDetailPage() {
     document.getElementById("addToCartBtn").addEventListener("click", function () {
       const qty = Number(qtyInput.value) || 1;
       const selectedVariant = variantSelect ? variantSelect.value : null;
-      // دمج النكهة مع الـ ID لكي يعامله المتجر كمنتج منفصل في السلة
       const itemKey = selectedVariant ? product.id + "|" + selectedVariant : product.id;
       
       Store.addToCart(itemKey, qty, selectedVariant);
@@ -446,7 +430,6 @@ function initProductDetailPage() {
       const qty = Number(qtyInput.value) || 1;
       const selectedVariant = variantSelect ? variantSelect.value : null;
       
-      // دمج النكهة في اسم المنتج قبل إرساله للواتساب
       const orderProduct = Object.assign({}, product);
       if (selectedVariant) {
           orderProduct.name = product.name + " (" + selectedVariant + ")";
