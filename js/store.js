@@ -1,5 +1,5 @@
 /* ==========================================================================
-   store.js (نسخة السحابة - Firebase - مع حل مشكلة الكاش نهائياً - النسخة 2.0)
+   store.js (نسخة السحابة المحسنة - تحميل فوري بدون تأخير - النسخة 2.1)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-san-default-rtdb.firebaseio.com";
@@ -12,95 +12,14 @@ const DB_KEYS = {
   orders: "ws_orders",
   session: "ws_admin_session",
   seeded: "ws_seeded_v1",
-  ads: "ws_ads" // التعديل 1: إضافة مفتاح لجدول الإعلانات
+  ads: "ws_ads"
 };
 
 function uid(prefix) {
   return (prefix || "id") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-// --- محرك مزامنة Firebase الجديد (نظام الطابور الذكي) ---
-let pushTimeout = null;
-
-function pushToFirebase() {
-  if (pushTimeout) {
-    clearTimeout(pushTimeout);
-  }
-  
-  pushTimeout = setTimeout(async () => {
-    try {
-      const data = {
-        products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
-        categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
-        settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
-        orders: JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]"),
-        ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]") // التعديل 2: رفع الإعلانات للسحابة
-      };
-      
-      await fetch(FIREBASE_DB_URL + "/data.json", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      
-    } catch (e) {
-      console.error("Firebase Sync Error:", e);
-    }
-  }, 600); 
-}
-
-async function pullFromFirebase() {
-  try {
-    const cacheBuster = new Date().getTime();
-    
-    const res = await fetch(FIREBASE_DB_URL + "/data.json?nocache=" + cacheBuster, {
-        cache: "no-store",
-        headers: {
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache"
-        }
-    });
-    
-    const data = await res.json();
-    
-    if (data === null) {
-        pushToFirebase();
-        return;
-    }
-
-    const localHash = JSON.stringify({
-      products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
-      categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
-      settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
-      ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]") // التعديل 3: سحب الإعلانات محلياً
-    });
-    
-    const remoteHash = JSON.stringify({
-      products: data.products || [],
-      categories: data.categories || [],
-      settings: data.settings || {},
-      ads: data.ads || [] // التعديل 4: مقارنة الإعلانات من السحابة
-    });
-
-    if (localHash !== remoteHash) {
-        localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products || []));
-        localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories || []));
-        localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings || {}));
-        localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || [])); // التعديل 5: حفظ الإعلانات المسحوبة
-        if (data.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(data.orders));
-        window.location.reload();
-    }
-  } catch (e) {
-    console.error("Firebase Pull Error:", e);
-  }
-}
-
-pullFromFirebase();
-
-/* ---------------------------------------------------------------------- */
-/* Seed data (البيانات الافتراضية)                                       */
-/* ---------------------------------------------------------------------- */
-
+// --- البيانات الافتراضية السريعة للظهور الفوري ---
 const SEED_CATEGORIES = [
   { id: "cat_cat_food",   name: "طعام قطط",     icon: "bag" },
   { id: "cat_dog_food",   name: "طعام كلاب",    icon: "bone" },
@@ -122,7 +41,7 @@ function seedProducts() {
   }, opts || {});
 
   return [
-    p(uid("prd"), "طعام قطط رويال كانين بالدجاج", "طعام جاف متكامل للقطط البالغة، كيس 2 كغم، يدعم صحة الفراء والجهاز الهضمي.", 28000, "cat_cat_food", 24, { featured: true, isNew: true, variants: ["دجاج", "لحم", "تونة"] }), // التعديل: تجربة أولية لنكهات متعددة
+    p(uid("prd"), "طعام قطط رويال كانين بالدجاج", "طعام جاف متكامل للقطط البالغة، كيس 2 كغم، يدعم صحة الفراء والجهاز الهضمي.", 28000, "cat_cat_food", 24, { featured: true, isNew: true, variants: ["دجاج", "لحم", "تونة"] }),
     p(uid("prd"), "طعام قطط تونة وسمك", "وجبة رطبة غنية بالبروتين، علبة 400 غرام، مناسبة لجميع الأعمار.", 6000, "cat_cat_food", 40),
     p(uid("prd"), "طعام كلاب بيدجري باللحم", "طعام جاف متوازن للكلاب البالغة، كيس 3 كغم.", 35000, "cat_dog_food", 18, { featured: true }),
     p(uid("prd"), "طعام جراء دجاج وأرز", "تركيبة خاصة لدعم نمو الجراء، كيس 1.5 كغم.", 22000, "cat_dog_food", 0, { isNew: true }),
@@ -131,7 +50,7 @@ function seedProducts() {
     p(uid("prd"), "فأر قماشي بصوت صرير", "لعبة تفاعلية للقطط بحشوة نعناع برّي.", 4000, "cat_toys", 50, { isNew: true }),
     p(uid("prd"), "كرة مطاطية صامدة للكلاب", "لعبة مضغ متينة لتنظيف الأسنان وتسلية الكلب.", 6500, "cat_toys", 35),
     p(uid("prd"), "عمود خدش وتسلق للقطط", "برج خدش بثلاث طبقات مع كرة معلقة، ارتفاع 90 سم.", 45000, "cat_toys", 8, { featured: true }),
-    p(uid("prd"), "سرير دائري ناعم للقطط", "سرير مبطّن بحواف مرتفعة يمنح دفئًا وراحة، قطر 45 سم.", 21000, "cat_beds", 20, { featured: true, variants: ["صغير", "متوسط", "كبير"] }), // التعديل: تجربة أحجام متعددة
+    p(uid("prd"), "سرير دائري ناعم للقطط", "سرير مبطّن بحواف مرتفعة يمنح دفئًا وراحة، قطر 45 سم.", 21000, "cat_beds", 20, { featured: true, variants: ["صغير", "متوسط", "كبير"] }),
     p(uid("prd"), "وسادة مقاومة للماء للكلاب", "قماش متين قابل للغسل، مقاس متوسط.", 26000, "cat_beds", 12),
     p(uid("prd"), "قفص طائر معدني متوسط", "قفص مع أدراج ومساكن، سهل التنظيف.", 38000, "cat_cages", 10, { isNew: true }),
     p(uid("prd"), "قفص نقل صغير للقطط", "قفص بلاستيكي مهوّى مناسب للسفر والزيارات البيطرية.", 32000, "cat_cages", 0),
@@ -170,17 +89,72 @@ function seedIfNeeded() {
   localStorage.setItem(DB_KEYS.settings, JSON.stringify(SEED_SETTINGS()));
   localStorage.setItem(DB_KEYS.cart, JSON.stringify([]));
   localStorage.setItem(DB_KEYS.orders, JSON.stringify([]));
-  localStorage.setItem(DB_KEYS.ads, JSON.stringify([])); // التعديل 6: تهيئة مصفوفة الإعلانات
+  localStorage.setItem(DB_KEYS.ads, JSON.stringify([]));
   localStorage.setItem(DB_KEYS.seeded, "1");
 }
 seedIfNeeded();
+
+// --- نظام مزامنة ذكي يعمل في الخلفية بدون حجب العرض ---
+let pushTimeout = null;
+
+function pushToFirebase() {
+  if (pushTimeout) clearTimeout(pushTimeout);
+  pushTimeout = setTimeout(async () => {
+    try {
+      const data = {
+        products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
+        categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
+        settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
+        orders: JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]"),
+        ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]")
+      };
+      await fetch(FIREBASE_DB_URL + "/data.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+    } catch (e) {
+      console.error("Firebase Sync Error:", e);
+    }
+  }, 1000);
+}
+
+async function pullFromFirebaseInBackground() {
+  try {
+    const res = await fetch(FIREBASE_DB_URL + "/data.json", { cache: "no-store" });
+    const data = await res.json();
+    
+    if (data === null) {
+      pushToFirebase();
+      return;
+    }
+
+    // إذا كانت السحابة تحتوي على بيانات، نقوم بتحديث التخزين المحلي بهدوء
+    if (data.products && data.products.length > 0) {
+      localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products));
+    }
+    if (data.categories && data.categories.length > 0) {
+      localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories));
+    }
+    if (data.settings && Object.keys(data.settings).length > 0) {
+      localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings));
+    }
+    if (data.ads) {
+      localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads));
+    }
+  } catch (e) {
+    console.error("Firebase Background Pull Error:", e);
+  }
+}
+
+// تنفيذ الجلب في الخلفية بعد تحميل الصفحة بـ 1 ثانية لضمان ظهور الموقع فوراً
+setTimeout(pullFromFirebaseInBackground, 1000);
 
 /* ---------------------------------------------------------------------- */
 /* Store API                                                              */
 /* ---------------------------------------------------------------------- */
 
 const Store = {
-  // ---- categories ----
   getCategories() {
     return JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]");
   },
@@ -205,7 +179,6 @@ const Store = {
     return c ? c.name : "";
   },
 
-  // ---- products ----
   getProducts() {
     return JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]");
   },
@@ -218,7 +191,6 @@ const Store = {
   },
   addProduct(prod) {
     const list = this.getProducts();
-    // التعديل 7: إضافة variants: [] لتخزين الخيارات (النكهات/الأحجام)
     const item = Object.assign({
       id: uid("prd"), stock: 0, available: true, featured: false, isNew: false, isOffer: false, image: null, variants: []
     }, prod);
@@ -234,7 +206,6 @@ const Store = {
     this.saveProducts(this.getProducts().filter(p => p.id !== id));
   },
 
-  // ---- settings ----
   getSettings() {
     return JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}");
   },
@@ -244,7 +215,6 @@ const Store = {
     pushToFirebase();
   },
   
-  // ---- ads (القسم الجديد للإعلانات) ----
   getAds() {
     return JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]");
   },
@@ -261,7 +231,6 @@ const Store = {
     this.saveAds(this.getAds().filter(a => a.id !== id));
   },
 
-  // ---- cart (محدث ليدعم الخيارات/Variants) ----
   getCart() {
     return JSON.parse(localStorage.getItem(DB_KEYS.cart) || "[]");
   },
@@ -270,13 +239,12 @@ const Store = {
     document.dispatchEvent(new CustomEvent("cart:updated"));
   },
   addToCart(itemKey, qty, variantName = null) {
-    // التعديل 8: تغيير productId إلى itemKey لكي نسمح بإضافة نفس المنتج بنكهات مختلفة
     const cart = this.getCart();
     const line = cart.find(l => l.itemKey === itemKey);
     if (line) {
         line.qty += qty;
     } else {
-        const productId = itemKey.split('|')[0]; // استخراج الـ ID الأصلي
+        const productId = itemKey.split('|')[0];
         cart.push({ itemKey: itemKey, productId: productId, qty: qty, variant: variantName });
     }
     this.saveCart(cart);
@@ -297,7 +265,6 @@ const Store = {
     return this.getCart().reduce((sum, l) => sum + l.qty, 0);
   },
 
-  // ---- orders log ----
   getOrders() {
     return JSON.parse(localStorage.getItem(DB_KEYS.orders) || "[]");
   },
@@ -308,7 +275,6 @@ const Store = {
     pushToFirebase();
   },
 
-  // ---- admin session ----
   login(username, password) {
     const s = this.getSettings();
     if (username === s.adminUsername && password === s.adminPassword) {
