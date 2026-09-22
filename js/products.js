@@ -34,21 +34,18 @@ function renderProductCard(product) {
       '<div class="product-body">' +
         '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
         '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        // تم إخفاء الوصف بناءً على التصميم المطلوب للموبايل لتوفير المساحة
         '<p class="product-desc">' + truncate(product.description, 50) + "</p>" +
-        
         '<div class="stock-line">' +
           '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
           (outOfStock ? "غير متوفر" : "متوفر") +
         "</div>" +
-        
         '<div class="product-foot">' +
           '<span class="price">' + formatPrice(product.price) + "</span>" +
           '<div class="product-actions">' +
             '<button class="btn btn-primary btn-sm" ' + (outOfStock ? "disabled" : "") +
               ' onclick="quickAddToCart(\'' + product.id + '\')" title="أضف للسلة">' + 
               iconSvg("cart") + 
-              '<span class="btn-text">أضف للسلة</span>' + // تمت إضافة class للنص للتحكم بظهوره وإخفائه في CSS
+              '<span class="btn-text">أضف للسلة</span>' + 
             '</button>' +
           "</div>" +
         "</div>" +
@@ -66,7 +63,6 @@ function quickAddToCart(productId) {
   const product = Store.getProduct(productId);
   if (!product || !product.available || product.stock <= 0) return;
   
-  // إذا كان للمنتج خيارات، نوجه الزبون لصفحة المنتج ليختار منها
   if (product.variants && product.variants.length > 0) {
       window.location.href = 'product.html?id=' + productId;
       return;
@@ -133,7 +129,6 @@ function initShopPage() {
   renderShopResults();
 }
 
-// دالة مساعدة لتحديث القسم من الأزرار العلوية (الأقسام الفرعية)
 window.updateCategory = function(catId) {
     shopState.categoryId = catId;
     shopState.filterMode = "";
@@ -146,7 +141,6 @@ function renderCategoryFilterPanel() {
   if (!panel) return;
   const categories = Store.getCategories();
 
-  // جلب الأقسام الرئيسية فقط للقائمة الجانبية
   const mainCats = categories.filter(function(c) { return !c.parentId; });
 
   let html = '';
@@ -164,7 +158,6 @@ function renderCategoryFilterPanel() {
   html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
   html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: #2563eb;">✨ وصل حديثاً</button>';
   
-  // رسم الأقسام الرئيسية فقط
   mainCats.forEach(function(main) {
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
@@ -187,7 +180,6 @@ function renderCategoryFilterPanel() {
 
   panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
-      
       if (btn.dataset.filter) {
           shopState.filterMode = btn.dataset.filter;
           shopState.categoryId = "all";
@@ -213,7 +205,6 @@ function renderCategoryFilterPanel() {
 function renderShopResults() {
   let list = Store.getProducts();
 
-  // تصفية المنتجات حسب العروض
   if (shopState.filterMode === "featured") {
       list = list.filter(function (p) { return p.featured; });
   } else if (shopState.filterMode === "offer") {
@@ -222,11 +213,9 @@ function renderShopResults() {
       list = list.filter(function (p) { return p.isNew; });
   }
 
-  // فلترة حسب القسم
   if (shopState.categoryId !== "all" && !shopState.filterMode) {
     const subCatIds = Store.getCategories().filter(function(c) { return c.parentId === shopState.categoryId; }).map(function(c) { return c.id; });
     const allowedCats = [shopState.categoryId].concat(subCatIds);
-
     list = list.filter(function (p) { return allowedCats.includes(p.categoryId); });
   }
   
@@ -246,7 +235,6 @@ function renderShopResults() {
     default: break; 
   }
 
-  // التعديل: شريط الأقسام الفرعية السحابي (أفقي ومثبت)
   const subCatContainerId = "subCategoryScroller";
   let subCatContainer = document.getElementById(subCatContainerId);
   
@@ -261,10 +249,8 @@ function renderShopResults() {
                   subCatContainer = document.createElement("div");
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
-                  
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
-                  
                   subCatContainer.style.position = "sticky";
                   subCatContainer.style.top = "60px"; 
                   subCatContainer.style.zIndex = "90";
@@ -289,7 +275,6 @@ function renderShopResults() {
       subCatContainer.style.display = "none";
   }
 
-  // عرض رسائل الفراغ
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") {
       emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
@@ -328,7 +313,6 @@ function initHomeCollections() {
   }
   if (catEl) {
     const categories = Store.getCategories();
-    // عرض الأقسام الرئيسية فقط في الصفحة الرئيسية لتجنب الزحام
     const mainCategories = categories.filter(function(c) { return !c.parentId; });
     
     catEl.innerHTML = mainCategories.map(function (c) {
@@ -365,7 +349,6 @@ function initProductDetailPage() {
   document.title = product.name + " — " + Store.getSettings().storeName;
   const outOfStock = !product.available || product.stock <= 0;
 
-  // إنشاء قائمة الخيارات (النكهات/الأحجام) إذا وجدت
   let variantsHtml = "";
   if (product.variants && product.variants.length > 0) {
       variantsHtml = '<div class="field" style="margin-bottom: 20px;">' +
@@ -388,7 +371,6 @@ function initProductDetailPage() {
         '<div class="detail-price">' + formatPrice(product.price) + "</div>" +
         "<p>" + product.description + "</p>" +
         
-        // إدراج قائمة الخيارات هنا
         variantsHtml + 
 
         (outOfStock ? "" :
@@ -426,7 +408,6 @@ function initProductDetailPage() {
     document.getElementById("addToCartBtn").addEventListener("click", function () {
       const qty = Number(qtyInput.value) || 1;
       const selectedVariant = variantSelect ? variantSelect.value : null;
-      // دمج النكهة مع الـ ID لكي يعامله المتجر كمنتج منفصل في السلة
       const itemKey = selectedVariant ? product.id + "|" + selectedVariant : product.id;
       
       Store.addToCart(itemKey, qty, selectedVariant);
@@ -437,7 +418,6 @@ function initProductDetailPage() {
       const qty = Number(qtyInput.value) || 1;
       const selectedVariant = variantSelect ? variantSelect.value : null;
       
-      // دمج النكهة في اسم المنتج قبل إرساله للواتساب
       const orderProduct = Object.assign({}, product);
       if (selectedVariant) {
           orderProduct.name = product.name + " (" + selectedVariant + ")";
