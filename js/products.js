@@ -1,8 +1,7 @@
 /* ==========================================================================
-   products.js (النسخة 3.1 - مع شاشة التحميل الدوارة الذكية)
+   products.js (النسخة 3.2 - دائرة التحميل المستمرة)
    ========================================================================== */
 
-// --- إضافة تنسيقات دائرة التحميل برمجياً ---
 const loaderStyles = document.createElement('style');
 loaderStyles.innerHTML = `
   .loader-spinner { width: 44px; height: 44px; border: 4px solid var(--olive-100); border-bottom-color: var(--olive-600); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; margin-bottom: 10px; }
@@ -75,22 +74,12 @@ function renderGridInto(containerId, products, emptyMessage) {
   if (!el) return;
   if (!products.length) {
     const totalProducts = Store.getProducts().length;
-    // إذا كان المتجر فارغاً تماماً (بانتظار تحميل Firebase) نعرض دائرة التحميل الدوارة
     if (totalProducts === 0) {
-      el.innerHTML = '<div class="empty-state loading-state" data-empty="' + (emptyMessage || "لا توجد منتجات حالياً.") + '">' +
+      el.innerHTML = '<div class="empty-state loading-state">' +
                        '<div class="loader-spinner"></div>' +
                        '<p class="loading-text">جاري تحميل المتجر...</p>' +
                      '</div>';
-      // مهلة زمنية: إذا تأخر التحميل لأكثر من 8 ثوانٍ وكان المتجر فعلاً فارغاً، تظهر رسالة فارغ
-      setTimeout(() => {
-        const stateEl = el.querySelector('.loading-state');
-        if (stateEl) {
-          stateEl.innerHTML = iconSvg("box") + "<p>" + stateEl.getAttribute('data-empty') + "</p>";
-          stateEl.classList.remove('loading-state');
-        }
-      }, 8000);
     } else {
-      // إما إذا كان هناك منتجات لكن قسم معين فارغ
       el.innerHTML = '<div class="empty-state">' + iconSvg("box") + "<p>" + (emptyMessage || "لا توجد منتجات مطابقة لبحثك.") + "</p></div>";
     }
     return;
