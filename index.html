@@ -9,7 +9,7 @@
   <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
 <style>
   /* === التعديلات الجديدة === */
   .product-media img, .product-media { border-radius: 12px !important; }
@@ -36,15 +36,15 @@
     .hero { padding-block: 16px 20px !important; }
     .section-head { margin-bottom: 10px !important; }
 
-    /* تصغير صورة المنتج وتغيير نسبتها لتصبح مربعة تقريباً */
+    /* الصورة تأخذ مساحة مربعة مريحة بدون تضييق زايد */
     .product-media {
-        aspect-ratio: 1 / 1 !important; /* نسبة مربعة لتقليل الطول */
-        max-height: 105px !important;
+        aspect-ratio: 1 / 1 !important;
         background: transparent !important;
+        margin-bottom: 6px !important;
     }
     .product-media img {
         object-fit: contain !important;
-        padding: 2px !important;
+        padding: 4px !important;
     }
 
     .cat-chip { width: 95px !important; padding: 12px 8px !important; gap: 6px !important; }
@@ -57,14 +57,14 @@
     .feature-grid p { font-size: 11px !important; }
     
     .product-grid {
-      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important; padding-bottom: 10px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; align-items: flex-start !important;
+      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important; padding-bottom: 15px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; align-items: stretch !important;
     }
     .product-grid::-webkit-scrollbar { display: none !important; }
     
-    /* تقليل عرض البطاقة قليلاً لتبدو ألطف بجانب بعضها */
+    /* جعل بطاقة المنتجات الرئيسية أعرض لتشبه صفحة الأقسام */
     .product-grid .product-card {
-      flex: 0 0 38% !important;
-      max-width: 140px !important;
+      flex: 0 0 47% !important; /* زيادة العرض */
+      max-width: 175px !important; /* زيادة الحد الأقصى */
       scroll-snap-align: start !important;
       margin-left: 10px !important;
       display: flex !important;
@@ -72,11 +72,10 @@
       height: auto !important;
     }
     
-    #shopGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; align-items: flex-start !important; }
+    #shopGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; align-items: stretch !important; }
     #shopGrid .product-card { flex: unset !important; margin-left: 0 !important; max-width: none !important; height: auto !important; }
 
-    /* تقليل الهوامش الداخلية للبطاقة */
-    .product-card { min-width: 0 !important; padding: 6px !important; }
+    .product-card { min-width: 0 !important; padding: 8px !important; }
     .product-card .product-desc { display: none !important; } 
   }
 </style>
