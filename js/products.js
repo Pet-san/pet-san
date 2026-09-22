@@ -1,6 +1,16 @@
 /* ==========================================================================
-   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
+   products.js (النسخة 3.1 - مع شاشة التحميل الدوارة الذكية)
    ========================================================================== */
+
+// --- إضافة تنسيقات دائرة التحميل برمجياً ---
+const loaderStyles = document.createElement('style');
+loaderStyles.innerHTML = `
+  .loader-spinner { width: 44px; height: 44px; border: 4px solid var(--olive-100); border-bottom-color: var(--olive-600); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; margin-bottom: 10px; }
+  @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .loading-text { color: var(--olive-600); font-weight: bold; font-size: 1rem; margin-top: 5px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+`;
+document.head.appendChild(loaderStyles);
 
 function productMediaHtml(product) {
   if (product.image) {
@@ -15,7 +25,7 @@ function renderProductCard(product) {
   const outOfStock = !product.available || product.stock <= 0;
   const badges = [];
   
-  if (product.isOffer) badges.push('<span class="badge badge-offer" style="background:var(--danger); color:white;">عرض🔥</span>');
+  if (product.isOffer) badges.push('<span class="badge badge-offer">عرض🔥</span>');
   else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
 
@@ -25,18 +35,20 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      // تم إلغاء التمدد هنا لتصبح البطاقة مضغوطة
-      '<div class="product-body" style="padding-top: 6px;">' +
-        '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
-        '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
-'<span class="price" style="font-size:1rem; font-weight:900; color:var(--olive-700);">' + formatPrice(product.price) + "</span>" +        "</div>" +
-        '<div class="product-actions" style="margin-top:0;">' +
-          '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
+      '<div class="product-body">' +
+        '<div>' +
+          '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+          '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+          '<div class="product-foot">' +
+            '<span class="price">' + formatPrice(product.price) + "</span>" +
+          "</div>" +
+        '</div>' +
+        '<div class="product-actions">' +
+          '<button class="btn btn-primary btn-sm btn-block" ' + (outOfStock ? "disabled" : "") +
             ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
             (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
           "</button>" +
-        "</div>" +
+        '</div>' +
       "</div>" +
     "</article>"
   );
@@ -62,7 +74,25 @@ function renderGridInto(containerId, products, emptyMessage) {
   const el = document.getElementById(containerId);
   if (!el) return;
   if (!products.length) {
-    el.innerHTML = '<div class="empty-state">' + iconSvg("box") + "<p>" + (emptyMessage || "لا توجد منتجات لعرضها حاليًا.") + "</p></div>";
+    const totalProducts = Store.getProducts().length;
+    // إذا كان المتجر فارغاً تماماً (بانتظار تحميل Firebase) نعرض دائرة التحميل الدوارة
+    if (totalProducts === 0) {
+      el.innerHTML = '<div class="empty-state loading-state" data-empty="' + (emptyMessage || "لا توجد منتجات حالياً.") + '">' +
+                       '<div class="loader-spinner"></div>' +
+                       '<p class="loading-text">جاري تحميل المتجر...</p>' +
+                     '</div>';
+      // مهلة زمنية: إذا تأخر التحميل لأكثر من 8 ثوانٍ وكان المتجر فعلاً فارغاً، تظهر رسالة فارغ
+      setTimeout(() => {
+        const stateEl = el.querySelector('.loading-state');
+        if (stateEl) {
+          stateEl.innerHTML = iconSvg("box") + "<p>" + stateEl.getAttribute('data-empty') + "</p>";
+          stateEl.classList.remove('loading-state');
+        }
+      }, 8000);
+    } else {
+      // إما إذا كان هناك منتجات لكن قسم معين فارغ
+      el.innerHTML = '<div class="empty-state">' + iconSvg("box") + "<p>" + (emptyMessage || "لا توجد منتجات مطابقة لبحثك.") + "</p></div>";
+    }
     return;
   }
   el.innerHTML = products.map(renderProductCard).join("");
@@ -115,14 +145,16 @@ window.updateCategory = function(catId) {
     shopState.filterMode = "";
     renderCategoryFilterPanel();
     renderShopResults();
-
-    // إعادة التمرير لأعلى شبكة المنتجات مع مراعاة ارتفاع الهيدر الثابت
-    const grid = document.getElementById("shopGrid");
-    if (grid) {
-        const headerEl = document.querySelector(".site-header");
-        const offset = (headerEl ? headerEl.offsetHeight : 80) + 10;
-        const top = grid.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top: top, behavior: "smooth" });
+    
+    const target = document.getElementById("subCategoryScroller") || document.getElementById("shopGrid");
+    if (target) {
+        const headerOffset = 85;
+        const elementPosition = target.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+             top: offsetPosition,
+             behavior: "smooth"
+        });
     }
 };
 
@@ -223,13 +255,6 @@ function renderShopResults() {
                   subCatContainer = document.createElement("div");
                   subCatContainer.id = subCatContainerId;
                   subCatContainer.className = "cat-scroller";
-                  subCatContainer.style.marginBottom = "10px";
-                  subCatContainer.style.padding = "10px 0";
-                               subCatContainer.style.position = "sticky";
-              const headerElForOffset = document.querySelector(".site-header");
-              subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
-                  subCatContainer.style.zIndex = "40"; 
-                  subCatContainer.style.backgroundColor = "#fefcf4"; 
                   const grid = document.getElementById("shopGrid");
                   if (grid && grid.parentNode) grid.parentNode.insertBefore(subCatContainer, grid);
               }
@@ -237,9 +262,13 @@ function renderShopResults() {
               subHtml += subCats.map(sub => { return '<button class="filter-chip ' + (shopState.categoryId === sub.id ? 'active' : '') + '" onclick="updateCategory(\'' + sub.id + '\')">' + sub.name + '</button>'; }).join('');
               subCatContainer.innerHTML = subHtml;
               subCatContainer.style.display = "flex";
-          } else if (subCatContainer) subCatContainer.style.display = "none";
+          } else if (subCatContainer) {
+              subCatContainer.style.display = "none";
+          }
       }
-  } else if (subCatContainer) subCatContainer.style.display = "none";
+  } else if (subCatContainer) {
+      subCatContainer.style.display = "none";
+  }
 
   let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
   if (shopState.filterMode === "featured") emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
@@ -299,7 +328,6 @@ function initProductDetailPage() {
       '<div class="detail-info">' +
         '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
         "<h1>" + product.name + "</h1>" +
-        '<div class="stock-line"><span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' + (outOfStock ? "غير متوفر حاليًا" : "متوفر — الكمية " + product.stock) + "</div>" +
         '<div class="detail-price">' + formatPrice(product.price) + "</div>" +
         "<p>" + product.description + "</p>" +
         variantsHtml + 
