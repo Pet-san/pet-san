@@ -51,15 +51,7 @@ function pushToFirebase() {
 
 async function pullFromFirebase() {
   try {
-    const cacheBuster = new Date().getTime();
-    
-    const res = await fetch(FIREBASE_DB_URL + "/data.json?nocache=" + cacheBuster, {
-        cache: "no-store",
-        headers: {
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache"
-        }
-    });
+    const res = await fetch(FIREBASE_DB_URL + "/data.json");
     
     const data = await res.json();
     
@@ -304,7 +296,8 @@ const Store = {
   logOrder(order) {
     const list = this.getOrders();
     list.unshift(Object.assign({ id: uid("ord"), date: new Date().toISOString() }, order));
-    localStorage.setItem(DB_KEYS.orders, JSON.stringify(list));
+    const trimmed = list.slice(0, 200);
+    localStorage.setItem(DB_KEYS.orders, JSON.stringify(trimmed));
     pushToFirebase();
   },
 
