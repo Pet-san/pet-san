@@ -33,16 +33,14 @@ function renderProductCard(product) {
         '<div>' +
           '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
           
-          // تصغير حجم خط اسم المنتج
           '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
           
-          // تغيير لون السعر (اخترت لك لون أحمر داكن/برتقالي ليلفت الانتباه، يمكنك تغييره إن أردت)
           '<div class="product-foot" style="margin:0 0 6px 0; justify-content:center;">' +
             '<span class="price" style="font-size:1rem; font-weight:900; color:#d9381e;">' + formatPrice(product.price) + "</span>" +
           "</div>" +
         '</div>' +
         
-        // تم مسح سطر التوفر نهائياً
+        // تم إزالة سطر التوفر بالكامل من هنا
         
         '<div style="margin-top:auto;">' +
           '<div class="product-actions" style="margin-top:0;">' +
