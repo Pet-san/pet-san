@@ -2,10 +2,6 @@
    products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
    ========================================================================== */
 
-/* ---------------------------------------------------------------------- */
-/* بطاقة المنتج                                                           */
-/* ---------------------------------------------------------------------- */
-
 function productMediaHtml(product) {
   if (product.image) {
     return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy">';
@@ -29,27 +25,19 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      '<div class="product-body" style="display:flex; flex-direction:column; justify-content:space-between; flex:1; padding-top: 6px;">' +
-        '<div>' +
-          '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
-          
-          '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-          
-          '<div class="product-foot" style="margin:0 0 6px 0; justify-content:center;">' +
-            '<span class="price" style="font-size:1rem; font-weight:900; color:#d9381e;">' + formatPrice(product.price) + "</span>" +
-          "</div>" +
-        '</div>' +
-        
-        // تم إزالة سطر التوفر بالكامل من هنا
-        
-        '<div style="margin-top:auto;">' +
-          '<div class="product-actions" style="margin-top:0;">' +
-            '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
-              ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
-              (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
-            "</button>" +
-          "</div>" +
-        '</div>' +
+      // تم إلغاء التمدد هنا لتصبح البطاقة مضغوطة
+      '<div class="product-body" style="padding-top: 6px;">' +
+        '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
+        '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+        '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
+          '<span class="price" style="font-size:1rem; font-weight:900; color:#d9381e;">' + formatPrice(product.price) + "</span>" +
+        "</div>" +
+        '<div class="product-actions" style="margin-top:0;">' +
+          '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
+            ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
+            (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
+          "</button>" +
+        "</div>" +
       "</div>" +
     "</article>"
   );
@@ -63,12 +51,10 @@ function truncate(text, max) {
 function quickAddToCart(productId) {
   const product = Store.getProduct(productId);
   if (!product || !product.available || product.stock <= 0) return;
-  
   if (product.variants && product.variants.length > 0) {
       window.location.href = 'product.html?id=' + productId;
       return;
   }
-  
   Store.addToCart(productId, 1);
   showToast(product.name + " أُضيف إلى السلة");
 }
@@ -82,10 +68,6 @@ function renderGridInto(containerId, products, emptyMessage) {
   }
   el.innerHTML = products.map(renderProductCard).join("");
 }
-
-/* ---------------------------------------------------------------------- */
-/* صفحة المتجر والفلاتر                             */
-/* ---------------------------------------------------------------------- */
 
 const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "", mobileMenuOpen: false };
 
@@ -158,7 +140,6 @@ function renderCategoryFilterPanel() {
     const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
     const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
     const isActive = isMainActive || (isChildActive && !shopState.filterMode);
-    
     const hasSubCats = categories.some(c => c.parentId === main.id);
     let btnLabel = main.name;
     
@@ -171,7 +152,6 @@ function renderCategoryFilterPanel() {
     html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isActive ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">' + btnLabel + '</button>';
   });
   html += '</div>';
-
   panel.innerHTML = html;
 
   const toggleBtn = document.getElementById("mobileFilterToggle");
@@ -184,13 +164,8 @@ function renderCategoryFilterPanel() {
 
   panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {
-      if (btn.dataset.filter) {
-          shopState.filterMode = btn.dataset.filter;
-          shopState.categoryId = "all";
-      } else {
-          shopState.filterMode = ""; 
-          shopState.categoryId = btn.dataset.cat;
-      }
+      if (btn.dataset.filter) { shopState.filterMode = btn.dataset.filter; shopState.categoryId = "all"; } 
+      else { shopState.filterMode = ""; shopState.categoryId = btn.dataset.cat; }
       if (window.innerWidth <= 980) shopState.mobileMenuOpen = false;
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.pushState({path:newUrl}, '', newUrl);
@@ -267,10 +242,6 @@ function renderShopResults() {
   if (countEl) countEl.textContent = list.length + " منتج";
 }
 
-/* ---------------------------------------------------------------------- */
-/* الرئيسية — المنتجات المميزة / الجديدة / الأقسام الشائعة                  */
-/* ---------------------------------------------------------------------- */
-
 function initHomeCollections() {
   const featuredEl = document.getElementById("featuredGrid");
   const offerEl = document.getElementById("offerGrid"); 
@@ -291,10 +262,6 @@ function initHomeCollections() {
     }).join("");
   }
 }
-
-/* ---------------------------------------------------------------------- */
-/* صفحة تفاصيل المنتج                */
-/* ---------------------------------------------------------------------- */
 
 function initProductDetailPage() {
   const mount = document.getElementById("productDetail");
