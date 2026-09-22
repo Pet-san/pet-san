@@ -30,25 +30,20 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      '<div class="product-body" style="display:flex; flex-direction:column; justify-content:space-between; flex:1;">' +
-        '<div>' +
-          '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
-          '<h3 class="product-name" style="margin-bottom:4px;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-          '<div class="product-foot" style="margin:4px 0 8px 0; justify-content:flex-start;">' +
-            '<span class="price" style="font-size:1.15rem;">' + formatPrice(product.price) + "</span>" +
-          "</div>" +
-          '<p class="product-desc">' + truncate(product.description, 70) + "</p>" +
-        '</div>' +
-        '<div style="margin-top:auto; padding-top:8px;">' +
-          '<div class="stock-line" style="margin-bottom:8px;">' +
-            '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
-            (outOfStock ? "غير متوفر" : "متوفر — الكمية " + product.stock) +
-          "</div>" +
-          '<div class="product-actions" style="margin-top:0;">' +
-            '<button class="btn btn-primary btn-sm btn-block" ' + (outOfStock ? "disabled" : "") +
-              ' onclick="quickAddToCart(\'' + product.id + '\')">' + iconSvg("cart") + "أضف للسلة</button>" +
-          "</div>" +
-        '</div>' +
+      '<div class="product-body" style="display:flex; flex-direction:column; gap:4px; padding:10px 8px;">' +
+        '<span class="product-cat" style="font-size:0.75rem; color:var(--olive-700); font-weight:600;">' + Store.getCategoryName(product.categoryId) + "</span>" +
+        '<h3 class="product-name" style="margin:0 0 2px; font-size:0.85rem; line-height:1.3; height:2.6em; overflow:hidden;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+        '<div class="product-foot" style="margin:2px 0 4px;">' +
+          '<span class="price" style="font-size:0.95rem; font-weight:bold; color:var(--ink-900);">' + formatPrice(product.price) + "</span>" +
+        "</div>" +
+        '<div class="stock-line" style="margin:0 0 6px; font-size:0.75rem;">' +
+          '<span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' +
+          (outOfStock ? "غير متوفر" : "متوفر — " + product.stock) +
+        "</div>" +
+        '<div class="product-actions" style="margin-top:2px;">' +
+          '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem;" ' + (outOfStock ? "disabled" : "") +
+            ' onclick="quickAddToCart(\'' + product.id + '\')">' + iconSvg("cart") + "أضف للسلة</button>" +
+        "</div>" +
       "</div>" +
     "</article>"
   );
