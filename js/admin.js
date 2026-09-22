@@ -1,6 +1,6 @@
 /* ==========================================================================
    admin.js
-   نسخة هجينة: تدعم رفع الصور من الجهاز (مع ضغطها) أو إدراج روابط مباشرة
+   نسخة هجينة: مع دعم أزرار حذف الصورة وتفريغ الحقول بالكامل
    ========================================================================== */
 
 let editingProductId = null;
@@ -182,6 +182,16 @@ function wireProductModal() {
       }
     });
   }
+
+  const removeImgBtn = document.getElementById("removeProductImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingProductImage = null;
+      if (fileInput) fileInput.value = "";
+      if (urlInput) urlInput.value = "";
+      if (preview) preview.innerHTML = iconSvg("box");
+    });
+  }
 }
 
 function openProductModal(productId) {
@@ -280,7 +290,8 @@ function renderCategoriesTable() {
 function deleteCategoryConfirm(id) {
   const category = Store.getCategories().find(function (c) { return c.id === id; });
   if (!category) return;
-  if (confirm('هل تريد حذف القسم "' + category.name + '"؟')) {
+  const msg = 'هل تريد حذف القسم "' + category.name + '"؟';
+  if (confirm(msg)) {
     Store.deleteCategory(id); renderCategoriesTable(); populateCategorySelect(); renderStats(); showToast("تم حذف القسم");
   }
 }
@@ -326,6 +337,16 @@ function wireCategoryModal() {
         if (fileInput) fileInput.value = ""; 
         if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;">';
       }
+    });
+  }
+
+  const removeImgBtn = document.getElementById("removeCategoryImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingCategoryImage = null;
+      if (fileInput) fileInput.value = "";
+      if (urlInput) urlInput.value = "";
+      if (preview) preview.innerHTML = iconSvg("box");
     });
   }
 }
@@ -450,6 +471,16 @@ function wireAdModal() {
         if (fileInput) fileInput.value = ""; 
         if (preview) preview.innerHTML = '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;">';
       }
+    });
+  }
+
+  const removeImgBtn = document.getElementById("removeAdImageBtn");
+  if (removeImgBtn) {
+    removeImgBtn.addEventListener("click", function () {
+      pendingAdImage = null;
+      if (fileInput) fileInput.value = "";
+      if (urlInput) urlInput.value = "";
+      if (preview) preview.innerHTML = "";
     });
   }
 }
