@@ -24,7 +24,32 @@ function renderHeader() {
     return '<a href="' + link.href + '" class="' + isActive.trim() + '">' + link.label + "</a>";
   }).join("");
 
+  // حل مشكلة الكاش: تضمين الـ CSS الخاص بالبحث مباشرة هنا ليعمل فوراً
+  const searchStyles = `
+  <style>
+    .global-search-overlay { position: fixed; inset: 0; background: rgba(34,36,29,0.8); backdrop-filter: blur(4px); z-index: 1000; display: none; padding: 20px; }
+    .global-search-overlay.open { display: flex; justify-content: center; align-items: flex-start; animation: fadeIn 0.2s ease; }
+    .global-search-container { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 600px; margin-top: 40px; padding: 20px; box-shadow: var(--shadow-lift); display: flex; flex-direction: column; max-height: 80vh; }
+    .global-search-header { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+    .global-search-results { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-inline-end: 5px; }
+    .global-search-results::-webkit-scrollbar { width: 6px; }
+    .global-search-results::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+    .search-result-item { display: flex; gap: 15px; align-items: center; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--line); transition: all 0.2s; background: var(--cream); text-decoration: none; }
+    .search-result-item:hover { border-color: var(--olive-400); background: var(--olive-50); transform: translateY(-2px); }
+    .search-item-img { width: 60px; height: 60px; border-radius: var(--radius-sm); overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--line); }
+    .search-item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .search-item-img .search-img-placeholder { color: var(--olive-400); width: 60%; }
+    .search-item-img .search-img-placeholder svg { width: 100%; height: 100%; }
+    .search-item-info h4 { font-size: 0.95rem; margin: 0 0 6px; color: var(--ink-900); font-weight: 700; line-height: 1.3;}
+    .search-item-info span { font-size: 0.9rem; font-weight: 700; color: var(--olive-700); font-family: var(--font-display);}
+    .empty-search { text-align: center; padding: 40px 20px; color: var(--ink-300); font-size: 0.95rem; font-weight: 600; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) { .global-search-container { margin-top: 15px; max-height: 90vh; padding: 15px;} .search-result-item { padding: 10px; gap: 10px;} .search-item-img { width: 50px; height: 50px; } .search-item-info h4 { font-size: 0.85rem;} }
+  </style>
+  `;
+
   mount.innerHTML =
+    searchStyles +
     '<header class="site-header">' +
       '<div class="container header-inner">' +
         '<a href="index.html" class="brand">' +
@@ -33,18 +58,104 @@ function renderHeader() {
         "</a>" +
         '<nav class="main-nav" id="mainNav">' + navHtml + "</nav>" +
         '<div class="header-actions">' +
+          
+          // --- زر البحث السريع ---
+          '<button type="button" class="btn-icon" id="openGlobalSearch" aria-label="بحث" title="بحث">' +
+            iconSvg("search") +
+          "</button>" +
+          // ------------------------
+
           '<a href="cart.html" class="btn-icon cart-link" aria-label="السلة" title="السلة">' +
             iconSvg("cart") +
             '<span class="cart-count" id="cartCount">0</span>' +
           "</a>" +
-          
           '<button class="btn-icon nav-toggle" id="navToggle" aria-label="القائمة">' + iconSvg("menu") + "</button>" +
         "</div>" +
       "</div>" +
-    "</header>";
+    "</header>" +
+    
+    // --- نافذة البحث المنبثقة (Live Search Overlay) ---
+    '<div class="global-search-overlay" id="globalSearchOverlay">' +
+      '<div class="global-search-container">' +
+        '<div class="global-search-header">' +
+          '<div class="search-box" style="flex:1; margin:0;">' +
+            '<input type="text" id="globalSearchInput" placeholder="ابحث عن منتج، نكهة، أو قسم..." autocomplete="off">' +
+            '<span>' + iconSvg("search") + '</span>' +
+          '</div>' +
+          '<button type="button" class="btn-icon" id="closeGlobalSearch" style="background:var(--danger-bg); color:var(--danger);">' + iconSvg("close") + '</button>' +
+        '</div>' +
+        '<div class="global-search-results" id="globalSearchResults"></div>' +
+      '</div>' +
+    '</div>';
 
   fixRelativePaths(mount);
   initMobileNav();
+  initGlobalSearch(); // تفعيل برمجة البحث
+}
+
+// === دالة برمجة البحث المباشر ===
+function initGlobalSearch() {
+  const openBtn = document.getElementById("openGlobalSearch");
+  const closeBtn = document.getElementById("closeGlobalSearch");
+  const overlay = document.getElementById("globalSearchOverlay");
+  const input = document.getElementById("globalSearchInput");
+  const resultsBox = document.getElementById("globalSearchResults");
+
+  if(!openBtn || !overlay) return;
+
+  // فتح نافذة البحث
+  openBtn.addEventListener("click", function() {
+      overlay.classList.add("open");
+      input.value = "";
+      resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
+      setTimeout(() => input.focus(), 100); // تفعيل مؤشر الكتابة تلقائياً
+  });
+
+  // إغلاق النافذة
+  closeBtn.addEventListener("click", function() {
+      overlay.classList.remove("open");
+  });
+
+  // إغلاق عند الضغط خارج المربع
+  overlay.addEventListener("click", function(e) {
+      if(e.target === overlay) overlay.classList.remove("open");
+  });
+
+  // عملية البحث المباشر أثناء الكتابة
+  input.addEventListener("input", function() {
+      const query = input.value.trim().toLowerCase();
+      if(query.length === 0) {
+          resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
+          return;
+      }
+
+      const allProducts = Store.getProducts();
+      // البحث في الاسم، الوصف، والخيارات/النكهات
+      const matched = allProducts.filter(p => 
+          p.name.toLowerCase().includes(query) || 
+          (p.description && p.description.toLowerCase().includes(query)) ||
+          (p.variants && p.variants.some(v => v.toLowerCase().includes(query)))
+      );
+
+      if(matched.length === 0) {
+          resultsBox.innerHTML = '<div class="empty-search">لا توجد منتجات مطابقة لـ "'+query+'"</div>';
+          return;
+      }
+
+      // رسم النتائج
+      resultsBox.innerHTML = matched.map(p => {
+          const img = p.image ? `<img src="${p.image}">` : `<div class="search-img-placeholder">${iconSvg("box")}</div>`;
+          return `
+              <a href="product.html?id=${p.id}" class="search-result-item">
+                  <div class="search-item-img">${img}</div>
+                  <div class="search-item-info">
+                      <h4>${p.name}</h4>
+                      <span>${formatPrice(p.price)}</span>
+                  </div>
+              </a>
+          `;
+      }).join("");
+  });
 }
 
 function renderFooter() {
@@ -79,11 +190,9 @@ function renderFooter() {
             "<li>" + settings.address + "</li>" +
           "</ul></div>" +
         "</div>" +
-      "<div class='footer-bottom' style='padding: 15px; line-height: 2; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;'>" +
-      "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة. | اعداد و تطوير | <span style='color: #a5d6a7; font-weight: bold;'>م.امير</span></span>" +
-      "<span>انستغرام : <a href='https://instagram.com/az_6ui' target='_blank' style='color: #a5d6a7; text-decoration: none;'>az_6ui</a></span>" +
-      "<span>واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: #a5d6a7; text-decoration: none;' dir='ltr'>07813623682</a></span>" +
-      
+      "<div class='footer-bottom' style='padding: 20px 15px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.7);'>" +
+      "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة.</span>" +
+      "<span style='font-size: 0.8rem; opacity: 0.8;'>تصميم وتطوير | <a href='https://instagram.com/az_6ui' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;'>م. أمير (az_6ui)</a> | واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;' dir='ltr'>+964 781 362 3682</a></span>" +
       "</div>" +
       "</div>" +
       "</footer>";

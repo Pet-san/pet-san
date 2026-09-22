@@ -2,11 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8">
-
-<title>المنتجات | سان ستور</title>
-<link rel="icon" href="assets/logo/logo.png">
-<link rel="stylesheet" href="css/style.css?v=3">
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
+  <title>المنتجات | سان ستور</title>
+  <link rel="icon" href="assets/logo/logo.png">
+  <link rel="stylesheet" href="css/style.css?v=3">
   <style>
   @media (max-width: 768px) {
     /* قسم: لماذا تختارنا */
@@ -34,7 +37,7 @@
     .product-card .price { font-size: 13px !important; margin: 6px 0 !important; }
     .product-card .product-actions .btn { padding: 6px !important; font-size: 11px !important; }
   }
-</style>
+  </style>
 </head>
 <body>
 
@@ -55,7 +58,8 @@
       <div class="shop-toolbar">
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
-          <span>__ICON_SEARCH__</span>
+          <!-- تم إفراغ محتوى السبان ليتم تعبئته بالأيقونة برمجياً بدون أخطاء -->
+          <span></span>
         </div>
         <select id="sortSelect" class="sort-select">
           <option value="default">الأحدث</option>
@@ -99,7 +103,11 @@
 <script src="js/products.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector(".search-box span").innerHTML = iconSvg("search");
+    // استهداف مربع البحث الخاص بصفحة المنتجات تحديداً لتجنب التداخل مع نافذة البحث الجديدة
+    const shopSearchSpan = document.querySelector(".shop-toolbar .search-box span");
+    if (shopSearchSpan) {
+        shopSearchSpan.innerHTML = iconSvg("search");
+    }
   });
 </script>
 </body>

@@ -26,6 +26,7 @@
 
   --line: #e6e5d8;
   --line-strong: #d3d2c2;
+  --border-table: #e2e8f0; /* لون مخصص لجداول لوحة التحكم */
 
   --danger: #b3492f;
   --danger-bg: #f7e9e4;
@@ -121,7 +122,6 @@ button { font-family: inherit; cursor: pointer; }
 .btn-icon svg { width: 19px; height: 19px; }
 
 /* ---------- Header ---------- */
-/* ---------- Header ---------- */
 #site-header {
   position: sticky; top: 0; z-index: 50;
 }
@@ -168,7 +168,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative; overflow: hidden;
-  padding-block: 56px 72px;
+  padding-block: 30px 40px; /* مساحات أقل وأكثر احترافية */
 }
 .hero-blob {
   position: absolute; inset-inline-end: -12%; top: -18%;
@@ -237,8 +237,8 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Product grid & cards ---------- */
 .product-grid {
-  display: grid; gap: 22px;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); /* تصغير الحد الأدنى للعرض لزيادة عدد الأعمدة */
 }
 .product-card {
   background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md);
@@ -427,23 +427,69 @@ button { font-family: inherit; cursor: pointer; }
 .admin-panel { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px; margin-bottom: 24px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
 
-.admin-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.admin-table th, .admin-table td { padding: 12px 10px; text-align: start; border-bottom: 1px solid var(--line); }
+/* -- تحسين جداول الإدارة وحل مشكلة الخطوط المتقطعة -- */
+.admin-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    border-spacing: 0;
+    font-size: .9rem; 
+}
+.admin-table th, .admin-table td { 
+    padding: 12px 10px; 
+    text-align: start; 
+    border-bottom: 1px solid var(--border-table); 
+}
 .admin-table th { color: var(--ink-600); font-weight: 700; font-size: .8rem; }
 .admin-table img { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; background: var(--olive-50); }
-.admin-table .row-actions { display: flex; gap: 6px; }
+
+/* -- تحسين أزرار الإجراءات (تعديل/حذف) -- */
+.admin-table .row-actions { 
+    display: flex; 
+    gap: 8px; 
+    align-items: center;
+}
+.row-actions .btn-icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background-color: var(--white);
+    padding: 0;
+}
+.row-actions .btn-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2; /* يعالج مشكلة الخطوط المتقطعة للأيقونات */
+    stroke: currentColor;
+    fill: none;
+}
+.row-actions .btn-icon[title="حذف"] {
+    color: var(--danger);
+    background-color: var(--danger-bg);
+    border-color: #fecaca;
+}
+.row-actions .btn-icon[title="تعديل"] {
+    color: #3b82f6;
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+}
+
 .pill { display: inline-flex; padding: 4px 11px; border-radius: var(--radius-pill); font-size: .75rem; font-weight: 700; }
 .pill-ok { background: var(--olive-100); color: var(--olive-700); }
 .pill-off { background: var(--danger-bg); color: var(--danger); }
 
+/* -- النوافذ المنبثقة (المنتجات / الأقسام) وتوسيطها في كل الشاشات -- */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(34,36,29,.5); display: none; align-items: center; justify-content: center;
-  padding: 20px; z-index: 100;
+  padding: 15px; z-index: 100;
 }
 .modal-overlay.open { display: flex; }
 .modal-card {
-  background: var(--white); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 520px;
-  max-height: 88vh; overflow-y: auto;
+  background: var(--white); border-radius: var(--radius-lg); padding: 28px; width: 100%; max-width: 500px;
+  max-height: 90vh; overflow-y: auto; position: relative; margin: auto; box-sizing: border-box;
 }
 .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .close-modal { width: 34px; height: 34px; border-radius: 50%; background: var(--olive-100); border: none; display: flex; align-items: center; justify-content: center; }
@@ -469,41 +515,6 @@ button { font-family: inherit; cursor: pointer; }
 .about-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
 .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-/* ---------- Mobile ---------- */
-@media (max-width: 980px) {
-  .hero-inner, .detail-grid, .about-hero { grid-template-columns: 1fr; }
-  .hero-art { max-width: 380px; margin-inline: auto; order: -1; }
-  .feature-grid { grid-template-columns: repeat(2, 1fr); }
-  .contact-band { grid-template-columns: 1fr; padding: 30px; }
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .shop-layout { grid-template-columns: 1fr; }
-  .filter-panel { position: static; }
-  .cart-layout { grid-template-columns: 1fr; }
-  .summary-card { position: static; }
-  .admin-shell { grid-template-columns: 1fr; }
-  .admin-sidebar { display: none; }
-  .admin-sidebar.open { display: flex; position: fixed; inset: 0; z-index: 80; width: 260px; height: 100vh; }
-  .admin-stats { grid-template-columns: repeat(2, 1fr); }
-  .value-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 720px) {
-  .main-nav { display: none; }
-  .nav-toggle { display: flex; }
-  .main-nav.open {
-    display: flex; flex-direction: column; position: absolute; top: 100%; inset-inline: 0;
-    background: var(--white); border-bottom: 1px solid var(--line); padding: 10px 20px 18px; gap: 4px;
-  }
-  .header-inner { position: relative; }
-  .feature-grid { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; gap: 26px; }
-  .admin-main { padding: 20px 16px; }
-  .admin-stats { grid-template-columns: 1fr 1fr; }
-  .cart-item { grid-template-columns: 60px 1fr; grid-template-areas: "img name" "img actions"; }
-  .cart-item img, .cart-item .placeholder-icon-wrap { grid-area: img; }
-  .hero-cta .btn { flex: 1; }
-}
-
 /* ---------- Small admin helpers ---------- */
 .admin-table-icon {
   width: 42px; height: 42px; border-radius: 8px; background: var(--olive-50);
@@ -520,29 +531,223 @@ button { font-family: inherit; cursor: pointer; }
 }
 .icon-choice span svg { width: 20px; height: 20px; }
 .icon-choice input:checked + span { background: var(--olive-600); border-color: var(--olive-600); color: var(--white); }
+
+/* ==========================================================================
+   Mobile & Responsive (تم تجميعها هنا لضمان عملها بشكل مثالي)
+   ========================================================================== */
+
 @media (max-width: 980px) {
+  .hero-inner, .detail-grid, .about-hero { grid-template-columns: 1fr; }
+.hero-art { max-width: 220px; margin-inline: auto; order: -1; margin-bottom: 20px; }  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact-band { grid-template-columns: 1fr; padding: 30px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .shop-layout { grid-template-columns: 1fr; }
+  .filter-panel { position: static; }
+  .cart-layout { grid-template-columns: 1fr; }
+  .summary-card { position: static; }
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-sidebar { display: none; }
+  .admin-sidebar.open { display: flex; position: fixed; inset: 0; z-index: 80; width: 260px; height: 100vh; }
+  .admin-stats { grid-template-columns: repeat(2, 1fr); }
+  .value-grid { grid-template-columns: 1fr; }
   #adminSidebarToggle { display: flex !important; }
 }
-/* تصغير قسم الشعار في شاشات الهواتف */
+
 @media (max-width: 768px) {
   .hero-art {
-    transform: scale(0.6) !important; /* تصغير الحجم بنسبة 40% */
-    margin-top: -50px !important; /* سحب العناصر لتقليل الفراغ من الأعلى */
-    margin-bottom: -50px !important; /* سحب العناصر لتقليل الفراغ من الأسفل */
+    max-width: 100%; /* السماح للإعلان بأخذ العرض الكامل للشاشة */
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    transform: none;
+    aspect-ratio: auto; /* إلغاء التقييد المربع للإعلانات */
   }
+
+  .hero-art-default {
+    max-width: 160px; /* الحفاظ على حجم الشعار صغيراً إذا لم تكن هناك إعلانات */
+    margin: 0 auto;
+    width: 100%;
+  }
+  .hero h1 { font-size: 1.6rem; } /* تصغير العنوان قليلاً ليناسب الشاشة */
+  .hero-copy p { font-size: 0.95rem; margin-bottom: 15px; }
+  .hero-trust { margin-top: 20px; }
+  
+  .feature-grid, .product-grid, .grid, .category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .product-card {
+    min-width: 0;
+    padding: 10px;
+  }
+  
+  .product-card h3 { font-size: 13px; margin-bottom: 5px; }
+  .product-card p { font-size: 11px; line-height: 1.4; }
+  .product-card .price { font-size: 13px; margin: 8px 0; }
+  .product-card .btn-primary { padding: 6px; font-size: 11px; width: 100%; }
+}
+
+@media (max-width: 720px) {
+  .main-nav { display: none; }
+  .nav-toggle { display: flex; }
+  .main-nav.open {
+    display: flex; flex-direction: column; position: absolute; top: 100%; inset-inline: 0;
+    background: var(--white); border-bottom: 1px solid var(--line); padding: 10px 20px 18px; gap: 4px;
+  }
+  .header-inner { position: relative; }
+  .feature-grid { grid-template-columns: 1fr; }
+  
+  /* إصلاح طول الفوتر في الهواتف بجعله عمودين لتوفير المساحة */
+  .footer-grid { 
+      grid-template-columns: 1fr 1fr; 
+      gap: 20px; 
+  }
+  /* جعل قسم اللوجو (الأول) وقسم التواصل (الأخير) يأخذان العرض كاملاً */
+  .footer-grid > div:first-child,
+  .footer-grid > div:last-child {
+      grid-column: span 2;
+  }
+  
+  .admin-main { padding: 20px 16px; }
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+  .cart-item { grid-template-columns: 60px 1fr; grid-template-areas: "img name" "img actions"; }
+  .cart-item img, .cart-item .placeholder-icon-wrap { grid-area: img; }
+  .hero-cta .btn { flex: 1; }
+}
+/* ==========================================================================
+   الإصلاحات النهائية لأخطاء عرض الموبايل (القائمة الجانبية والمودال)
+   ========================================================================== */
+
+/* 1. إصلاح حجم أيقونات تسجيل الخروج والصفحة الرئيسية */
+.admin-logout svg {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0 !important;
+}
+
+.admin-logout a,
+.admin-logout button {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    justify-content: flex-start !important;
+    color: inherit !important;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+    text-align: right !important;
+    font-size: 0.92rem !important;
+}
+
+/* 2. إصلاح تمركز القائمة الجانبية لتبدأ من اليمين في الهواتف */
+@media (max-width: 980px) {
+    .admin-sidebar.open {
+        right: 0 !important;
+        left: auto !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5) !important;
+    }
+}
+
+/* 3. إصلاح جذري لانزياح النافذة المنبثقة (المودال) في الهواتف */
+.modal-overlay.open {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 15px !important;
+}
+
+.modal-card {
+    margin: 0 !important; /* إزالة margin: auto التي تسبب الانزياح في الوضع العربي */
+    width: 100% !important;
+    max-width: calc(100vw - 30px) !important; /* إجبار المتصفح على احترام حدود الشاشة */
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+}
+/* ==========================================================================
+   تحسين قائمة الأقسام للموبايل (ستارة منبثقة)
+   ========================================================================== */
+@media (max-width: 980px) {
+    .mobile-toggle-btn {
+        display: flex !important;
+    }
+    .filter-list-container {
+        display: none;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+        margin-top: 10px;
+    }
+    .filter-list-container.open {
+        display: flex;
+    }
+}
+@media (min-width: 981px) {
+    .mobile-toggle-btn {
+        display: none !important;
+    }
+    .filter-list-container {
+        display: flex !important;
+    }
+}
+```[The file '' could not be opened]
+/* ==========================================================================
+   Global Live Search Overlay (نافذة البحث المباشر)
+   ========================================================================== */
+.global-search-overlay {
+    position: fixed; inset: 0; background: rgba(34,36,29,0.8); backdrop-filter: blur(4px);
+    z-index: 1000; display: none; padding: 20px;
+}
+.global-search-overlay.open {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+.global-search-container {
+    background: var(--white); border-radius: var(--radius-lg); max-width: 600px;
+    margin: 40px auto 0; padding: 20px; box-shadow: var(--shadow-lift);
+    display: flex; flex-direction: column; max-height: 80vh;
+}
+.global-search-header {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+}
+.global-search-results {
+    overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+    padding-inline-end: 5px;
+}
+.global-search-results::-webkit-scrollbar { width: 6px; }
+.global-search-results::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+.search-result-item {
+    display: flex; gap: 15px; align-items: center; padding: 12px;
+    border-radius: var(--radius-md); border: 1px solid var(--line);
+    transition: all 0.2s; background: var(--cream); text-decoration: none;
+}
+.search-result-item:hover {
+    border-color: var(--olive-400); background: var(--olive-50); transform: translateY(-2px);
+}
+.search-item-img {
+    width: 60px; height: 60px; border-radius: var(--radius-sm); overflow: hidden;
+    background: var(--white); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; border: 1px solid var(--line);
+}
+.search-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.search-item-img .search-img-placeholder { color: var(--olive-400); width: 60%; }
+.search-item-img .search-img-placeholder svg { width: 100%; height: 100%; }
+.search-item-info h4 { font-size: 0.95rem; margin: 0 0 6px; color: var(--ink-900); font-weight: 700; line-height: 1.3;}
+.search-item-info span { font-size: 0.9rem; font-weight: 700; color: var(--olive-700); font-family: var(--font-display);}
+.empty-search {
+    text-align: center; padding: 40px 20px; color: var(--ink-300); font-size: 0.95rem; font-weight: 600;
+}
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } 
 }
 @media (max-width: 768px) {
-  .feature-grid, .products-grid, .grid, .category-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-  }
-  .product-card {
-    min-width: 0 !important;
-    padding: 10px !important;
-  }
-  .product-card h3 { font-size: 13px !important; margin-bottom: 5px !important; }
-  .product-card p { font-size: 11px !important; line-height: 1.4 !important; }
-  .product-card .price { font-size: 13px !important; margin: 8px 0 !important; }
-  .product-card .btn-primary { padding: 6px !important; font-size: 11px !important; width: 100% !important; }
+    .global-search-container { margin: 10px auto 0; max-height: 90vh; padding: 15px;}
+    .search-result-item { padding: 10px; gap: 10px;}
+    .search-item-img { width: 50px; height: 50px; }
+    .search-item-info h4 { font-size: 0.85rem;}
 }
