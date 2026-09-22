@@ -139,7 +139,7 @@
   </main>
 </div>
 
-<!-- النوافذ المنبثقة (تدعم الرفع المباشر أو الروابط) -->
+<!-- النوافذ المنبثقة (تدعم الرفع المباشر أو الروابط مع زر الحذف) -->
 <div class="modal-overlay" id="productModal">
   <div class="modal-card" style="max-width: 90vw; width: 500px; max-height: 90vh; overflow-y: auto;">
     <div class="modal-head">
@@ -148,8 +148,11 @@
     </div>
     <form id="productForm">
       <div class="field">
-        <label>صورة المنتج (اختر صورة من الجهاز أو ضع رابطاً)</label>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          <span>صورة المنتج (الجهاز أو رابط مباشر)</span>
+          <button type="button" id="removeProductImageBtn" class="btn-icon btn-sm" style="color:#d32f2f; background:var(--danger-bg); border-color:#fecaca;" title="مسح الصورة">__ICON_TRASH__</button>
+        </label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;">
            <input type="file" id="productImageFile" accept="image/*" style="flex:1; min-width:200px; padding:8px; border:1px solid var(--line-strong); border-radius:8px;">
            <input type="url" id="productImageUrl" placeholder="أو رابط مباشر (URL)..." dir="ltr" style="flex:1; min-width:200px; text-align:left;">
         </div>
@@ -184,8 +187,11 @@
     </div>
     <form id="categoryForm">
       <div class="field">
-        <label>صورة القسم (اختر صورة من الجهاز أو ضع رابطاً)</label>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          <span>صورة القسم (الجهاز أو رابط مباشر)</span>
+          <button type="button" id="removeCategoryImageBtn" class="btn-icon btn-sm" style="color:#d32f2f; background:var(--danger-bg); border-color:#fecaca;" title="مسح الصورة">__ICON_TRASH__</button>
+        </label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;">
            <input type="file" id="categoryImageFile" accept="image/*" style="flex:1; min-width:200px; padding:8px; border:1px solid var(--line-strong); border-radius:8px;">
            <input type="url" id="categoryImageUrl" placeholder="أو رابط مباشر (URL)..." dir="ltr" style="flex:1; min-width:200px; text-align:left;">
         </div>
@@ -205,8 +211,11 @@
     </div>
     <form id="adForm">
       <div class="field">
-        <label>صورة الإعلان (اختر صورة من الجهاز أو ضع رابطاً)</label>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          <span>صورة الإعلان (الجهاز أو رابط مباشر)</span>
+          <button type="button" id="removeAdImageBtn" class="btn-icon btn-sm" style="color:#d32f2f; background:var(--danger-bg); border-color:#fecaca;" title="مسح الصورة">__ICON_TRASH__</button>
+        </label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:5px;">
            <input type="file" id="adImageFile" accept="image/*" style="flex:1; min-width:200px; padding:8px; border:1px solid var(--line-strong); border-radius:8px;">
            <input type="url" id="adImageUrl" placeholder="أو رابط مباشر (URL)..." dir="ltr" style="flex:1; min-width:200px; text-align:left;">
         </div>
@@ -253,6 +262,10 @@
   
   document.getElementById("addAdBtn").innerHTML = iconSvg("plus") + " إضافة إعلان";
   document.getElementById("closeAdModal").innerHTML = iconSvg("close");
+
+  if(document.getElementById("removeProductImageBtn")) document.getElementById("removeProductImageBtn").innerHTML = iconSvg("trash");
+  if(document.getElementById("removeCategoryImageBtn")) document.getElementById("removeCategoryImageBtn").innerHTML = iconSvg("trash");
+  if(document.getElementById("removeAdImageBtn")) document.getElementById("removeAdImageBtn").innerHTML = iconSvg("trash");
 
   document.addEventListener("DOMContentLoaded", function () {
     const original = renderOrdersTable;
