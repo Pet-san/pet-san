@@ -9,68 +9,44 @@
   <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=6">
 <style>
-  /* === التعديلات الجديدة (النسخة 2.0) === */
-  
-  /* 1. تقويس حواف المنتجات */
-  .product-media img, .product-media {
-      border-radius: 12px !important;
-  }
-  .product-card {
-      border-radius: 14px !important;
-  }
+  /* === التعديلات الجديدة === */
+  .product-media img, .product-media { border-radius: 12px !important; }
+  .product-card { border-radius: 14px !important; }
 
-  /* 2. تصميم سلايدر الإعلانات */
   .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
   .ads-slider-container {
       position: relative; width: 100%; aspect-ratio: 16 / 9;
       border-radius: var(--radius-lg, 16px); overflow: hidden;
       box-shadow: var(--shadow-lift); background: var(--olive-50); display: flex;
   }
-  .ads-slider-track {
-      display: flex; width: 100%; height: 100%; transition: transform 0.4s ease-in-out;
-  }
-  .ad-slide {
-      flex: 0 0 100%; width: 100%; height: 100%; position: relative;
-  }
-  .ad-slide img {
-      width: 100%; height: 100%; object-fit: cover;
-  }
-  .ads-dots {
-      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 6px; z-index: 10;
-  }
-  .ad-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5);
-      cursor: pointer; transition: background 0.3s, transform 0.3s;
-  }
+  .ads-slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.4s ease-in-out; }
+  .ad-slide { flex: 0 0 100%; width: 100%; height: 100%; position: relative; }
+  .ad-slide img { width: 100%; height: 100%; object-fit: cover; }
+  .ads-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
+  .ad-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.3s, transform 0.3s; }
   .ad-dot.active { background: var(--white, #fff); transform: scale(1.3); }
   
-  .hero-art-default {
-      position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%;
-      background: linear-gradient(155deg, var(--olive-500), var(--olive-700));
-      display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift);
-  }
+  .hero-art-default { position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%; background: linear-gradient(155deg, var(--olive-500), var(--olive-700)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift); }
   .hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
 
   @media (max-width: 768px) {
-    /* تقليل المسافات والفراغات بين الأقسام */
     .section { padding-block: 14px !important; }
     .hero { padding-block: 16px 20px !important; }
     .section-head { margin-bottom: 10px !important; }
 
-    /* تقصير ارتفاع صور المنتجات */
+    /* تصغير صورة المنتج وتغيير نسبتها لتصبح مربعة تقريباً */
     .product-media {
-        aspect-ratio: 4 / 3 !important;
-        max-height: 110px !important;
+        aspect-ratio: 1 / 1 !important; /* نسبة مربعة لتقليل الطول */
+        max-height: 105px !important;
+        background: transparent !important;
     }
     .product-media img {
         object-fit: contain !important;
-        padding: 4px !important;
+        padding: 2px !important;
     }
 
-    /* تكبير أيقونات الأقسام */
     .cat-chip { width: 95px !important; padding: 12px 8px !important; gap: 6px !important; }
     .cat-chip .cat-icon { width: 62px !important; height: 62px !important; }
     .cat-chip .cat-icon svg { width: 30px !important; height: 30px !important; }
@@ -80,23 +56,15 @@
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
     
-    /* منع التمدد الطولي للبطاقات بجعل المحاذاة flex-start */
     .product-grid {
-      display: flex !important;
-      flex-wrap: nowrap !important;
-      overflow-x: auto !important;
-      scroll-snap-type: x mandatory !important;
-      scroll-behavior: smooth !important;
-      padding-bottom: 10px !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important;
-      align-items: flex-start !important;
+      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important; padding-bottom: 10px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; align-items: flex-start !important;
     }
     .product-grid::-webkit-scrollbar { display: none !important; }
     
+    /* تقليل عرض البطاقة قليلاً لتبدو ألطف بجانب بعضها */
     .product-grid .product-card {
-      flex: 0 0 42% !important;
-      max-width: 155px !important;
+      flex: 0 0 38% !important;
+      max-width: 140px !important;
       scroll-snap-align: start !important;
       margin-left: 10px !important;
       display: flex !important;
@@ -104,16 +72,10 @@
       height: auto !important;
     }
     
-    #shopGrid {
-      display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 8px !important;
-      align-items: flex-start !important;
-    }
-    #shopGrid .product-card {
-       flex: unset !important; margin-left: 0 !important; max-width: none !important; height: auto !important;
-    }
+    #shopGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; align-items: flex-start !important; }
+    #shopGrid .product-card { flex: unset !important; margin-left: 0 !important; max-width: none !important; height: auto !important; }
 
+    /* تقليل الهوامش الداخلية للبطاقة */
     .product-card { min-width: 0 !important; padding: 6px !important; }
     .product-card .product-desc { display: none !important; } 
   }
@@ -124,8 +86,6 @@
 <div id="site-header" data-active="home"></div>
 
 <main>
-
-  <!-- ============ Hero ============ -->
   <section class="hero">
     <div class="hero-blob"></div>
     <div class="container hero-inner">
@@ -146,7 +106,6 @@
     </div>
   </section>
 
-  <!-- ============ Categories ============ -->
   <section class="section" id="categories">
     <div class="container">
       <div class="section-head">
@@ -159,7 +118,6 @@
     </div>
   </section>
 
-  <!-- ============ Featured products ============ -->
   <section class="section section-alt">
     <div class="container">
       <div class="section-head">
@@ -173,7 +131,6 @@
     </div>
   </section>
 
-  <!-- ============ Offers products ============ -->
   <section class="section">
     <div class="container">
       <div class="section-head">
@@ -187,7 +144,6 @@
     </div>
   </section>
 
-  <!-- ============ New products ============ -->
   <section class="section section-alt">
     <div class="container">
       <div class="section-head">
@@ -201,7 +157,6 @@
     </div>
   </section>
 
-  <!-- ============ Why choose us ============ -->
   <section class="section">
     <div class="container">
       <div class="section-head">
@@ -235,7 +190,6 @@
     </div>
   </section>
 
-  <!-- ============ Contact band ============ -->
   <section class="section section-alt">
     <div class="container">
       <div class="contact-band" id="contactBand">
@@ -247,7 +201,6 @@
       </div>
     </div>
   </section>
-
 </main>
 
 <div id="site-footer"></div>
@@ -280,9 +233,7 @@
         let dotsHtml = '<div class="ads-dots">';
         
         ads.forEach((ad, index) => {
-            const imgWrap = ad.link 
-                ? `<a href="${ad.link}" target="_blank" style="display:block;width:100%;height:100%;"><img src="${ad.image}"></a>` 
-                : `<img src="${ad.image}">`;
+            const imgWrap = ad.link ? `<a href="${ad.link}" target="_blank" style="display:block;width:100%;height:100%;"><img src="${ad.image}"></a>` : `<img src="${ad.image}">`;
             trackHtml += `<div class="ad-slide" data-index="${index}">${imgWrap}</div>`;
             dotsHtml += `<div class="ad-dot ${index === 0 ? 'active' : ''}" data-target="${index}"></div>`;
         });
@@ -292,8 +243,7 @@
         
         const track = document.getElementById("adsTrack");
         const dots = document.querySelectorAll(".ad-dot");
-        let currentIndex = 0;
-        let slideInterval;
+        let currentIndex = 0, slideInterval;
         
         function goToSlide(index) {
             if(index < 0) index = ads.length - 1;
@@ -309,11 +259,7 @@
         function stopAutoSlide() { clearInterval(slideInterval); }
         
         dots.forEach(dot => {
-            dot.addEventListener("click", function() {
-                stopAutoSlide();
-                goToSlide(parseInt(this.dataset.target));
-                startAutoSlide();
-            });
+            dot.addEventListener("click", function() { stopAutoSlide(); goToSlide(parseInt(this.dataset.target)); startAutoSlide(); });
         });
         
         startAutoSlide();
@@ -322,13 +268,10 @@
         track.addEventListener('touchstart', e => { stopAutoSlide(); startX = e.changedTouches[0].screenX; });
         track.addEventListener('touchend', e => { 
             endX = e.changedTouches[0].screenX; 
-            if (startX - endX > 50) nextSlide();
-            else if (endX - startX > 50) goToSlide(currentIndex - 1);
+            if (startX - endX > 50) nextSlide(); else if (endX - startX > 50) goToSlide(currentIndex - 1);
             startAutoSlide();
         });
-    } else {
-        heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>';
-    }
+    } else { heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>'; }
   });
 </script>
 </body>
