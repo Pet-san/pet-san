@@ -244,3 +244,8 @@ document.addEventListener("DOMContentLoaded", function () {
   updateCartBadge();
 });
 document.addEventListener("cart:updated", updateCartBadge);
+document.addEventListener("store:synced", function () {
+  renderHeader();
+  renderFooter();
+  updateCartBadge();
+});
