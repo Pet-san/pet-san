@@ -262,15 +262,11 @@ button { font-family: inherit; cursor: pointer; }
 
 .product-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .product-cat { font-size: .76rem; color: var(--olive-700); font-weight: 700; }
-.product-name {
-  font-weight: 700; font-size: 1.02rem;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden; min-height: 2.8em;
-}
+.product-name { font-weight: 700; font-size: 1.02rem; }
 .product-name a:hover { color: var(--olive-700); }
 .product-desc { font-size: .87rem; color: var(--ink-600); flex: 1; }
 .product-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-.price { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--olive-700);}
+.price { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--ink-900); }
 .price small { font-size: .7rem; font-weight: 500; color: var(--ink-600); }
 .product-actions { display: flex; gap: 8px; margin-top: 10px; }
 .stock-line { font-size: .8rem; color: var(--ink-600); display: flex; align-items: center; gap: 6px; }
