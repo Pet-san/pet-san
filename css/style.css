@@ -168,7 +168,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative; overflow: hidden;
-  padding-block: 40px 60px; /* تعديل المسافات */
+  padding-block: 40px 60px; 
 }
 .hero-blob {
   position: absolute; inset-inline-end: -12%; top: -18%;
@@ -179,11 +179,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 .hero-inner {
   position: relative; z-index: 1;
-  /* التعديل الجوهري: تحويل العرض إلى عمودي وتوسيط العناصر */
   display: flex; flex-direction: column; gap: 40px; align-items: center; text-align: center;
 }
 .hero-copy { 
-  order: 2; /* جعل النص يظهر أسفل الإعلان */
+  order: 2; 
   max-width: 800px; margin: 0 auto; 
 }
 .hero-eyebrow-free { color: var(--olive-700); font-weight: 700; margin-bottom: 10px; display: inline-block; }
@@ -194,7 +193,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Ads Slider (التصميم العريض الجديد) ---------- */
 .hero-art { 
-    order: 1; /* جعل الإعلان يظهر أولاً بالأعلى */
+    order: 1; 
     background: transparent !important; 
     box-shadow: none !important; 
     border-radius: 0 !important; 
@@ -205,7 +204,7 @@ button { font-family: inherit; cursor: pointer; }
 .ads-slider-container {
     position: relative; 
     width: 100%; 
-    aspect-ratio: 21 / 8; /* إعلان عريض جداً يغطي المساحة بمظهر سينمائي ممتاز للكمبيوتر */
+    aspect-ratio: 21 / 8; 
     border-radius: var(--radius-lg); 
     overflow: hidden;
     box-shadow: none; 
@@ -255,7 +254,6 @@ button { font-family: inherit; cursor: pointer; }
 .section-alt { background: var(--white); }
 
 /* ---------- Category chips ---------- */
-/* ---------- Category chips ---------- */
 .cat-scroller {
   display: flex; 
   gap: 16px; 
@@ -284,6 +282,7 @@ button { font-family: inherit; cursor: pointer; }
   object-fit: contain;
 }
 .cat-chip span.name { font-weight: 700; font-size: 1.05rem; }
+
 /* ---------- Product grid & cards ---------- */
 .product-grid {
   display: grid; gap: 22px;
@@ -511,7 +510,7 @@ button { font-family: inherit; cursor: pointer; }
 .row-actions .btn-icon svg {
     width: 20px;
     height: 20px;
-    stroke-width: 2.2; /* يعالج مشكلة الخطوط المتقطعة للأيقونات */
+    stroke-width: 2.2; 
     stroke: currentColor;
     fill: none;
 }
@@ -611,21 +610,54 @@ button { font-family: inherit; cursor: pointer; }
     aspect-ratio: 16 / 9; /* جعل الإعلان متناسق أكثر للموبايل */
   }
 
-  .feature-grid, .product-grid, .grid, .category-grid {
+  .feature-grid, .grid, .category-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   
-  .product-card {
-    min-width: 0;
-    padding: 10px;
+  /* 5. شبكة المنتجات (سحب أفقي في الرئيسية) */
+  .product-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    scroll-behavior: smooth !important;
+    padding-bottom: 15px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 12px !important; 
+  }
+  .product-grid::-webkit-scrollbar { display: none !important; }
+  
+  .product-grid .product-card {
+    flex: 0 0 42% !important; 
+    min-width: 145px !important; 
+    max-width: 170px !important;
+    scroll-snap-align: start !important;
+    margin-left: 0 !important; 
   }
   
-  .product-card h3 { font-size: 13px; margin-bottom: 5px; }
+  /* إبقاء شبكة المنتجات في صفحة (كل المنتجات) كشبكة عادية */
+  #shopGrid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  #shopGrid .product-card {
+     flex: unset !important; margin-left: 0 !important;
+     max-width: 100% !important;
+  }
+
+  /* تصغير نصوص المنتج وتنسيقها لتناسب الحجم الجديد الأنيق */
+  .product-card { min-width: 0 !important; padding: 12px !important; }
+  .product-card .product-name { font-size: 12px !important; margin-bottom: 6px !important; line-height: 1.4 !important; }
+  .product-card .product-desc { display: none !important; } 
+  .product-card .stock-line { font-size: 10px !important; margin-bottom: 4px !important; }
+  .product-card .price { font-size: 14px !important; margin: 8px 0 !important; }
+  .product-card .product-actions .btn, .product-card .btn-primary { padding: 8px !important; font-size: 11px !important; width: 100%; }
+  .product-card h3 { font-size: 13px; margin-bottom: 5px; } /* للحفاظ على أي نصوص أخرى تستخدم h3 */
   .product-card p { font-size: 11px; line-height: 1.4; }
-  .product-card .price { font-size: 13px; margin: 8px 0; }
-  .product-card .btn-primary { padding: 6px; font-size: 11px; width: 100%; }
 }
 
 @media (max-width: 720px) {
@@ -735,6 +767,7 @@ button { font-family: inherit; cursor: pointer; }
         display: flex !important;
     }
 }
+
 /* ---------- تحسين تصميم الأقسام الفرعية (الفلاتر) لتطابق التصميم المطلوب ---------- */
 .filter-chip {
   padding: 10px 22px !important;
