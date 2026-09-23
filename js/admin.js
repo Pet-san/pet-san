@@ -61,8 +61,10 @@ async function uploadToImgBB(file) {
     
     const data = await response.json();
     if (data.success) {
-      return data.data.url; // إرجاع الرابط المباشر للصورة
-    } else {
+// استبدل هذا السطر:
+// return data.data.url;
+// بهذا السطر لاستخدام النسخة المتوسطة السريعة إن وُجدت، أو الأصلية كبديل:
+return (data.data.medium && data.data.medium.url) ? data.data.medium.url : data.data.url;    } else {
       throw new Error(data.error.message);
     }
 }
