@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث لرفع الصور وتسريعها عبر ImageKit CDN مع دعم صور الخيارات
+   تم التحديث لمعالجة ذكية: دقة استثنائية للإعلانات وسرعة فائقة للمنتجات.
    ========================================================================== */
 
 let editingProductId = null;
@@ -46,10 +46,10 @@ function initAdminPage() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* رفع الصور الخارجي وتسريعها عبر ImageKit CDN                           */
+/* رفع الصور ومعالجتها الذكية عبر ImageKit CDN                            */
 /* ---------------------------------------------------------------------- */
 
-async function uploadToImgBB(file) {
+async function uploadToImgBB(file, isBanner = false) {
     const apiKey = "556361ffe3b34464a10010ce71544776";
     const formData = new FormData();
     formData.append("image", file);
@@ -61,13 +61,18 @@ async function uploadToImgBB(file) {
     
     const data = await response.json();
     if (data.success) {
-      // 1. استخراج الرابط وتنظيف البروتوكول منه
+      // 1. استخراج الرابط وتنظيف مسار البروتوكول
       const rawUrl = data.data.url;
       const cleanPath = rawUrl.replace(/^https?:\/\//i, "");
-      
-      // 2. تطبيق معادلة الدقة العالية مع سقف الـ 100 كيلوبايت والحدة الفائقة
       const imageKitEndpoint = "https://ik.imagekit.io/petshop";
-      return `${imageKitEndpoint}/tr:w-1100,q-88,e-sharpen-10,f-auto/${cleanPath}`;
+      
+      // 2. إذا كانت الصورة للإعلانات/البانر: دقة فائقة (Ultra HD) بحدود ~200-250KB
+      if (isBanner) {
+        return `${imageKitEndpoint}/tr:w-1400,q-95,e-sharpen-12,f-auto/${cleanPath}`;
+      }
+      
+      // 3. للمنتجات والأقسام: خفيفة وسريعة بحدود ~60-90KB
+      return `${imageKitEndpoint}/tr:w-900,q-85,e-sharpen-8,f-auto/${cleanPath}`;
     } else {
       throw new Error(data.error.message);
     }
@@ -215,7 +220,7 @@ function renderVariantImageUploaders(variantsArr) {
         if(!file) return;
         try {
           showToast(`جاري رفع صورة (${v})...`);
-          const imageUrl = await uploadToImgBB(file);
+          const imageUrl = await uploadToImgBB(file, false);
           pendingVariantImages[v] = imageUrl;
           showToast(`تم رفع الصورة بنجاح!`);
           renderVariantImageUploaders(variantsArr);
@@ -254,7 +259,7 @@ function wireProductModal() {
       
       try {
         showToast("جاري رفع الصورة لسيرفر التخزين...");
-        const imageUrl = await uploadToImgBB(file);
+        const imageUrl = await uploadToImgBB(file, false);
         pendingProductImage = imageUrl;
         document.getElementById("productImagePreview").innerHTML = '<img src="' + imageUrl + '">';
         showToast("تم رفع الصورة بنجاح!");
@@ -464,7 +469,7 @@ function wireCategoryModal() {
 
       try {
         showToast("جاري رفع صورة القسم...");
-        const imageUrl = await uploadToImgBB(file);
+        const imageUrl = await uploadToImgBB(file, false);
         pendingCategoryImage = imageUrl;
         const preview = document.getElementById("categoryImagePreview");
         if (preview) preview.innerHTML = '<img src="' + imageUrl + '">';
@@ -621,8 +626,9 @@ function wireAdModal() {
       const file = imageInput.files[0];
       if (!file) return;
       try {
-        showToast("جاري رفع الإعلان لـ ImgBB وتحسينه...");
-        const imageUrl = await uploadToImgBB(file);
+        showToast("جاري رفع الإعلان بدقة عالية واحترافية...");
+        // إرسال true هنا لتطبيق معالجة الإعلانات فائقة الجودة
+        const imageUrl = await uploadToImgBB(file, true);
         pendingAdImage = imageUrl;
         const preview = document.getElementById("adImagePreview");
         if (preview) preview.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
