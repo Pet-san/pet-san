@@ -2,7 +2,7 @@
    store.js (نسخة السحابة - Firebase - مع حل مشكلة الكاش - النسخة النهائية)
    ========================================================================== */
 
-const FIREBASE_DB_URL = "https://pet-shop-2-1552d-default-rtdb.firebaseio.com";
+const FIREBASE_DB_URL = "https://pet-shop3-59335-default-rtdb.europe-west1.firebasedatabase.app";
 const DB_KEYS = {
   categories: "ws_categories",
   products: "ws_products",
