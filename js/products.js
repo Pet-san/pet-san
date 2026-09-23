@@ -1,261 +1,384 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
-  <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
-  <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=9">
-<style>
-  /* === التعديلات الجديدة === */
-  .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
-  .ads-slider-container {
-      position: relative; width: 100%; aspect-ratio: 16 / 9;
-      border-radius: var(--radius-lg, 16px); overflow: hidden;
-      box-shadow: var(--shadow-lift); background: var(--olive-50); display: flex;
+/* ==========================================================================
+   products.js (النسخة 2.0 - دعم الأقسام الفرعية والخيارات - مع إصلاح شريط الأقسام)
+   ========================================================================== */
+
+function productMediaHtml(product) {
+  if (product.image) {
+    return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy">';
   }
-  .ads-slider-track { display: flex; width: 100%; height: 100%; transition: transform 0.4s ease-in-out; }
-  .ad-slide { flex: 0 0 100%; width: 100%; height: 100%; position: relative; }
-  .ad-slide img { width: 100%; height: 100%; object-fit: cover; }
-  .ads-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
-  .ad-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: background 0.3s, transform 0.3s; }
-  .ad-dot.active { background: var(--white, #fff); transform: scale(1.3); }
+  const cat = Store.getCategories().find(function (c) { return c.id === product.categoryId; });
+  const key = cat ? cat.icon : "paw";
+  return '<div class="placeholder-icon">' + iconSvg(key) + "</div>";
+}
+
+function renderProductCard(product) {
+  const outOfStock = !product.available || product.stock <= 0;
+  const badges = [];
   
-  .hero-art-default { position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%; background: linear-gradient(155deg, var(--olive-500), var(--olive-700)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift); }
-  .hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
-
-  @media (max-width: 768px) {
-    .section { padding-block: 14px !important; }
-    .hero { padding-block: 16px 20px !important; }
-    .section-head { margin-bottom: 10px !important; }
-
- 
-
-    .cat-chip { width: 95px !important; padding: 12px 8px !important; gap: 6px !important; }
-    .cat-chip .cat-icon { width: 62px !important; height: 62px !important; }
-    .cat-chip .cat-icon svg { width: 30px !important; height: 30px !important; }
-    .cat-chip span.name { font-size: 0.95rem !important; font-weight: 700 !important; }
-
-    .feature-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-    .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
-    .feature-grid p { font-size: 11px !important; }
-    
-    /* كاروسيل أفقي لصفوف المنتجات في الصفحة الرئيسية فقط (تفاصيل شكل البطاقة نفسها موجودة في css/style.css) */
-    .product-grid {
-      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important;
-      scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important;
-      padding-bottom: 15px !important; -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important; gap: 10px !important;
-    }
-    .product-grid::-webkit-scrollbar { display: none !important; }
-
-    .product-grid .product-card {
-      flex: 0 0 calc(50% - 5px) !important;
-      max-width: none !important;
-      scroll-snap-align: start !important;
-    }
+  if (product.isOffer) badges.push('<span class="badge badge-offer" style="background:var(--danger); color:white;">عرض🔥</span>');
+  else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
+  else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
+  if (outOfStock) badges.push('<span class="badge badge-out-abs">غير متوفر</span>');
+  if (product.variants && product.variants.length > 1) {
+    badges.push('<span class="badge badge-variants">' + iconSvg("layers") + product.variants.length + ' خيارات</span>');
   }
-</style>
-</head>
-<body>
 
-<div id="site-header" data-active="home"></div>
+  return (
+    '<article class="product-card">' +
+      '<a href="product.html?id=' + product.id + '" class="product-media">' +
+        productMediaHtml(product) +
+        badges.join("") +
+      "</a>" +
+      '<div class="product-body">' +
+        '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+        '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+        '<div class="product-foot">' +
+          '<span class="price">' + formatPrice(product.price) + "</span>" +
+          '<div class="product-actions">' +
+            '<button class="btn btn-primary" ' + (outOfStock ? "disabled" : "") +
+              ' title="' + (outOfStock ? "غير متوفر" : "أضف للسلة") + '"' +
+              ' onclick="quickAddToCart(\'' + product.id + '\')">' +
+              iconSvg("cart") +
+            "</button>" +
+          "</div>" +
+        "</div>" +
+      "</div>" +
+    "</article>"
+  );
+}
 
-<main>
-  <section class="hero">
-    <div class="hero-blob"></div>
-    <div class="container hero-inner">
-      <div class="hero-copy">
-        <div class="hero-eyebrow-free">🐾 كل ما يحتاجه صديقك الأليف</div>
-        <h1>مستلزمات حيوانات أليفة تستحقها عائلتك الصغيرة</h1>
-        <p>طعام، ألعاب، أسرّة، وأدوات عناية بجودة موثوقة — تصفّح المتجر واطلب منتجاتك المفضلة مباشرة عبر واتساب دون تعقيد.</p>
-        <div class="hero-cta">
-          <a href="products.html" class="btn btn-primary">تسوق الآن</a>
-          <a href="#categories" class="btn btn-outline">تصفح الأقسام</a>
-        </div>
-        <div class="hero-trust">
-          <div><strong>+20</strong><span>منتج متنوع</span></div>
-          <div><strong>24س</strong><span>توصيل سريع</span></div>
-        </div>
-      </div>
-       <div class="hero-art" id="heroAdsContainer"></div>
-    </div>
-  </section>
+function truncate(text, max) {
+  if (!text) return "";
+  return text.length > max ? text.slice(0, max).trim() + "…" : text;
+}
 
-  <section class="section" id="categories">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2>تسوّق حسب القسم</h2>
-          <p>كل ما تحتاجه لحيوانك الأليف مرتّب في أقسام واضحة وسهلة التصفح.</p>
-        </div>
-      </div>
-      <div class="cat-scroller" id="homeCategories"></div>
-    </div>
-  </section>
+function quickAddToCart(productId) {
+  const product = Store.getProduct(productId);
+  if (!product || !product.available || product.stock <= 0) return;
+  if (product.variants && product.variants.length > 0) {
+      window.location.href = 'product.html?id=' + productId;
+      return;
+  }
+  Store.addToCart(productId, 1);
+  showToast(product.name + " أُضيف إلى السلة");
+}
 
-  <section class="section section-alt">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2>منتجات مميزة</h2>
-          <p>الأكثر طلبًا من عملائنا هذا الشهر.</p>
-        </div>
-        <a href="products.html?filter=featured" class="btn btn-outline btn-sm">عرض الكل</a>
-      </div>
-      <div class="product-grid" id="featuredGrid"></div>
-    </div>
-  </section>
+function renderGridInto(containerId, products, emptyMessage) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!products.length) {
+    el.innerHTML = '<div class="empty-state">' + iconSvg("box") + "<p>" + (emptyMessage || "لا توجد منتجات لعرضها حاليًا.") + "</p></div>";
+    return;
+  }
+  el.innerHTML = products.map(renderProductCard).join("");
+}
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2 style="color: var(--danger);">🔥 عروض خاصة</h2>
-          <p>تخفيضات وأسعار مميزة لفترة محدودة، لا تفوتها!</p>
-        </div>
-        <a href="products.html?filter=offer" class="btn btn-outline btn-sm">عرض الكل</a>
-      </div>
-      <div class="product-grid" id="offerGrid"></div>
-    </div>
-  </section>
+const shopState = { search: "", categoryId: "all", sort: "default", minPrice: "", maxPrice: "", filterMode: "", mobileMenuOpen: false };
 
-  <section class="section section-alt">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2>وصل حديثًا</h2>
-          <p>أحدث الإضافات إلى المتجر.</p>
-        </div>
-        <a href="products.html?filter=new" class="btn btn-outline btn-sm">عرض الكل</a>
-      </div>
-      <div class="product-grid" id="newGrid"></div>
-    </div>
-  </section>
+function initShopPage() {
+  const grid = document.getElementById("shopGrid");
+  if (!grid) return;
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div>
-          <h2>لماذا تختار Pet San؟</h2>
-          <p>نهتم بتفاصيل صحة وراحة حيوانك الأليف في كل طلب.</p>
-        </div>
-      </div>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="icon">__ICON_TRUCK__</div>
-          <h3>توصيل سريع وموثوق</h3>
-          <p>خلال 24 ساعة داخل بغداد، وأيام قليلة لباقي المحافظات.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">__ICON_SHIELD__</div>
-          <h3>منتجات أصلية</h3>
-          <p>نختار منتجاتنا بعناية من مصادر موثوقة لضمان الجودة والسلامة.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">__ICON_WHATSAPP__</div>
-          <h3>طلب سهل عبر واتساب</h3>
-          <p>لا تعقيد في الدفع الإلكتروني — أرسل طلبك وتواصل مباشرة معنا.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">__ICON_HEART__</div>
-          <h3>دعم يهتم بحيوانك</h3>
-          <p>فريقنا جاهز للمساعدة في اختيار المنتج الأنسب لصديقك الأليف.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  const params = new URLSearchParams(location.search);
+  if (params.get("cat")) shopState.categoryId = params.get("cat");
+  if (params.get("q")) shopState.search = params.get("q");
+  if (params.get("filter")) shopState.filterMode = params.get("filter");
 
-  <section class="section section-alt">
-    <div class="container">
-      <div class="contact-band" id="contactBand">
-        <div>
-          <h2>لديك استفسار؟ تواصل معنا مباشرة</h2>
-          <p>فريقنا متاح يوميًا للرد على استفساراتك ومساعدتك في اختيار المنتج المناسب.</p>
-        </div>
-        <div class="social-row" id="homeSocialRow" style="flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
-      </div>
-    </div>
-  </section>
-</main>
+  const searchInput = document.getElementById("searchInput");
+  const sortSelect = document.getElementById("sortSelect");
+  const minInput = document.getElementById("priceMin");
+  const maxInput = document.getElementById("priceMax");
 
-<div id="site-footer"></div>
-
-<script src="js/config.js?v=24"></script>
-<script src="js/icons.js?v=24"></script>
-<script src="js/store.js?v=24"></script>
-<script src="js/whatsapp.js?v=24"></script>
-<script src="js/app.js?v=24"></script>
-<script src="js/products.js?v=24"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector(".feature-grid").innerHTML = document.querySelector(".feature-grid").innerHTML
-      .replace("__ICON_TRUCK__", iconSvg("truck"))
-      .replace("__ICON_SHIELD__", iconSvg("shield"))
-      .replace("__ICON_WHATSAPP__", iconSvg("whatsapp"))
-      .replace("__ICON_HEART__", iconSvg("heart"));
-
-    const s = Store.getSettings();
-    document.getElementById("homeSocialRow").innerHTML =
-      '<a href="https://wa.me/' + whatsappDigitsOnly(s.whatsapp) + '" target="_blank" rel="noopener">' + iconSvg("whatsapp") + "واتساب</a>" +
-      '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
-      '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
-
-    // دمج إعلانات لوحة الأدمن (Store.getAds) مع الإعلانات الثابتة من js/config.js (CODE_ADS)
-    const adminAds = Store.getAds();
-    const codeAds = (typeof CODE_ADS !== "undefined") ? CODE_ADS : [];
-    const ads = adminAds.concat(codeAds).sort((a, b) => (a.order || 0) - (b.order || 0));
-    const heroArt = document.getElementById("heroAdsContainer");
-    
-    if (ads.length > 0) {
-        let trackHtml = '<div class="ads-slider-container"><div class="ads-slider-track" id="adsTrack">';
-        let dotsHtml = '<div class="ads-dots">';
-        
-        ads.forEach((ad, index) => {
-            const imgWrap = ad.link ? `<a href="${ad.link}" target="_blank" style="display:block;width:100%;height:100%;"><img src="${ad.image}"></a>` : `<img src="${ad.image}">`;
-            trackHtml += `<div class="ad-slide" data-index="${index}">${imgWrap}</div>`;
-            dotsHtml += `<div class="ad-dot ${index === 0 ? 'active' : ''}" data-target="${index}"></div>`;
-        });
-        
-        trackHtml += '</div>' + dotsHtml + '</div></div>';
-        heroArt.innerHTML = trackHtml;
-        
-        const track = document.getElementById("adsTrack");
-        const dots = document.querySelectorAll(".ad-dot");
-        let currentIndex = 0, slideInterval;
-        
-        function goToSlide(index) {
-            if(index < 0) index = ads.length - 1;
-            if(index >= ads.length) index = 0;
-            currentIndex = index;
-            track.style.transform = `translateX(${currentIndex * 100}%)`;
-            dots.forEach(d => d.classList.remove('active'));
-            if(dots[currentIndex]) dots[currentIndex].classList.add('active');
-        }
-        
-        function nextSlide() { goToSlide(currentIndex + 1); }
-        function startAutoSlide() { slideInterval = setInterval(nextSlide, 3500); }
-        function stopAutoSlide() { clearInterval(slideInterval); }
-        
-        dots.forEach(dot => {
-            dot.addEventListener("click", function() { stopAutoSlide(); goToSlide(parseInt(this.dataset.target)); startAutoSlide(); });
-        });
-        
-        startAutoSlide();
-        
-        let startX = 0, endX = 0;
-        track.addEventListener('touchstart', e => { stopAutoSlide(); startX = e.changedTouches[0].screenX; });
-        track.addEventListener('touchend', e => { 
-            endX = e.changedTouches[0].screenX; 
-            if (startX - endX > 50) nextSlide(); else if (endX - startX > 50) goToSlide(currentIndex - 1);
-            startAutoSlide();
-        });
-    } else { heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>'; }
+  if (searchInput) {
+    searchInput.value = shopState.search;
+    searchInput.addEventListener("input", function () {
+      shopState.search = searchInput.value.trim();
+      renderShopResults();
+    });
+  }
+  if (sortSelect) {
+    sortSelect.addEventListener("change", function () {
+      shopState.sort = sortSelect.value;
+      renderShopResults();
+    });
+  }
+  [minInput, maxInput].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener("input", function () {
+      shopState.minPrice = minInput ? minInput.value : "";
+      shopState.maxPrice = maxInput ? maxInput.value : "";
+      renderShopResults();
+    });
   });
-</script>
-</body>
-</html>
+
+  renderCategoryFilterPanel();
+  renderShopResults();
+}
+
+window.updateCategory = function(catId) {
+    shopState.categoryId = catId;
+    shopState.filterMode = "";
+    renderCategoryFilterPanel();
+    renderShopResults();
+
+    // إعادة التمرير لأعلى شبكة المنتجات مع مراعاة ارتفاع الهيدر الثابت
+    const grid = document.getElementById("shopGrid");
+    if (grid) {
+        const headerEl = document.querySelector(".site-header");
+        const offset = (headerEl ? headerEl.offsetHeight : 80) + 10;
+        const top = grid.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: top, behavior: "smooth" });
+    }
+};
+
+function renderCategoryFilterPanel() {
+  const panel = document.getElementById("filterCategories");
+  if (!panel) return;
+  const categories = Store.getCategories();
+  const mainCats = categories.filter(function(c) { return !c.parentId; });
+
+  let html = '';
+  html += '<button id="mobileFilterToggle" class="mobile-toggle-btn" style="display:none; width:100%; padding:12px 15px; background:var(--olive-100); color:var(--olive-700); border:none; border-radius:var(--radius-sm); font-weight:bold; align-items:center; justify-content:space-between; margin-bottom:5px; cursor:pointer;">';
+  html += '<span style="display:flex; align-items:center; gap:8px;">' + iconSvg("box") + ' تصفية الأقسام</span>';
+  html += '<span style="transition: transform 0.3s; transform: rotate(' + (shopState.mobileMenuOpen ? '180deg' : '0deg') + ');">▼</span>';
+  html += '</button>';
+
+  html += '<div id="filterListContainer" class="filter-list-container ' + (shopState.mobileMenuOpen ? 'open' : '') + '" style="flex-direction: column;">';
+  html += '<button data-cat="all" class="' + (shopState.categoryId === "all" && !shopState.filterMode ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">جميع المنتجات</button>';
+  html += '<button data-filter="featured" class="' + (shopState.filterMode === "featured" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--sand-500);">⭐ منتجات مميزة</button>';
+  html += '<button data-filter="offer" class="' + (shopState.filterMode === "offer" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px; color: var(--danger);">🔥 عروض خاصة</button>';
+  html += '<button data-filter="new" class="' + (shopState.filterMode === "new" ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 18px; color: #2563eb;">✨ وصل حديثاً</button>';
+  
+  mainCats.forEach(function(main) {
+    const isMainActive = shopState.categoryId === main.id && !shopState.filterMode;
+    const isChildActive = categories.some(c => c.parentId === main.id && c.id === shopState.categoryId);
+    const isActive = isMainActive || (isChildActive && !shopState.filterMode);
+    const hasSubCats = categories.some(c => c.parentId === main.id);
+    let btnLabel = main.name;
+    
+    if (hasSubCats) {
+        btnLabel = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                      '<span>' + main.name + '</span>' +
+                      '<span style="font-size:0.7rem; font-weight:600; color:var(--olive-600); background:var(--olive-100); padding:2px 8px; border-radius:10px;">+ تفرعات</span>' +
+                   '</div>';
+    }
+    html += '<button data-cat="' + main.id + '" class="main-cat-btn ' + (isActive ? "active" : "") + '" style="font-weight:bold; width:100%; text-align:right; margin-bottom: 8px;">' + btnLabel + '</button>';
+  });
+  html += '</div>';
+  panel.innerHTML = html;
+
+  const toggleBtn = document.getElementById("mobileFilterToggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", function() {
+      shopState.mobileMenuOpen = !shopState.mobileMenuOpen;
+      renderCategoryFilterPanel();
+    });
+  }
+
+  panel.querySelectorAll("button[data-cat], button[data-filter]").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      if (btn.dataset.filter) { shopState.filterMode = btn.dataset.filter; shopState.categoryId = "all"; } 
+      else { shopState.filterMode = ""; shopState.categoryId = btn.dataset.cat; }
+      if (window.innerWidth <= 980) shopState.mobileMenuOpen = false;
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.pushState({path:newUrl}, '', newUrl);
+      renderCategoryFilterPanel(); 
+      renderShopResults();
+    });
+  });
+}
+
+function renderShopResults() {
+  let list = Store.getProducts();
+
+  if (shopState.filterMode === "featured") list = list.filter(function (p) { return p.featured; });
+  else if (shopState.filterMode === "offer") list = list.filter(function (p) { return p.isOffer; });
+  else if (shopState.filterMode === "new") list = list.filter(function (p) { return p.isNew; });
+
+  if (shopState.categoryId !== "all" && !shopState.filterMode) {
+    const subCatIds = Store.getCategories().filter(function(c) { return c.parentId === shopState.categoryId; }).map(function(c) { return c.id; });
+    const allowedCats = [shopState.categoryId].concat(subCatIds);
+    list = list.filter(function (p) { return allowedCats.includes(p.categoryId); });
+  }
+  
+  if (shopState.search) {
+    const q = shopState.search.toLowerCase();
+    list = list.filter(function (p) { return p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q); });
+  }
+  if (shopState.minPrice) list = list.filter(function (p) { return p.price >= Number(shopState.minPrice); });
+  if (shopState.maxPrice) list = list.filter(function (p) { return p.price <= Number(shopState.maxPrice); });
+
+  switch (shopState.sort) {
+    case "price-asc": list.sort(function (a, b) { return a.price - b.price; }); break;
+    case "price-desc": list.sort(function (a, b) { return b.price - a.price; }); break;
+    case "name": list.sort(function (a, b) { return a.name.localeCompare(b.name, "ar"); }); break;
+    default: break; 
+  }
+
+  const subCatContainerId = "subCategoryScroller";
+  let subCatContainer = document.getElementById(subCatContainerId);
+  
+  if (shopState.categoryId !== "all" && !shopState.filterMode) {
+      const currentCat = Store.getCategories().find(c => c.id === shopState.categoryId);
+      const parentId = currentCat ? (currentCat.parentId || currentCat.id) : null;
+      if (parentId) {
+          const subCats = Store.getCategories().filter(c => c.parentId === parentId);
+          if (subCats.length > 0) {
+              if (!subCatContainer) {
+                  subCatContainer = document.createElement("div");
+                  subCatContainer.id = subCatContainerId;
+                  subCatContainer.className = "cat-scroller";
+                  subCatContainer.style.marginBottom = "10px";
+                  subCatContainer.style.padding = "10px 0";
+                             subCatContainer.style.position = "sticky";
+              const headerElForOffset = document.querySelector(".site-header");
+              subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
+                  subCatContainer.style.zIndex = "40"; 
+                  subCatContainer.style.backgroundColor = "#fefcf4"; 
+                  const grid = document.getElementById("shopGrid");
+                  if (grid && grid.parentNode) grid.parentNode.insertBefore(subCatContainer, grid);
+              }
+              let subHtml = '<button class="filter-chip ' + (shopState.categoryId === parentId ? 'active' : '') + '" onclick="updateCategory(\'' + parentId + '\')">الكل</button>';
+              subHtml += subCats.map(sub => { return '<button class="filter-chip ' + (shopState.categoryId === sub.id ? 'active' : '') + '" onclick="updateCategory(\'' + sub.id + '\')">' + sub.name + '</button>'; }).join('');
+              subCatContainer.innerHTML = subHtml;
+              subCatContainer.style.display = "flex";
+          } else if (subCatContainer) subCatContainer.style.display = "none";
+      }
+  } else if (subCatContainer) subCatContainer.style.display = "none";
+
+  let emptyMsg = "لا توجد منتجات مطابقة لبحثك — جرّب تغيير الفلاتر.";
+  if (shopState.filterMode === "featured") emptyMsg = "عذراً، لا توجد منتجات مميزة في المتجر حالياً.";
+  else if (shopState.filterMode === "offer") emptyMsg = "عذراً، لا توجد عروض وتخفيضات حالياً.";
+  else if (shopState.filterMode === "new") emptyMsg = "عذراً، لا توجد منتجات جديدة في المتجر حالياً.";
+
+  renderGridInto("shopGrid", list, emptyMsg);
+  const countEl = document.getElementById("resultCount");
+  if (countEl) countEl.textContent = list.length + " منتج";
+}
+
+function initHomeCollections() {
+  const featuredEl = document.getElementById("featuredGrid");
+  const offerEl = document.getElementById("offerGrid"); 
+  const newEl = document.getElementById("newGrid");
+  const catEl = document.getElementById("homeCategories");
+  const products = Store.getProducts();
+
+  if (featuredEl) renderGridInto("featuredGrid", products.filter(function (p) { return p.featured; }).slice(0, 4), "لا توجد منتجات مميزة حاليًا.");
+  if (offerEl) renderGridInto("offerGrid", products.filter(function (p) { return p.isOffer; }).slice(0, 4), "لا توجد عروض حاليًا.");
+  if (newEl) renderGridInto("newGrid", products.filter(function (p) { return p.isNew; }).slice(0, 4), "لا توجد منتجات جديدة حاليًا.");
+  
+  if (catEl) {
+    const categories = Store.getCategories();
+    const mainCategories = categories.filter(function(c) { return !c.parentId; });
+    catEl.innerHTML = mainCategories.map(function (c) {
+      const media = c.image ? '<img src="' + c.image + '" alt="' + c.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : iconSvg(c.icon || "box");
+      return '<a href="products.html?cat=' + c.id + '" class="cat-chip"><span class="cat-icon" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">' + media + '</span><span class="name">' + c.name + "</span></a>";
+    }).join("");
+  }
+}
+
+function initProductDetailPage() {
+  const mount = document.getElementById("productDetail");
+  if (!mount) return;
+
+  const id = new URLSearchParams(location.search).get("id");
+  const product = id ? Store.getProduct(id) : null;
+
+  if (!product) {
+    mount.innerHTML = '<div class="empty-state">' + iconSvg("box") + "<p>هذا المنتج غير موجود أو تم حذفه.</p>" + '<a href="products.html" class="btn btn-outline">العودة إلى المتجر</a></div>';
+    return;
+  }
+
+  document.title = product.name + " — " + Store.getSettings().storeName;
+  const outOfStock = !product.available || product.stock <= 0;
+
+  let variantsHtml = "";
+  if (product.variants && product.variants.length > 0) {
+      variantsHtml = '<div class="field" style="margin-bottom: 20px;">' +
+                     '<label class="variant-label">الخيارات المتوفرة:</label>' +
+                     '<div class="variant-options" id="variantOptions">' +
+                       product.variants.map(function (v, i) {
+                         return '<button type="button" class="variant-chip' + (i === 0 ? ' active' : '') + '" data-variant="' + v + '">' + v + '</button>';
+                       }).join('') +
+                     '</div></div>';
+  }
+
+  mount.innerHTML =
+    '<div class="detail-grid"><div class="detail-media">' + productMediaHtml(product) + "</div>" +
+      '<div class="detail-info">' +
+        '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+        "<h1>" + product.name + "</h1>" +
+        '<div class="stock-line"><span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' + (outOfStock ? "غير متوفر حاليًا" : "متوفر — الكمية " + product.stock) + "</div>" +
+        '<div class="detail-price">' + formatPrice(product.price) + "</div>" +
+        "<p>" + product.description + "</p>" +
+        variantsHtml + 
+        (outOfStock ? "" : '<div class="qty-stepper"><button type="button" id="qtyMinus">−</button><input type="number" id="qtyInput" value="1" min="1" max="' + product.stock + '"><button type="button" id="qtyPlus">+</button></div>') +
+        '<div class="detail-actions">' +
+          (outOfStock
+            ? '<button class="btn btn-outline" disabled>غير متوفر حاليًا</button>'
+            : '<button class="btn btn-primary" id="addToCartBtn">' + iconSvg("cart") + "أضف للسلة</button>" + '<button class="btn btn-whatsapp" id="orderNowBtn">' + iconSvg("whatsapp") + "طلب عبر واتساب</button>"
+          ) +
+        "</div>" +
+        '<div class="detail-meta"><span>القسم: ' + Store.getCategoryName(product.categoryId) + '</span><span>حالة التوفر: ' + (outOfStock ? "غير متوفر" : "متوفر") + '</span></div>' +
+      "</div></div>";
+
+  const variantOptions = document.getElementById("variantOptions");
+  function getSelectedVariant() {
+    if (!variantOptions) return null;
+    const active = variantOptions.querySelector(".variant-chip.active");
+    return active ? active.dataset.variant : null;
+  }
+
+  if (!outOfStock) {
+    const qtyInput = document.getElementById("qtyInput");
+
+    document.getElementById("qtyMinus").addEventListener("click", function () { qtyInput.value = Math.max(1, Number(qtyInput.value) - 1); });
+    document.getElementById("qtyPlus").addEventListener("click", function () { qtyInput.value = Math.min(product.stock, Number(qtyInput.value) + 1); });
+
+    document.getElementById("addToCartBtn").addEventListener("click", function () {
+      const qty = Number(qtyInput.value) || 1;
+      const selectedVariant = getSelectedVariant();
+      const itemKey = selectedVariant ? product.id + "|" + selectedVariant : product.id;
+      Store.addToCart(itemKey, qty, selectedVariant);
+      showToast(product.name + (selectedVariant ? " (" + selectedVariant + ")" : "") + " أُضيف إلى السلة");
+    });
+
+    document.getElementById("orderNowBtn").addEventListener("click", function () {
+      const qty = Number(qtyInput.value) || 1;
+      const selectedVariant = getSelectedVariant();
+      const orderProduct = Object.assign({}, product);
+      if (selectedVariant) orderProduct.name = product.name + " (" + selectedVariant + ")";
+      orderSingleProductViaWhatsApp(orderProduct, qty);
+    });
+  }
+
+  // برمجة تغيير الصورة + تحديد الزر النشط فور اختيار نكهة أو حجم مختلف
+  if (variantOptions) {
+    variantOptions.querySelectorAll(".variant-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        variantOptions.querySelectorAll(".variant-chip").forEach(function (c) { c.classList.remove("active"); });
+        chip.classList.add("active");
+
+        const selectedVal = chip.dataset.variant;
+        const mediaContainer = document.querySelector(".detail-media");
+        if (product.variantImages && product.variantImages[selectedVal]) {
+          mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
+        } else {
+          mediaContainer.innerHTML = productMediaHtml(product);
+        }
+      });
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  initHomeCollections();
+  initShopPage();
+  initProductDetailPage();
+});
+document.addEventListener("store:synced", function () {
+  initHomeCollections();
+  renderCategoryFilterPanel();
+  renderShopResults();
+  initProductDetailPage();
+});
