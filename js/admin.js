@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث لمعالجة ذكية: دقة استثنائية للإعلانات وسرعة فائقة للمنتجات مع حل مسار ImageKit.
+   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات.
    ========================================================================== */
 
 let editingProductId = null;
@@ -64,21 +64,21 @@ async function uploadToImgBB(file, isBanner = false) {
       const rawUrl = data.data.url;
       const imageKitEndpoint = "https://ik.imagekit.io/petshop";
       
-      // إزالة البروتوكول
+      // إزالة البروتوكول وتنظيف المسار
       let cleanPath = rawUrl.replace(/^https?:\/\//i, "");
       
-      // إزالة i.ibb.co/ إذا كانت موجودة لمنع تكرار المسار مع إعدادات الـ Proxy
       if (cleanPath.startsWith("i.ibb.co/")) {
         cleanPath = cleanPath.replace("i.ibb.co/", "");
       }
       
+      // الإعلانات: دقة فائقة - المنتجات: حد أقصى صارم 100 كيلوبايت (100,000 بايت)
       const transform = isBanner
         ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
-        : "tr:w-900,q-85,e-sharpen-8,f-auto";
+        : "tr:w-900,max_bytes-100000,e-sharpen-8,f-auto";
 
       const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
 
-      // فحص سريع للصورة؛ إن عملت عبر ImageKit يتم اعتمادها، وإن لم تعمل يتم اعتماد رابط ImgBB المباشر
+      // فحص سريع للصورة لضمان عدم اختفائها في حال تعثر الـ CDN
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => resolve(cdnUrl);
