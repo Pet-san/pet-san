@@ -1,5 +1,5 @@
 /* ==========================================================================
-   store.js (نسخة السحابة - Firebase - مع حل مشكلة الكاش - النسخة النهائية)
+   store.js (نسخة السحابة - Firebase - التحديث الصامت والذكي Silent Reactive Sync)
    ========================================================================== */
 
 const FIREBASE_DB_URL = "https://pet-shop3-59335-default-rtdb.europe-west1.firebasedatabase.app";
@@ -57,30 +57,24 @@ async function pullFromFirebase() {
         return;
     }
 
-    const localHash = JSON.stringify({
-      products: JSON.parse(localStorage.getItem(DB_KEYS.products) || "[]"),
-      categories: JSON.parse(localStorage.getItem(DB_KEYS.categories) || "[]"),
-      settings: JSON.parse(localStorage.getItem(DB_KEYS.settings) || "{}"),
-      ads: JSON.parse(localStorage.getItem(DB_KEYS.ads) || "[]")
-    });
+    // تحديث البيانات المحلية ببيانات السحابة مباشرة
+    localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products || []));
+    localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories || []));
+    localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings || {}));
+    localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || []));
+    if (data.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(data.orders));
     
-    const remoteHash = JSON.stringify({
-      products: data.products || [],
-      categories: data.categories || [],
-      settings: data.settings || {},
-      ads: data.ads || []
-    });
+    // دالة إرسال إشارة المزامنة
+    const notifySync = () => {
+      document.dispatchEvent(new CustomEvent("store:synced"));
+    };
 
-    if (localHash !== remoteHash) {
-        localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products || []));
-        localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories || []));
-        localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings || {}));
-        localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || []));
-        if (data.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(data.orders));
+    // ضمان إطلاق الحدث بعد أن تكون عناصر DOM جاهزة تماماً للاستماع
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", notifySync, { once: true });
+    } else {
+      notifySync();
     }
-    
-    // التعديل الأهم: إطلاق الحدث دائماً لضمان رسم الموقع وعرض المنتجات والسلة
-    document.dispatchEvent(new CustomEvent("store:synced"));
     
   } catch (e) {
     console.error("Firebase Pull Error:", e);
