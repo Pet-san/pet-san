@@ -12,9 +12,6 @@
   <link rel="stylesheet" href="css/style.css?v=9">
 <style>
   /* === التعديلات الجديدة === */
-  .product-media img, .product-media { border-radius: 12px !important; }
-  .product-card { border-radius: 14px !important; }
-
   .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
   .ads-slider-container {
       position: relative; width: 100%; aspect-ratio: 16 / 9;
@@ -47,27 +44,20 @@
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
     
+    /* كاروسيل أفقي لصفوف المنتجات في الصفحة الرئيسية فقط (تفاصيل شكل البطاقة نفسها موجودة في css/style.css) */
     .product-grid {
-      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important; scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important; padding-bottom: 15px !important; -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; 
-            align-items: stretch !important; /* توحيد ارتفاع البطاقات */
-      gap: 10px !important;
+      display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important;
+      scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important;
+      padding-bottom: 15px !important; -webkit-overflow-scrolling: touch !important;
+      scrollbar-width: none !important; gap: 10px !important;
     }
     .product-grid::-webkit-scrollbar { display: none !important; }
-    
+
     .product-grid .product-card {
       flex: 0 0 calc(50% - 5px) !important;
       max-width: none !important;
       scroll-snap-align: start !important;
-      margin-left: 0 !important;
-      display: block !important; /* إلغاء الفليكس الداخلي لتبقى مضغوطة */
-      height: auto !important;
     }
-    
-    #shopGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; align-items: flex-start !important; }
-    #shopGrid .product-card { flex: unset !important; margin-left: 0 !important; max-width: none !important; height: auto !important; display: block !important; }
-
-    .product-card { min-width: 0 !important; padding: 8px !important; }
-    .product-card .product-desc { display: none !important; } 
   }
 </style>
 </head>
@@ -215,7 +205,10 @@
       '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
       '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
 
-    const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
+    // دمج إعلانات لوحة الأدمن (Store.getAds) مع الإعلانات الثابتة من js/config.js (CODE_ADS)
+    const adminAds = Store.getAds();
+    const codeAds = (typeof CODE_ADS !== "undefined") ? CODE_ADS : [];
+    const ads = adminAds.concat(codeAds).sort((a, b) => (a.order || 0) - (b.order || 0));
     const heroArt = document.getElementById("heroAdsContainer");
     
     if (ads.length > 0) {

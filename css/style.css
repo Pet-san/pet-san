@@ -250,6 +250,7 @@ button { font-family: inherit; cursor: pointer; }
 .product-media {
   position: relative; aspect-ratio: 4/3; background: var(--olive-50);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
+  border: 1px solid var(--line);
 }
 .product-media img { width: 100%; height: 100%; object-fit: cover; }
 .product-media .placeholder-icon { width: 42%; color: var(--olive-500); }
@@ -260,18 +261,32 @@ button { font-family: inherit; cursor: pointer; }
 .badge-new { background: var(--olive-600); color: var(--white); }
 .badge-featured { background: var(--sand-500); color: var(--white); }
 .badge-out { position: static; margin-inline-start: 8px; background: var(--danger-bg); color: var(--danger); }
+.badge-out-abs {
+  position: absolute; top: 10px; inset-inline-end: 10px;
+  font-size: .72rem; font-weight: 700; padding: 5px 11px;
+  border-radius: var(--radius-pill); background: var(--ink-900); color: var(--white);
+}
+.badge-variants {
+  position: absolute; top: auto; bottom: 10px; inset-inline-start: 10px;
+  display: flex; align-items: center; gap: 4px; width: fit-content;
+  font-size: .68rem; font-weight: 700; padding: 4px 10px 4px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(34, 36, 29, .78); color: var(--white);
+  backdrop-filter: blur(3px);
+}
+.badge-variants svg { width: 12px; height: 12px; flex-shrink: 0; }
 
 .product-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .product-cat { font-size: .76rem; color: var(--olive-700); font-weight: 700; }
 .product-name {
-  font-weight: 700; font-size: 1.02rem;
+  font-weight: 800; font-size: 1.12rem;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; min-height: 2.8em;
 }
 .product-name a:hover { color: var(--olive-700); }
 .product-desc { font-size: .87rem; color: var(--ink-600); flex: 1; }
 .product-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-.price { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--olive-700); }
+.price { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; color: var(--olive-700); }
 .price small { font-size: .7rem; font-weight: 500; color: var(--ink-600); }
 .product-actions { display: flex; gap: 8px; margin-top: 10px; }
 .stock-line { font-size: .8rem; color: var(--ink-600); display: flex; align-items: center; gap: 6px; }
@@ -377,6 +392,21 @@ button { font-family: inherit; cursor: pointer; }
 .qty-stepper input { width: 46px; border: none; background: none; text-align: center; font-family: inherit; font-weight: 700; font-size: 1rem; }
 .detail-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
 .detail-meta { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 18px; display: flex; flex-direction: column; gap: 8px; font-size: .92rem; }
+
+/* ---------- Variant option chips (بدل القائمة المنسدلة) ---------- */
+.variant-label { font-weight: 700; display: block; margin-bottom: 10px; font-size: .92rem; color: var(--ink-900); }
+.variant-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.variant-chip {
+  padding: 10px 22px; border-radius: var(--radius-pill);
+  border: 1.5px solid var(--line-strong); background: var(--white);
+  font-family: inherit; font-weight: 600; font-size: .92rem; color: var(--ink-900);
+  transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+}
+.variant-chip:hover { border-color: var(--olive-400); }
+.variant-chip.active {
+  background: var(--olive-600); border-color: var(--olive-600); color: var(--white);
+  box-shadow: var(--shadow-soft); transform: translateY(-1px);
+}
 
 /* ---------- Cart ---------- */
 .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 30px; align-items: flex-start; }
@@ -577,21 +607,11 @@ button { font-family: inherit; cursor: pointer; }
   .hero-copy p { font-size: 0.95rem; margin-bottom: 15px; }
   .hero-trust { margin-top: 20px; }
   
-  .feature-grid, .product-grid, .grid, .category-grid {
+  .feature-grid, .grid, .category-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-  
-  .product-card {
-    min-width: 0;
-    padding: 10px;
-  }
-  
-  .product-card h3 { font-size: 13px; margin-bottom: 5px; }
-  .product-card p { font-size: 11px; line-height: 1.4; }
-  .product-card .price { font-size: 13px; margin: 8px 0; }
-  .product-card .btn-primary { padding: 6px; font-size: 11px; width: 100%; }
 }
 
 @media (max-width: 720px) {
@@ -699,7 +719,6 @@ button { font-family: inherit; cursor: pointer; }
         display: flex !important;
     }
 }
-```[The file '' could not be opened]
 /* ==========================================================================
    Global Live Search Overlay (نافذة البحث المباشر)
    ========================================================================== */
@@ -764,36 +783,74 @@ button { font-family: inherit; cursor: pointer; }
     border-radius: 16px !important;
     overflow: hidden !important;
     background: var(--white) !important;
-    padding: 0 !important;
+    padding: 10px !important;
     margin-bottom: 10px !important;
+    border: 1px solid var(--line-strong) !important;
 }
 
 .product-card .product-media img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
-    border-radius: 16px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--line) !important;
     padding: 0 !important;
 }
-/* === تكبير نصوص المنتجات في شاشات الموبايل === */
+/* === تصميم مضغوط واحترافي لبطاقة المنتج (زر دائري بدل الكبسولة الكاملة) === */
+.product-actions { margin-top: 0 !important; }
+.product-actions .btn-primary {
+  width: 38px !important; height: 38px !important; min-width: 38px !important;
+  padding: 0 !important; border-radius: 50% !important;
+  flex-shrink: 0 !important; font-size: 0 !important; /* يخفي أي نص متبقٍ */
+}
+.product-actions .btn-primary svg { width: 18px !important; height: 18px !important; margin: 0 !important; }
+.product-actions .btn-primary:disabled { background: var(--ink-300) !important; }
+
 @media (max-width: 768px) {
-    .product-card .product-name, 
+    .product-card { border-radius: 14px; }
+    .product-body { padding: 10px; gap: 3px; }
+    .product-card .product-cat {
+        font-size: 11px !important;
+    }
+    .product-card .product-name,
     .product-card .product-name a {
-        font-size: 14.5px !important;
+        font-size: 15px !important;
         font-weight: 800 !important;
-        line-height: 1.5 !important;
-        margin-bottom: 6px !important;
+        line-height: 1.35 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: unset !important;
+        margin-bottom: 0 !important;
+    }
+    .product-card .product-foot {
+        margin-top: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
     }
     .product-card .price {
-        font-size: 16px !important;
+        font-size: 17px !important;
         font-weight: 900 !important;
         color: var(--olive-700) !important;
     }
-    .product-card .product-cat {
-        font-size: 11.5px !important;
-    }
-    .product-card .btn-primary {
-        font-size: 13px !important;
-        padding: 8px !important;
-    }
+    .product-card .stock-line { font-size: 10.5px !important; margin-bottom: 2px !important; }
+}
+
+/* === ملاءمة الموقع لشاشات الهواتف (أبعاد عامة + صفحة تفاصيل المنتج) === */
+html, body { overflow-x: hidden; max-width: 100%; }
+
+@media (max-width: 768px) {
+    .page-header { padding-block: 20px 8px; }
+    .detail-grid { gap: 20px; }
+    .detail-info h1 { font-size: 1.35rem; margin-bottom: 8px; }
+    .detail-price { font-size: 1.6rem; margin-block: 8px; }
+    .detail-info p { font-size: .92rem; }
+    .variant-options { gap: 8px; }
+    .variant-chip { padding: 9px 16px; font-size: .86rem; }
+    .detail-actions { flex-direction: column; gap: 10px; }
+    .detail-actions .btn { width: 100%; }
+    .qty-stepper { width: 100%; justify-content: center; }
 }
