@@ -13,15 +13,32 @@ const NAV_LINKS = [
   { href: "contact.html", label: "تواصل معنا", key: "contact" }
 ];
 
+// === دالة تهريب النصوص لمنع XSS وكسر الـ HTML ===
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderHeader() {
   const mount = document.getElementById("site-header");
   if (!mount) return;
   const active = mount.dataset.active || "";
   const settings = Store.getSettings();
 
+  // حفظ حالة نافذة البحث قبل إعادة الرسم (تحدث عند store:synced)
+  const prevOverlay = document.getElementById("globalSearchOverlay");
+  const prevInput = document.getElementById("globalSearchInput");
+  const wasSearchOpen = !!(prevOverlay && prevOverlay.classList.contains("open"));
+  const prevQuery = prevInput ? prevInput.value : "";
+
   const navHtml = NAV_LINKS.map(function (link) {
     const isActive = link.key === active ? " active" : "";
-    return '<a href="' + link.href + '" class="' + isActive.trim() + '">' + link.label + "</a>";
+    return '<a href="' + link.href + '" class="' + isActive.trim() + '">' + escapeHtml(link.label) + "</a>";
   }).join("");
 
   // حل مشكلة الكاش: تضمين الـ CSS الخاص بالبحث مباشرة هنا ليعمل فوراً
@@ -53,12 +70,12 @@ function renderHeader() {
     '<header class="site-header">' +
       '<div class="container header-inner">' +
         '<a href="index.html" class="brand">' +
-          '<img src="assets/logo/logo.png" alt="' + settings.storeName + '">' +
-          '<span class="brand-name">' + settings.storeName + '<span>' + settings.storeTagline + "</span></span>" +
+          '<img src="assets/logo/logo.png" alt="' + escapeHtml(settings.storeName) + '">' +
+          '<span class="brand-name">' + escapeHtml(settings.storeName) + '<span>' + escapeHtml(settings.storeTagline) + "</span></span>" +
         "</a>" +
         '<nav class="main-nav" id="mainNav">' + navHtml + "</nav>" +
         '<div class="header-actions">' +
-          
+
           // --- زر البحث السريع ---
           '<button type="button" class="btn-icon" id="openGlobalSearch" aria-label="بحث" title="بحث">' +
             iconSvg("search") +
@@ -73,7 +90,7 @@ function renderHeader() {
         "</div>" +
       "</div>" +
     "</header>" +
-    
+
     // --- نافذة البحث المنبثقة (Live Search Overlay) ---
     '<div class="global-search-overlay" id="globalSearchOverlay">' +
       '<div class="global-search-container">' +
@@ -91,6 +108,17 @@ function renderHeader() {
   fixRelativePaths(mount);
   initMobileNav();
   initGlobalSearch(); // تفعيل برمجة البحث
+
+  // استعادة حالة البحث لو كانت مفتوحة قبل إعادة الرسم (عند وصول store:synced)
+  if (wasSearchOpen) {
+    const overlay = document.getElementById("globalSearchOverlay");
+    const input = document.getElementById("globalSearchInput");
+    if (overlay && input) {
+      overlay.classList.add("open");
+      input.value = prevQuery;
+      input.dispatchEvent(new Event("input"));
+    }
+  }
 }
 
 // === دالة برمجة البحث المباشر ===
@@ -101,61 +129,74 @@ function initGlobalSearch() {
   const input = document.getElementById("globalSearchInput");
   const resultsBox = document.getElementById("globalSearchResults");
 
-  if(!openBtn || !overlay) return;
+  if (!openBtn || !overlay || !closeBtn || !input || !resultsBox) return;
 
   // فتح نافذة البحث
-  openBtn.addEventListener("click", function() {
-      overlay.classList.add("open");
-      input.value = "";
-      resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
-      setTimeout(() => input.focus(), 100); // تفعيل مؤشر الكتابة تلقائياً
+  openBtn.addEventListener("click", function () {
+    overlay.classList.add("open");
+    input.value = "";
+    resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
+    setTimeout(() => input.focus(), 100); // تفعيل مؤشر الكتابة تلقائياً
   });
 
   // إغلاق النافذة
-  closeBtn.addEventListener("click", function() {
-      overlay.classList.remove("open");
+  closeBtn.addEventListener("click", function () {
+    overlay.classList.remove("open");
   });
 
   // إغلاق عند الضغط خارج المربع
-  overlay.addEventListener("click", function(e) {
-      if(e.target === overlay) overlay.classList.remove("open");
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) overlay.classList.remove("open");
   });
 
-  // عملية البحث المباشر أثناء الكتابة
-  input.addEventListener("input", function() {
-      const query = input.value.trim().toLowerCase();
-      if(query.length === 0) {
-          resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
-          return;
-      }
+  // عملية البحث المباشر أثناء الكتابة، مع تأخير بسيط (debounce) لتقليل إعادة الرسم
+  let debounceTimer;
+  input.addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(runSearch, 200);
+  });
 
-      const allProducts = Store.getProducts();
-      // البحث في الاسم، الوصف، والخيارات/النكهات
-      const matched = allProducts.filter(p => 
-          p.name.toLowerCase().includes(query) || 
-          (p.description && p.description.toLowerCase().includes(query)) ||
-          (p.variants && p.variants.some(v => v.toLowerCase().includes(query)))
+  function runSearch() {
+    const query = input.value.trim().toLowerCase();
+    if (query.length === 0) {
+      resultsBox.innerHTML = '<div class="empty-search">اكتب اسم المنتج للبحث...</div>';
+      return;
+    }
+
+    const allProducts = Store.getProducts();
+
+    // البحث في الاسم، الوصف، والخيارات/النكهات — مع حماية ضد بيانات ناقصة
+    const matched = allProducts.filter(function (p) {
+      const name = (p.name || "").toLowerCase();
+      const desc = (p.description || "").toLowerCase();
+      const variantsMatch = Array.isArray(p.variants) &&
+        p.variants.some(function (v) {
+          return typeof v === "string" && v.toLowerCase().includes(query);
+        });
+      return name.includes(query) || desc.includes(query) || variantsMatch;
+    });
+
+    if (matched.length === 0) {
+      resultsBox.innerHTML = '<div class="empty-search">لا توجد منتجات مطابقة لـ "' + escapeHtml(query) + '"</div>';
+      return;
+    }
+
+    // رسم النتائج
+    resultsBox.innerHTML = matched.map(function (p) {
+      const img = p.image
+        ? '<img src="' + escapeHtml(p.image) + '">'
+        : '<div class="search-img-placeholder">' + iconSvg("box") + '</div>';
+      return (
+        '<a href="product.html?id=' + escapeHtml(p.id) + '" class="search-result-item">' +
+          '<div class="search-item-img">' + img + '</div>' +
+          '<div class="search-item-info">' +
+            '<h4>' + escapeHtml(p.name || "منتج بدون اسم") + '</h4>' +
+            '<span>' + formatPrice(p.price) + '</span>' +
+          '</div>' +
+        '</a>'
       );
-
-      if(matched.length === 0) {
-          resultsBox.innerHTML = '<div class="empty-search">لا توجد منتجات مطابقة لـ "'+query+'"</div>';
-          return;
-      }
-
-      // رسم النتائج
-      resultsBox.innerHTML = matched.map(p => {
-          const img = p.image ? `<img src="${p.image}">` : `<div class="search-img-placeholder">${iconSvg("box")}</div>`;
-          return `
-              <a href="product.html?id=${p.id}" class="search-result-item">
-                  <div class="search-item-img">${img}</div>
-                  <div class="search-item-info">
-                      <h4>${p.name}</h4>
-                      <span>${formatPrice(p.price)}</span>
-                  </div>
-              </a>
-          `;
-      }).join("");
-  });
+    }).join("");
+  }
 }
 
 function renderFooter() {
@@ -165,7 +206,7 @@ function renderFooter() {
   const categories = Store.getCategories().slice(0, 5);
 
   const catLinks = categories.map(function (c) {
-    return '<li><a href="products.html?cat=' + c.id + '">' + c.name + "</a></li>";
+    return '<li><a href="products.html?cat=' + escapeHtml(c.id) + '">' + escapeHtml(c.name) + "</a></li>";
   }).join("");
 
   mount.innerHTML =
@@ -173,8 +214,8 @@ function renderFooter() {
       '<div class="container">' +
         '<div class="footer-grid">' +
           '<div>' +
-            '<div class="footer-brand"><img src="assets/logo/logo.png" alt="' + settings.storeName + '"><strong>' + settings.storeName + "</strong></div>" +
-            "<p>" + settings.storeDescription + "</p>" +
+            '<div class="footer-brand"><img src="assets/logo/logo.png" alt="' + escapeHtml(settings.storeName) + '"><strong>' + escapeHtml(settings.storeName) + "</strong></div>" +
+            "<p>" + escapeHtml(settings.storeDescription) + "</p>" +
           "</div>" +
           '<div><h4>روابط سريعة</h4><ul>' +
             '<li><a href="index.html">الرئيسية</a></li>' +
@@ -184,14 +225,14 @@ function renderFooter() {
           "</ul></div>" +
           '<div><h4>الأقسام</h4><ul>' + catLinks + "</ul></div>" +
           '<div><h4>تواصل معنا</h4><ul>' +
-            '<li><a href="tel:' + settings.phone + '">' + settings.phone + "</a></li>" +
+            '<li><a href="tel:' + escapeHtml(settings.phone) + '">' + escapeHtml(settings.phone) + "</a></li>" +
             '<li><a href="https://wa.me/' + whatsappDigitsOnly(settings.whatsapp) + '" target="_blank" rel="noopener">واتساب</a></li>' +
-            '<li><a href="' + settings.instagram + '" target="_blank" rel="noopener">انستغرام</a></li>' +
-            "<li>" + settings.address + "</li>" +
+            '<li><a href="' + escapeHtml(settings.instagram) + '" target="_blank" rel="noopener">انستغرام</a></li>' +
+            "<li>" + escapeHtml(settings.address) + "</li>" +
           "</ul></div>" +
         "</div>" +
       "<div class='footer-bottom' style='padding: 20px 15px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.7);'>" +
-      "<span>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة.</span>" +
+      "<span>&copy; " + new Date().getFullYear() + " " + escapeHtml(settings.storeName) + " - جميع الحقوق محفوظة.</span>" +
       "<span style='font-size: 0.8rem; opacity: 0.8;'>تصميم وتطوير | <a href='https://instagram.com/az_6ui' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;'>م. أمير (az_6ui)</a> | واتساب: <a href='https://wa.me/9647813623682' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;' dir='ltr'>+964 781 362 3682</a></span>" +
       "</div>" +
       "</div>" +
