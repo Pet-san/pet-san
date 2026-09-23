@@ -6,13 +6,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <title>المنتجات | سان ستور</title>
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=24">
   <style>
   @media (max-width: 768px) {
-    /* قسم: لماذا تختارنا */
     .feature-grid {
       grid-template-columns: repeat(2, 1fr) !important;
       gap: 10px !important;
@@ -20,7 +18,6 @@
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
     
-    /* شبكة المنتجات (مميزة، حديثة، وكل المتجر) */
     .product-grid, #shopGrid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
@@ -30,7 +27,6 @@
       min-width: 0 !important;
       padding: 8px !important;
     }
-    /* تصغير نصوص المنتج وإخفاء الوصف الطويل لتوفير المساحة */
     .product-card .product-name { font-size: 12px !important; margin-bottom: 4px !important; line-height: 1.4 !important; }
     .product-card .product-desc { display: none !important; } 
     .product-card .stock-line { font-size: 10px !important; margin-bottom: 4px !important; }
@@ -58,7 +54,6 @@
       <div class="shop-toolbar">
         <div class="search-box">
           <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
-          <!-- تم إفراغ محتوى السبان ليتم تعبئته بالأيقونة برمجياً بدون أخطاء -->
           <span></span>
         </div>
         <select id="sortSelect" class="sort-select">
@@ -95,17 +90,16 @@
 
 <div id="site-footer"></div>
 
-<script src="js/config.js"></script>
-<script src="js/icons.js"></script>
-<script src="js/store.js"></script>
-<script src="js/whatsapp.js"></script>
-<script src="js/app.js"></script>
-<script src="js/products.js"></script>
+<script src="js/config.js?v=24"></script>
+<script src="js/icons.js?v=24"></script>
+<script src="js/store.js?v=24"></script>
+<script src="js/whatsapp.js?v=24"></script>
+<script src="js/app.js?v=24"></script>
+<script src="js/products.js?v=24"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // استهداف مربع البحث الخاص بصفحة المنتجات تحديداً لتجنب التداخل مع نافذة البحث الجديدة
     const shopSearchSpan = document.querySelector(".shop-toolbar .search-box span");
-    if (shopSearchSpan) {
+    if (shopSearchSpan && typeof iconSvg === "function") {
         shopSearchSpan.innerHTML = iconSvg("search");
     }
   });
