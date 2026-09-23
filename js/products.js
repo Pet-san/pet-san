@@ -4,7 +4,7 @@
 
 function productMediaHtml(product) {
   if (product.image) {
-    return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy" decoding="async">';
+    return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy">';
   }
   const cat = Store.getCategories().find(function (c) { return c.id === product.categoryId; });
   const key = cat ? cat.icon : "paw";
@@ -18,6 +18,10 @@ function renderProductCard(product) {
   if (product.isOffer) badges.push('<span class="badge badge-offer" style="background:var(--danger); color:white;">عرض🔥</span>');
   else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
   else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
+  if (outOfStock) badges.push('<span class="badge badge-out-abs">غير متوفر</span>');
+  if (product.variants && product.variants.length > 1) {
+    badges.push('<span class="badge badge-variants">' + iconSvg("layers") + product.variants.length + ' خيارات</span>');
+  }
 
   return (
     '<article class="product-card">' +
@@ -25,17 +29,18 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      '<div class="product-body" style="padding-top: 6px;">' +
-        '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
-        '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
-        '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
-          '<span class="price" style="font-size:1rem; font-weight:900; color:var(--olive-700);">' + formatPrice(product.price) + "</span>" +
-        "</div>" +
-        '<div class="product-actions" style="margin-top:0;">' +
-          '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
-            ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
-            (outOfStock ? "غير متوفر" : iconSvg("cart") + "أضف للسلة") + 
-          "</button>" +
+      '<div class="product-body">' +
+        '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+        '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+        '<div class="product-foot">' +
+          '<span class="price">' + formatPrice(product.price) + "</span>" +
+          '<div class="product-actions">' +
+            '<button class="btn btn-primary" ' + (outOfStock ? "disabled" : "") +
+              ' title="' + (outOfStock ? "غير متوفر" : "أضف للسلة") + '"' +
+              ' onclick="quickAddToCart(\'' + product.id + '\')">' +
+              iconSvg("cart") +
+            "</button>" +
+          "</div>" +
         "</div>" +
       "</div>" +
     "</article>"
@@ -116,6 +121,7 @@ window.updateCategory = function(catId) {
     renderCategoryFilterPanel();
     renderShopResults();
 
+    // إعادة التمرير لأعلى شبكة المنتجات مع مراعاة ارتفاع الهيدر الثابت
     const grid = document.getElementById("shopGrid");
     if (grid) {
         const headerEl = document.querySelector(".site-header");
@@ -224,9 +230,9 @@ function renderShopResults() {
                   subCatContainer.className = "cat-scroller";
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
-                  subCatContainer.style.position = "sticky";
-                  const headerElForOffset = document.querySelector(".site-header");
-                  subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
+                             subCatContainer.style.position = "sticky";
+              const headerElForOffset = document.querySelector(".site-header");
+              subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
                   subCatContainer.style.zIndex = "40"; 
                   subCatContainer.style.backgroundColor = "#fefcf4"; 
                   const grid = document.getElementById("shopGrid");
@@ -288,9 +294,13 @@ function initProductDetailPage() {
 
   let variantsHtml = "";
   if (product.variants && product.variants.length > 0) {
-      variantsHtml = '<div class="field" style="margin-bottom: 20px;"><label style="font-weight:bold; display:block; margin-bottom:8px;">الخيارات المتوفرة:</label>' +
-                     '<select id="variantSelect" style="width:100%; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--line-strong); background:var(--white); font-family:inherit; font-size:1rem;">' +
-                     product.variants.map(v => '<option value="' + v + '">' + v + '</option>').join('') + '</select></div>';
+      variantsHtml = '<div class="field" style="margin-bottom: 20px;">' +
+                     '<label class="variant-label">الخيارات المتوفرة:</label>' +
+                     '<div class="variant-options" id="variantOptions">' +
+                       product.variants.map(function (v, i) {
+                         return '<button type="button" class="variant-chip' + (i === 0 ? ' active' : '') + '" data-variant="' + v + '">' + v + '</button>';
+                       }).join('') +
+                     '</div></div>';
   }
 
   mount.innerHTML =
@@ -312,42 +322,52 @@ function initProductDetailPage() {
         '<div class="detail-meta"><span>القسم: ' + Store.getCategoryName(product.categoryId) + '</span><span>حالة التوفر: ' + (outOfStock ? "غير متوفر" : "متوفر") + '</span></div>' +
       "</div></div>";
 
-  const variantSelect = document.getElementById("variantSelect");
+  const variantOptions = document.getElementById("variantOptions");
+  function getSelectedVariant() {
+    if (!variantOptions) return null;
+    const active = variantOptions.querySelector(".variant-chip.active");
+    return active ? active.dataset.variant : null;
+  }
 
   if (!outOfStock) {
     const qtyInput = document.getElementById("qtyInput");
-    
+
     document.getElementById("qtyMinus").addEventListener("click", function () { qtyInput.value = Math.max(1, Number(qtyInput.value) - 1); });
     document.getElementById("qtyPlus").addEventListener("click", function () { qtyInput.value = Math.min(product.stock, Number(qtyInput.value) + 1); });
-    
+
     document.getElementById("addToCartBtn").addEventListener("click", function () {
       const qty = Number(qtyInput.value) || 1;
-      const selectedVariant = variantSelect ? variantSelect.value : null;
+      const selectedVariant = getSelectedVariant();
       const itemKey = selectedVariant ? product.id + "|" + selectedVariant : product.id;
       Store.addToCart(itemKey, qty, selectedVariant);
       showToast(product.name + (selectedVariant ? " (" + selectedVariant + ")" : "") + " أُضيف إلى السلة");
     });
-    
+
     document.getElementById("orderNowBtn").addEventListener("click", function () {
       const qty = Number(qtyInput.value) || 1;
-      const selectedVariant = variantSelect ? variantSelect.value : null;
+      const selectedVariant = getSelectedVariant();
       const orderProduct = Object.assign({}, product);
       if (selectedVariant) orderProduct.name = product.name + " (" + selectedVariant + ")";
       orderSingleProductViaWhatsApp(orderProduct, qty);
     });
   }
 
-  if (variantSelect) {
-      variantSelect.addEventListener("change", function () {
-          const selectedVal = this.value;
-          const mediaContainer = document.querySelector(".detail-media");
-          
-          if (product.variantImages && product.variantImages[selectedVal]) {
-              mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
-          } else {
-              mediaContainer.innerHTML = productMediaHtml(product);
-          }
+  // برمجة تغيير الصورة + تحديد الزر النشط فور اختيار نكهة أو حجم مختلف
+  if (variantOptions) {
+    variantOptions.querySelectorAll(".variant-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        variantOptions.querySelectorAll(".variant-chip").forEach(function (c) { c.classList.remove("active"); });
+        chip.classList.add("active");
+
+        const selectedVal = chip.dataset.variant;
+        const mediaContainer = document.querySelector(".detail-media");
+        if (product.variantImages && product.variantImages[selectedVal]) {
+          mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
+        } else {
+          mediaContainer.innerHTML = productMediaHtml(product);
+        }
       });
+    });
   }
 }
 
