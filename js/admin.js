@@ -1,15 +1,15 @@
 /* ==========================================================================
    admin.js
-   منطق لوحة تحكم الأدمن بالكامل (admin.html). كل شيء هنا يقرأ ويكتب عبر
-   Store (store.js) الذي يخزّن البيانات في localStorage.
+   منطق لوحة تحكم الأدمن بالكامل (admin.html). 
+   تم التحديث لرفع الصور كروابط خارجية خفيفة جداً عبر ImgBB API
    ========================================================================== */
 
 let editingProductId = null;
 let editingCategoryId = null;
-let editingAdId = null; // التعديل 1: متغير للإعلانات
+let editingAdId = null; 
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
-let pendingAdImage = null; // التعديل 2: صورة الإعلان المؤقتة
+let pendingAdImage = null; 
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -29,7 +29,7 @@ function initAdminPage() {
   renderProductsTable();
   renderCategoriesTable();
   renderOrdersTable();
-  renderAdsTable(); // التعديل 3: تشغيل جدول الإعلانات
+  renderAdsTable(); 
   
   fillSettingsForm();
   populateCategorySelect();
@@ -37,7 +37,7 @@ function initAdminPage() {
 
   wireProductModal();
   wireCategoryModal();
-  wireAdModal(); // التعديل 4: تشغيل نوافذ الإعلانات
+  wireAdModal(); 
   wireSettingsForm();
 
   const productSearch = document.getElementById("adminProductSearch");
@@ -45,42 +45,25 @@ function initAdminPage() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* ضاغط الصور الذكي لتصغير الحجم قبل الحفظ                                 */
+/* رفع الصور الخارجي (ImgBB API) لتقليل حجم قاعدة البيانات                */
 /* ---------------------------------------------------------------------- */
 
-function compressImage(file, maxWidth = 650, quality = 0.55) {
-   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = event => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // حساب الأبعاد الجديدة مع الحفاظ على التناسب
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        
-        // رسم الصورة بالحجم الجديد
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // ضغط الصورة وتحويلها لـ Base64 خفيف
-        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedBase64);
-      };
-      img.onerror = error => reject(error);
-    };
-    reader.onerror = error => reject(error);
-  });
+async function uploadToImgBB(file) {
+    const apiKey = "556361ffe3b34464a10010ce71544776";
+    const formData = new FormData();
+    formData.append("image", file);
+    
+    const response = await fetch("https://api.imgbb.com/1/upload?key=" + apiKey, {
+      method: "POST",
+      body: formData
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      return data.data.url; // إرجاع الرابط المباشر للصورة
+    } else {
+      throw new Error(data.error.message);
+    }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -205,12 +188,14 @@ function wireProductModal() {
       if (!file) return;
       
       try {
-        const compressedBase64 = await compressImage(file);
-        pendingProductImage = compressedBase64;
-        document.getElementById("productImagePreview").innerHTML = '<img src="' + compressedBase64 + '">';
+        showToast("جاري رفع الصورة لسيرفر التخزين...");
+        const imageUrl = await uploadToImgBB(file);
+        pendingProductImage = imageUrl;
+        document.getElementById("productImagePreview").innerHTML = '<img src="' + imageUrl + '">';
+        showToast("تم رفع الصورة بنجاح!");
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+        console.error("Upload Error:", error);
+        showToast("فشل رفع الصورة. يرجى التأكد من اتصال الإنترنت.");
       }
     });
   }
@@ -248,7 +233,6 @@ function openProductModal(productId) {
     document.getElementById("productCategorySelect").value = p.categoryId;
     document.getElementById("productStock").value = p.stock;
     
-    // التعديل 5: جلب الخيارات/النكهات للمربع النصي
     if(document.getElementById("productVariants")) {
         document.getElementById("productVariants").value = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
     }
@@ -283,7 +267,6 @@ function closeProductModal() {
 function saveProductForm(e) {
   e.preventDefault();
   
-  // التعديل 6: تحويل النص المكتوب في مربع الخيارات إلى مصفوفة نظيفة
   const variantsStr = document.getElementById("productVariants") ? document.getElementById("productVariants").value : "";
   const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
   
@@ -297,7 +280,7 @@ function saveProductForm(e) {
     featured: document.getElementById("productFeatured").checked,
     isNew: document.getElementById("productNew").checked,
     isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, 
-    variants: variantsArr, // حفظ الخيارات في قاعدة البيانات
+    variants: variantsArr, 
     image: pendingProductImage
   };
 
@@ -320,7 +303,7 @@ function saveProductForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الأقسام (دعم الصور والأيقونات والأقسام الفرعية)                          */
+/* الأقسام                                                                */
 /* ---------------------------------------------------------------------- */
 
 function renderCategoriesTable() {
@@ -338,7 +321,6 @@ function renderCategoriesTable() {
     const count = products.filter(function (p) { return p.categoryId === c.id; }).length;
     const img = c.image ? '<img src="' + c.image + '">' : '<div class="admin-table-icon">' + iconSvg(c.icon || "box") + "</div>";
     
-    // تمييز القسم الفرعي في الجدول
     const parent = c.parentId ? categories.find(function(x) { return x.id === c.parentId; }) : null;
     const displayName = parent 
         ? c.name + '<br><small style="color:#888;">↳ فرعي من: ' + parent.name + '</small>' 
@@ -398,13 +380,15 @@ function wireCategoryModal() {
       if (!file) return;
 
       try {
-        const compressedBase64 = await compressImage(file);
-        pendingCategoryImage = compressedBase64;
+        showToast("جاري رفع صورة القسم...");
+        const imageUrl = await uploadToImgBB(file);
+        pendingCategoryImage = imageUrl;
         const preview = document.getElementById("categoryImagePreview");
-        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '">';
+        if (preview) preview.innerHTML = '<img src="' + imageUrl + '">';
+        showToast("تم الرفع بنجاح!");
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة. يرجى المحاولة بصورة أخرى.");
+        console.error("Upload Error:", error);
+        showToast("فشل رفع الصورة.");
       }
     });
   }
@@ -499,14 +483,13 @@ function saveCategoryForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الإعلانات (Ads Slider) - التعديل 7                                     */
+/* الإعلانات                                                              */
 /* ---------------------------------------------------------------------- */
 
 function renderAdsTable() {
   const tbody = document.getElementById("adsTableBody");
   if (!tbody) return;
   
-  // ترتيب الإعلانات حسب الرقم المدخل
   const ads = Store.getAds().sort((a, b) => (a.order || 0) - (b.order || 0));
 
   if (!ads.length) {
@@ -555,14 +538,15 @@ function wireAdModal() {
       const file = imageInput.files[0];
       if (!file) return;
       try {
-        // نستخدم جودة أعلى وضغط مختلف لأن الإعلانات تكون عرضية وعادة تحتاج دقة أكبر
-        const compressedBase64 = await compressImage(file, 1000, 0.8);
-        pendingAdImage = compressedBase64;
+        showToast("جاري رفع الإعلان لـ ImgBB...");
+        const imageUrl = await uploadToImgBB(file);
+        pendingAdImage = imageUrl;
         const preview = document.getElementById("adImagePreview");
-        if (preview) preview.innerHTML = '<img src="' + compressedBase64 + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+        if (preview) preview.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">';
+        showToast("تم رفع الإعلان بنجاح!");
       } catch (error) {
-        console.error("Image Compression Error:", error);
-        showToast("فشل ضغط الصورة.");
+        console.error("Upload Error:", error);
+        showToast("فشل رفع الصورة.");
       }
     });
   }
@@ -617,7 +601,7 @@ function saveAdForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* سجلّ الطلبات (استرشادي فقط)                                             */
+/* سجلّ الطلبات                                                           */
 /* ---------------------------------------------------------------------- */
 
 function renderOrdersTable() {
