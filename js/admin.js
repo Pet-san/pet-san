@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث لرفع الصور كروابط خارجية خفيفة جداً عبر ImgBB API مع دعم صور الخيارات
+   تم التحديث لرفع الصور وتسريعها عبر ImageKit CDN مع دعم صور الخيارات
    ========================================================================== */
 
 let editingProductId = null;
@@ -10,7 +10,7 @@ let editingAdId = null;
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
 let pendingAdImage = null; 
-let pendingVariantImages = {}; // المتغير الجديد لحفظ صور النكهات/الخيارات
+let pendingVariantImages = {}; // لحفظ صور النكهات/الخيارات
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -46,7 +46,7 @@ function initAdminPage() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* رفع الصور الخارجي (ImgBB API) لتقليل حجم قاعدة البيانات                */
+/* رفع الصور الخارجي وتسريعها عبر ImageKit CDN                           */
 /* ---------------------------------------------------------------------- */
 
 async function uploadToImgBB(file) {
@@ -61,10 +61,13 @@ async function uploadToImgBB(file) {
     
     const data = await response.json();
     if (data.success) {
-// استبدل هذا السطر:
-// return data.data.url;
-// بهذا السطر لاستخدام النسخة المتوسطة السريعة إن وُجدت، أو الأصلية كبديل:
-return (data.data.medium && data.data.medium.url) ? data.data.medium.url : data.data.url;    } else {
+      // 1. استخراج الرابط من ImgBB
+      const rawUrl = data.data.url;
+      
+      // 2. ربط الـ Endpoint الخاص بك في ImageKit مع معاملات الضغط الفائق
+      const imageKitEndpoint = "https://ik.imagekit.io/petshop";
+      return `${imageKitEndpoint}/tr:w-700,q-75,f-auto/${rawUrl}`;
+    } else {
       throw new Error(data.error.message);
     }
 }
@@ -174,7 +177,6 @@ function populateCategorySelect() {
 
 /* ---- مودال إضافة/تعديل منتج ---- */
 
-// النظام الجديد لتوليد أزرار رفع الصور لكل خيار/نكهة
 function renderVariantImageUploaders(variantsArr) {
   const wrap = document.getElementById("variantImagesWrap");
   const list = document.getElementById("variantImagesList");
@@ -215,7 +217,7 @@ function renderVariantImageUploaders(variantsArr) {
           const imageUrl = await uploadToImgBB(file);
           pendingVariantImages[v] = imageUrl;
           showToast(`تم رفع الصورة بنجاح!`);
-          renderVariantImageUploaders(variantsArr); // إعادة الرسم لتحديث الصورة والزر
+          renderVariantImageUploaders(variantsArr);
         } catch(error) {
           showToast("فشل رفع الصورة. تأكد من الإنترنت.");
         }
@@ -224,7 +226,6 @@ function renderVariantImageUploaders(variantsArr) {
   });
 }
 
-// دالة لحذف صورة الخيار
 window.removeVariantImage = function(variantName) {
   delete pendingVariantImages[variantName];
   const variantsInput = document.getElementById("productVariants");
@@ -274,7 +275,6 @@ function wireProductModal() {
     });
   }
 
-  // الاستماع لتغييرات حقل النكهات/الخيارات
   const variantsInput = document.getElementById("productVariants");
   if (variantsInput) {
     variantsInput.addEventListener("input", function () {
@@ -287,7 +287,7 @@ function wireProductModal() {
 function openProductModal(productId) {
   editingProductId = productId;
   pendingProductImage = null;
-  pendingVariantImages = {}; // تصفير صور الخيارات
+  pendingVariantImages = {}; 
   populateCategorySelect();
 
   const modal = document.getElementById("productModal");
@@ -314,7 +314,6 @@ function openProductModal(productId) {
     pendingProductImage = p.image || null;
     preview.innerHTML = p.image ? '<img src="' + p.image + '">' : iconSvg("box");
 
-    // جلب وتجهيز الخيارات وصورها
     pendingVariantImages = p.variantImages ? Object.assign({}, p.variantImages) : {};
     if(document.getElementById("productVariants")) {
         const variantsStr = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
@@ -347,7 +346,6 @@ function saveProductForm(e) {
   const variantsStr = document.getElementById("productVariants") ? document.getElementById("productVariants").value : "";
   const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
   
-  // التأكد من حفظ صور الخيارات المدخلة فقط ومسح أي خيار قديم تم مسح اسمه
   const cleanVariantImages = {};
   variantsArr.forEach(v => {
       if(pendingVariantImages[v]) cleanVariantImages[v] = pendingVariantImages[v];
@@ -364,7 +362,7 @@ function saveProductForm(e) {
     isNew: document.getElementById("productNew").checked,
     isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, 
     variants: variantsArr, 
-    variantImages: cleanVariantImages, // إضافة بيانات صور الخيارات للقاعدة
+    variantImages: cleanVariantImages,
     image: pendingProductImage
   };
 
@@ -387,7 +385,7 @@ function saveProductForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الأقسام                                                                */
+/* الأقسام                                                                 */
 /* ---------------------------------------------------------------------- */
 
 function renderCategoriesTable() {
@@ -567,7 +565,7 @@ function saveCategoryForm(e) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* الإعلانات                                                              */
+/* الإعلانات                                                               */
 /* ---------------------------------------------------------------------- */
 
 function renderAdsTable() {
@@ -622,7 +620,7 @@ function wireAdModal() {
       const file = imageInput.files[0];
       if (!file) return;
       try {
-        showToast("جاري رفع الإعلان لـ ImgBB...");
+        showToast("جاري رفع الإعلان لـ ImgBB وتحسينه...");
         const imageUrl = await uploadToImgBB(file);
         pendingAdImage = imageUrl;
         const preview = document.getElementById("adImagePreview");
