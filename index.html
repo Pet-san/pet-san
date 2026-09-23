@@ -9,9 +9,9 @@
   <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=25">
 <style>
-  /* === التعديلات الجديدة === */
+  /* === التعديلات التنسيقية وسلايدر الإعلانات === */
   .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
   .ads-slider-container {
       position: relative; width: 100%; aspect-ratio: 16 / 9;
@@ -33,8 +33,6 @@
     .hero { padding-block: 16px 20px !important; }
     .section-head { margin-bottom: 10px !important; }
 
- 
-
     .cat-chip { width: 95px !important; padding: 12px 8px !important; gap: 6px !important; }
     .cat-chip .cat-icon { width: 62px !important; height: 62px !important; }
     .cat-chip .cat-icon svg { width: 30px !important; height: 30px !important; }
@@ -44,7 +42,7 @@
     .feature-grid h3 { font-size: 13px !important; margin-bottom: 5px !important; }
     .feature-grid p { font-size: 11px !important; }
     
-    /* كاروسيل أفقي لصفوف المنتجات في الصفحة الرئيسية فقط (تفاصيل شكل البطاقة نفسها موجودة في css/style.css) */
+    /* كاروسيل أفقي لصفوف المنتجات في الصفحة الرئيسية */
     .product-grid {
       display: flex !important; flex-wrap: nowrap !important; overflow-x: auto !important;
       scroll-snap-type: x mandatory !important; scroll-behavior: smooth !important;
@@ -82,7 +80,7 @@
           <div><strong>24س</strong><span>توصيل سريع</span></div>
         </div>
       </div>
-       <div class="hero-art" id="heroAdsContainer"></div>
+      <div class="hero-art" id="heroAdsContainer"></div>
     </div>
   </section>
 
@@ -185,31 +183,128 @@
 
 <div id="site-footer"></div>
 
-<script src="js/config.js?v=24"></script>
-<script src="js/icons.js?v=24"></script>
-<script src="js/store.js?v=24"></script>
-<script src="js/whatsapp.js?v=24"></script>
-<script src="js/app.js?v=24"></script>
-<script src="js/products.js?v=24"></script>
+<script src="js/config.js?v=25"></script>
+<script src="js/icons.js?v=25"></script>
+<script src="js/store.js?v=25"></script>
+<script src="js/whatsapp.js?v=25"></script>
+<script src="js/app.js?v=25"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector(".feature-grid").innerHTML = document.querySelector(".feature-grid").innerHTML
-      .replace("__ICON_TRUCK__", iconSvg("truck"))
-      .replace("__ICON_SHIELD__", iconSvg("shield"))
-      .replace("__ICON_WHATSAPP__", iconSvg("whatsapp"))
-      .replace("__ICON_HEART__", iconSvg("heart"));
+  let slideInterval = null;
 
+  function productMediaHtml(product) {
+    if (product.image) {
+      return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy">';
+    }
+    const cat = Store.getCategories().find(function (c) { return c.id === product.categoryId; });
+    const key = cat ? cat.icon : "paw";
+    return '<div class="placeholder-icon">' + iconSvg(key) + "</div>";
+  }
+
+  function renderHomeProductCard(product) {
+    const outOfStock = !product.available || product.stock <= 0;
+    const badges = [];
+    
+    if (product.isOffer) badges.push('<span class="badge badge-offer" style="background:var(--danger); color:white;">عرض🔥</span>');
+    else if (product.isNew) badges.push('<span class="badge badge-new">جديد</span>');
+    else if (product.featured) badges.push('<span class="badge badge-featured">مميز</span>');
+    if (outOfStock) badges.push('<span class="badge badge-out-abs">غير متوفر</span>');
+    if (product.variants && product.variants.length > 1) {
+      badges.push('<span class="badge badge-variants">' + iconSvg("layers") + product.variants.length + ' خيارات</span>');
+    }
+
+    return (
+      '<article class="product-card">' +
+        '<a href="product.html?id=' + product.id + '" class="product-media">' +
+          productMediaHtml(product) +
+          badges.join("") +
+        '</a>' +
+        '<div class="product-body">' +
+          '<span class="product-cat">' + Store.getCategoryName(product.categoryId) + "</span>" +
+          '<h3 class="product-name"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
+          '<div class="product-foot">' +
+            '<span class="price">' + formatPrice(product.price) + "</span>" +
+            '<div class="product-actions">' +
+              '<button class="btn btn-primary" ' + (outOfStock ? "disabled" : "") +
+                ' title="' + (outOfStock ? "غير متوفر" : "أضف للسلة") + '"' +
+                ' onclick="quickAddToCart(\'' + product.id + '\')">' +
+                iconSvg("cart") +
+              "</button>" +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+
+  function quickAddToCart(productId) {
+    const product = Store.getProduct(productId);
+    if (!product || !product.available || product.stock <= 0) return;
+    if (product.variants && product.variants.length > 0) {
+        window.location.href = 'product.html?id=' + productId;
+        return;
+    }
+    Store.addToCart(productId, 1);
+    showToast(product.name + " أُضيف إلى السلة");
+  }
+
+  function renderGridInto(containerId, products, emptyMessage) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!products.length) {
+      el.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;width:100%;color:var(--ink-400);">' + iconSvg("box") + "<p>" + (emptyMessage || "لا توجد منتجات لعرضها حاليًا.") + "</p></div>";
+      return;
+    }
+    el.innerHTML = products.map(renderHomeProductCard).join("");
+  }
+
+  function renderAllHomeContent() {
+    // 1. أيقونات قسم المميزات
+    const featureGrid = document.querySelector(".feature-grid");
+    if (featureGrid && typeof iconSvg === "function") {
+      featureGrid.innerHTML = featureGrid.innerHTML
+        .replace("__ICON_TRUCK__", iconSvg("truck"))
+        .replace("__ICON_SHIELD__", iconSvg("shield"))
+        .replace("__ICON_WHATSAPP__", iconSvg("whatsapp"))
+        .replace("__ICON_HEART__", iconSvg("heart"));
+    }
+
+    // 2. روابط التواصل
     const s = Store.getSettings();
-    document.getElementById("homeSocialRow").innerHTML =
-      '<a href="https://wa.me/' + whatsappDigitsOnly(s.whatsapp) + '" target="_blank" rel="noopener">' + iconSvg("whatsapp") + "واتساب</a>" +
-      '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
-      '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
+    const homeSocial = document.getElementById("homeSocialRow");
+    if (homeSocial && typeof iconSvg === "function") {
+      homeSocial.innerHTML =
+        '<a href="https://wa.me/' + whatsappDigitsOnly(s.whatsapp) + '" target="_blank" rel="noopener">' + iconSvg("whatsapp") + "واتساب</a>" +
+        '<a href="' + s.instagram + '" target="_blank" rel="noopener">' + iconSvg("instagram") + 'انستقرام</a>' +
+        '<a href="https://www.tiktok.com/@pet.san1?_r=1&_t=ZS-99pvm9fFrNt" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 448 512" fill="currentColor" style="margin-left: 8px;"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>تيك توك</a>';
+    }
 
-    // دمج إعلانات لوحة الأدمن (Store.getAds) مع الإعلانات الثابتة من js/config.js (CODE_ADS)
+    // 3. رسم الأقسام
+    const catEl = document.getElementById("homeCategories");
+    if (catEl) {
+      const categories = Store.getCategories();
+      const mainCategories = categories.filter(function(c) { return !c.parentId; });
+      catEl.innerHTML = mainCategories.map(function (c) {
+        const media = c.image ? '<img src="' + c.image + '" alt="' + c.name + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : iconSvg(c.icon || "box");
+        return '<a href="products.html?cat=' + c.id + '" class="cat-chip"><span class="cat-icon" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">' + media + '</span><span class="name">' + c.name + "</span></a>";
+      }).join("");
+    }
+
+    // 4. رسم المنتجات (مميزة، عروض، جديدة)
+    const products = Store.getProducts();
+    renderGridInto("featuredGrid", products.filter(function (p) { return p.featured; }).slice(0, 8), "لا توجد منتجات مميزة حاليًا.");
+    renderGridInto("offerGrid", products.filter(function (p) { return p.isOffer; }).slice(0, 8), "لا توجد عروض وتخفيضات حاليًا.");
+    renderGridInto("newGrid", products.filter(function (p) { return p.isNew; }).slice(0, 8), "لا توجد منتجات جديدة حاليًا.");
+
+    // 5. رسم سلايدر الإعلانات
+    renderAdsSlider();
+  }
+
+  function renderAdsSlider() {
     const adminAds = Store.getAds();
     const codeAds = (typeof CODE_ADS !== "undefined") ? CODE_ADS : [];
     const ads = adminAds.concat(codeAds).sort((a, b) => (a.order || 0) - (b.order || 0));
     const heroArt = document.getElementById("heroAdsContainer");
+    if (!heroArt) return;
     
     if (ads.length > 0) {
         let trackHtml = '<div class="ads-slider-container"><div class="ads-slider-track" id="adsTrack">';
@@ -226,7 +321,7 @@
         
         const track = document.getElementById("adsTrack");
         const dots = document.querySelectorAll(".ad-dot");
-        let currentIndex = 0, slideInterval;
+        let currentIndex = 0;
         
         function goToSlide(index) {
             if(index < 0) index = ads.length - 1;
@@ -238,7 +333,10 @@
         }
         
         function nextSlide() { goToSlide(currentIndex + 1); }
-        function startAutoSlide() { slideInterval = setInterval(nextSlide, 3500); }
+        function startAutoSlide() { 
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 3500); 
+        }
         function stopAutoSlide() { clearInterval(slideInterval); }
         
         dots.forEach(dot => {
@@ -248,14 +346,20 @@
         startAutoSlide();
         
         let startX = 0, endX = 0;
-        track.addEventListener('touchstart', e => { stopAutoSlide(); startX = e.changedTouches[0].screenX; });
+        track.addEventListener('touchstart', e => { stopAutoSlide(); startX = e.changedTouches[0].screenX; }, {passive: true});
         track.addEventListener('touchend', e => { 
             endX = e.changedTouches[0].screenX; 
             if (startX - endX > 50) nextSlide(); else if (endX - startX > 50) goToSlide(currentIndex - 1);
             startAutoSlide();
-        });
-    } else { heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>'; }
-  });
+        }, {passive: true});
+    } else { 
+        heroArt.innerHTML = '<div class="hero-art-default"><img src="assets/logo/logo.png" alt="شعار سان ستور"></div>'; 
+    }
+  }
+
+  // التحديث المباشر عند بدء الصفحة وعند وصول إشارة المزامنة من فايربيس
+  document.addEventListener("DOMContentLoaded", renderAllHomeContent);
+  document.addEventListener("store:synced", renderAllHomeContent);
 </script>
 </body>
 </html>
