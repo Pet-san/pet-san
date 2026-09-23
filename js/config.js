@@ -52,5 +52,5 @@ const CODE_ADS = [
 
 { image: "   assets/ads/1.PNG", link: "", order: 1 },
 { image: "   assets/ads/2.png", link: "", order: 2 },
-{ image: "   assets/ads/3.png", link: "", order: 2 },
+{ image: "   assets/ads/3.png", link: "", order: 3 },
 ];
