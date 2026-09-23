@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث لرفع الصور كروابط خارجية خفيفة جداً عبر ImgBB API
+   تم التحديث لرفع الصور كروابط خارجية خفيفة جداً عبر ImgBB API مع دعم صور الخيارات
    ========================================================================== */
 
 let editingProductId = null;
@@ -10,6 +10,7 @@ let editingAdId = null;
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
 let pendingAdImage = null; 
+let pendingVariantImages = {}; // المتغير الجديد لحفظ صور النكهات/الخيارات
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -171,6 +172,66 @@ function populateCategorySelect() {
 
 /* ---- مودال إضافة/تعديل منتج ---- */
 
+// النظام الجديد لتوليد أزرار رفع الصور لكل خيار/نكهة
+function renderVariantImageUploaders(variantsArr) {
+  const wrap = document.getElementById("variantImagesWrap");
+  const list = document.getElementById("variantImagesList");
+  if (!wrap || !list) return;
+
+  if (variantsArr.length === 0) {
+    wrap.style.display = "none";
+    list.innerHTML = "";
+    return;
+  }
+
+  wrap.style.display = "block";
+  let html = "";
+  variantsArr.forEach((v, idx) => {
+    const existingImg = pendingVariantImages[v] || "";
+    html += `
+      <div style="display:flex; align-items:center; gap:10px; background:var(--olive-50); padding:10px; border-radius:8px; border:1px solid var(--line);">
+        <div style="flex:1; font-weight:bold; font-size:0.85rem;">صورة خيار: ${v}</div>
+        <div class="image-upload" style="margin:0;">
+          <div class="preview" id="preview_var_${idx}" style="width:40px; height:40px;">
+            ${existingImg ? '<img src="' + existingImg + '">' : iconSvg("box")}
+          </div>
+          <input type="file" id="file_var_${idx}" accept="image/*" data-variant="${v}">
+        </div>
+        ${existingImg ? `<button type="button" class="btn-icon btn-sm" style="color:var(--danger); width:32px; height:32px;" onclick="removeVariantImage('${v}')">${iconSvg("trash")}</button>` : ''}
+      </div>`;
+  });
+  list.innerHTML = html;
+
+  variantsArr.forEach((v, idx) => {
+    const input = document.getElementById(`file_var_${idx}`);
+    if(input) {
+      input.addEventListener("change", async function() {
+        const file = this.files[0];
+        if(!file) return;
+        try {
+          showToast(`جاري رفع صورة (${v})...`);
+          const imageUrl = await uploadToImgBB(file);
+          pendingVariantImages[v] = imageUrl;
+          showToast(`تم رفع الصورة بنجاح!`);
+          renderVariantImageUploaders(variantsArr); // إعادة الرسم لتحديث الصورة والزر
+        } catch(error) {
+          showToast("فشل رفع الصورة. تأكد من الإنترنت.");
+        }
+      });
+    }
+  });
+}
+
+// دالة لحذف صورة الخيار
+window.removeVariantImage = function(variantName) {
+  delete pendingVariantImages[variantName];
+  const variantsInput = document.getElementById("productVariants");
+  if (variantsInput) {
+      const variantsArr = variantsInput.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+      renderVariantImageUploaders(variantsArr);
+  }
+};
+
 function wireProductModal() {
   const addBtn = document.getElementById("addProductBtn");
   if (addBtn) addBtn.addEventListener("click", function () { openProductModal(null); });
@@ -210,11 +271,21 @@ function wireProductModal() {
       document.getElementById("productImagePreview").innerHTML = iconSvg("box");
     });
   }
+
+  // الاستماع لتغييرات حقل النكهات/الخيارات
+  const variantsInput = document.getElementById("productVariants");
+  if (variantsInput) {
+    variantsInput.addEventListener("input", function () {
+      const variantsArr = this.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+      renderVariantImageUploaders(variantsArr);
+    });
+  }
 }
 
 function openProductModal(productId) {
   editingProductId = productId;
   pendingProductImage = null;
+  pendingVariantImages = {}; // تصفير صور الخيارات
   populateCategorySelect();
 
   const modal = document.getElementById("productModal");
@@ -233,27 +304,31 @@ function openProductModal(productId) {
     document.getElementById("productCategorySelect").value = p.categoryId;
     document.getElementById("productStock").value = p.stock;
     
-    if(document.getElementById("productVariants")) {
-        document.getElementById("productVariants").value = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
-    }
-    
     document.getElementById("productAvailable").checked = p.available;
     document.getElementById("productFeatured").checked = !!p.featured;
     document.getElementById("productNew").checked = !!p.isNew;
-    
-    if (document.getElementById("productOffer")) {
-        document.getElementById("productOffer").checked = !!p.isOffer; 
-    }
+    if (document.getElementById("productOffer")) document.getElementById("productOffer").checked = !!p.isOffer; 
     
     pendingProductImage = p.image || null;
     preview.innerHTML = p.image ? '<img src="' + p.image + '">' : iconSvg("box");
+
+    // جلب وتجهيز الخيارات وصورها
+    pendingVariantImages = p.variantImages ? Object.assign({}, p.variantImages) : {};
+    if(document.getElementById("productVariants")) {
+        const variantsStr = p.variants && p.variants.length > 0 ? p.variants.join(", ") : "";
+        document.getElementById("productVariants").value = variantsStr;
+        const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
+        renderVariantImageUploaders(variantsArr);
+    }
   } else {
     title.textContent = "إضافة منتج جديد";
     document.getElementById("productAvailable").checked = true;
+    preview.innerHTML = iconSvg("box");
+    
     if(document.getElementById("productVariants")) {
         document.getElementById("productVariants").value = "";
+        renderVariantImageUploaders([]);
     }
-    preview.innerHTML = iconSvg("box");
   }
 
   modal.classList.add("open");
@@ -270,6 +345,12 @@ function saveProductForm(e) {
   const variantsStr = document.getElementById("productVariants") ? document.getElementById("productVariants").value : "";
   const variantsArr = variantsStr.split(',').map(v => v.trim()).filter(v => v.length > 0);
   
+  // التأكد من حفظ صور الخيارات المدخلة فقط ومسح أي خيار قديم تم مسح اسمه
+  const cleanVariantImages = {};
+  variantsArr.forEach(v => {
+      if(pendingVariantImages[v]) cleanVariantImages[v] = pendingVariantImages[v];
+  });
+
   const data = {
     name: document.getElementById("productName").value.trim(),
     description: document.getElementById("productDescription").value.trim(),
@@ -281,6 +362,7 @@ function saveProductForm(e) {
     isNew: document.getElementById("productNew").checked,
     isOffer: document.getElementById("productOffer") ? document.getElementById("productOffer").checked : false, 
     variants: variantsArr, 
+    variantImages: cleanVariantImages, // إضافة بيانات صور الخيارات للقاعدة
     image: pendingProductImage
   };
 
