@@ -61,12 +61,13 @@ async function uploadToImgBB(file) {
     
     const data = await response.json();
     if (data.success) {
-      // 1. استخراج الرابط من ImgBB
+      // 1. استخراج الرابط وتنظيف البروتوكول منه
       const rawUrl = data.data.url;
+      const cleanPath = rawUrl.replace(/^https?:\/\//i, "");
       
-      // 2. ربط الـ Endpoint الخاص بك في ImageKit مع معاملات الضغط الفائق
+      // 2. تطبيق معادلة الدقة العالية مع سقف الـ 100 كيلوبايت والحدة الفائقة
       const imageKitEndpoint = "https://ik.imagekit.io/petshop";
-      return `${imageKitEndpoint}/tr:w-700,q-75,f-auto/${rawUrl}`;
+      return `${imageKitEndpoint}/tr:w-1100,q-88,e-sharpen-10,f-auto/${cleanPath}`;
     } else {
       throw new Error(data.error.message);
     }
