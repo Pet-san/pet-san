@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث لمعالجة ذكية: دقة استثنائية للإعلانات وسرعة فائقة للمنتجات.
+   تم التحديث لمعالجة ذكية: دقة استثنائية للإعلانات وسرعة فائقة للمنتجات مع حل مسار ImageKit.
    ========================================================================== */
 
 let editingProductId = null;
@@ -61,18 +61,34 @@ async function uploadToImgBB(file, isBanner = false) {
     
     const data = await response.json();
     if (data.success) {
-      // 1. استخراج الرابط وتنظيف مسار البروتوكول
       const rawUrl = data.data.url;
-      const cleanPath = rawUrl.replace(/^https?:\/\//i, "");
       const imageKitEndpoint = "https://ik.imagekit.io/petshop";
       
-      // 2. إذا كانت الصورة للإعلانات/البانر: دقة فائقة (Ultra HD) بحدود ~200-250KB
-      if (isBanner) {
-        return `${imageKitEndpoint}/tr:w-1400,q-95,e-sharpen-12,f-auto/${cleanPath}`;
+      // إزالة البروتوكول
+      let cleanPath = rawUrl.replace(/^https?:\/\//i, "");
+      
+      // إزالة i.ibb.co/ إذا كانت موجودة لمنع تكرار المسار مع إعدادات الـ Proxy
+      if (cleanPath.startsWith("i.ibb.co/")) {
+        cleanPath = cleanPath.replace("i.ibb.co/", "");
       }
       
-      // 3. للمنتجات والأقسام: خفيفة وسريعة بحدود ~60-90KB
-      return `${imageKitEndpoint}/tr:w-900,q-85,e-sharpen-8,f-auto/${cleanPath}`;
+      const transform = isBanner
+        ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
+        : "tr:w-900,q-85,e-sharpen-8,f-auto";
+
+      const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
+
+      // فحص سريع للصورة؛ إن عملت عبر ImageKit يتم اعتمادها، وإن لم تعمل يتم اعتماد رابط ImgBB المباشر
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(cdnUrl);
+        img.onerror = () => {
+          console.warn("تعذر تحميل الصورة عبر CDN، تم الاعتماد على الرابط المباشر.");
+          resolve(rawUrl);
+        };
+        img.src = cdnUrl;
+      });
+
     } else {
       throw new Error(data.error.message);
     }
@@ -627,7 +643,6 @@ function wireAdModal() {
       if (!file) return;
       try {
         showToast("جاري رفع الإعلان بدقة عالية واحترافية...");
-        // إرسال true هنا لتطبيق معالجة الإعلانات فائقة الجودة
         const imageUrl = await uploadToImgBB(file, true);
         pendingAdImage = imageUrl;
         const preview = document.getElementById("adImagePreview");
