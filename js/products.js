@@ -4,7 +4,7 @@
 
 function productMediaHtml(product) {
   if (product.image) {
-    return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy">';
+    return '<img src="' + product.image + '" alt="' + product.name + '" loading="lazy" decoding="async">';
   }
   const cat = Store.getCategories().find(function (c) { return c.id === product.categoryId; });
   const key = cat ? cat.icon : "paw";
@@ -25,12 +25,12 @@ function renderProductCard(product) {
         productMediaHtml(product) +
         badges.join("") +
       "</a>" +
-      // تم إلغاء التمدد هنا لتصبح البطاقة مضغوطة
       '<div class="product-body" style="padding-top: 6px;">' +
         '<span class="product-cat" style="font-size:0.7rem; color:var(--olive-500); font-weight:600; display:block; margin-bottom:2px;">' + Store.getCategoryName(product.categoryId) + "</span>" +
         '<h3 class="product-name" style="margin:0 0 4px; font-size:0.75rem; line-height:1.4; font-weight:700;"><a href="product.html?id=' + product.id + '">' + product.name + "</a></h3>" +
         '<div class="product-foot" style="margin:0 0 8px 0; justify-content:center;">' +
-'<span class="price" style="font-size:1rem; font-weight:900; color:var(--olive-700);">' + formatPrice(product.price) + "</span>" +        "</div>" +
+          '<span class="price" style="font-size:1rem; font-weight:900; color:var(--olive-700);">' + formatPrice(product.price) + "</span>" +
+        "</div>" +
         '<div class="product-actions" style="margin-top:0;">' +
           '<button class="btn btn-primary btn-sm btn-block" style="padding:6px; font-size:0.8rem; font-weight:bold;" ' + (outOfStock ? "disabled" : "") +
             ' onclick="quickAddToCart(\'' + product.id + '\')">' + 
@@ -116,7 +116,6 @@ window.updateCategory = function(catId) {
     renderCategoryFilterPanel();
     renderShopResults();
 
-    // إعادة التمرير لأعلى شبكة المنتجات مع مراعاة ارتفاع الهيدر الثابت
     const grid = document.getElementById("shopGrid");
     if (grid) {
         const headerEl = document.querySelector(".site-header");
@@ -225,9 +224,9 @@ function renderShopResults() {
                   subCatContainer.className = "cat-scroller";
                   subCatContainer.style.marginBottom = "10px";
                   subCatContainer.style.padding = "10px 0";
-                             subCatContainer.style.position = "sticky";
-              const headerElForOffset = document.querySelector(".site-header");
-              subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
+                  subCatContainer.style.position = "sticky";
+                  const headerElForOffset = document.querySelector(".site-header");
+                  subCatContainer.style.top = (headerElForOffset ? headerElForOffset.offsetHeight : 75) + "px";
                   subCatContainer.style.zIndex = "40"; 
                   subCatContainer.style.backgroundColor = "#fefcf4"; 
                   const grid = document.getElementById("shopGrid");
@@ -313,9 +312,10 @@ function initProductDetailPage() {
         '<div class="detail-meta"><span>القسم: ' + Store.getCategoryName(product.categoryId) + '</span><span>حالة التوفر: ' + (outOfStock ? "غير متوفر" : "متوفر") + '</span></div>' +
       "</div></div>";
 
+  const variantSelect = document.getElementById("variantSelect");
+
   if (!outOfStock) {
     const qtyInput = document.getElementById("qtyInput");
-    const variantSelect = document.getElementById("variantSelect");
     
     document.getElementById("qtyMinus").addEventListener("click", function () { qtyInput.value = Math.max(1, Number(qtyInput.value) - 1); });
     document.getElementById("qtyPlus").addEventListener("click", function () { qtyInput.value = Math.min(product.stock, Number(qtyInput.value) + 1); });
@@ -336,21 +336,19 @@ function initProductDetailPage() {
       orderSingleProductViaWhatsApp(orderProduct, qty);
     });
   }
-// برمجة تغيير الصورة فور اختيار نكهة أو حجم مختلف
-    if (variantSelect) {
-        variantSelect.addEventListener("change", function () {
-            const selectedVal = this.value;
-            const mediaContainer = document.querySelector(".detail-media");
-            
-            // التحقق مما إذا كنت قد رفعت صورة مخصصة لهذه النكهة
-            if (product.variantImages && product.variantImages[selectedVal]) {
-                mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
-            } else {
-                // العودة للصورة الرئيسية للمنتج إذا لم توجد صورة للنكهة
-                mediaContainer.innerHTML = productMediaHtml(product);
-            }
-        });
-    }
+
+  if (variantSelect) {
+      variantSelect.addEventListener("change", function () {
+          const selectedVal = this.value;
+          const mediaContainer = document.querySelector(".detail-media");
+          
+          if (product.variantImages && product.variantImages[selectedVal]) {
+              mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
+          } else {
+              mediaContainer.innerHTML = productMediaHtml(product);
+          }
+      });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
