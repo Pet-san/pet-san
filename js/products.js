@@ -336,6 +336,21 @@ function initProductDetailPage() {
       orderSingleProductViaWhatsApp(orderProduct, qty);
     });
   }
+// برمجة تغيير الصورة فور اختيار نكهة أو حجم مختلف
+    if (variantSelect) {
+        variantSelect.addEventListener("change", function () {
+            const selectedVal = this.value;
+            const mediaContainer = document.querySelector(".detail-media");
+            
+            // التحقق مما إذا كنت قد رفعت صورة مخصصة لهذه النكهة
+            if (product.variantImages && product.variantImages[selectedVal]) {
+                mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
+            } else {
+                // العودة للصورة الرئيسية للمنتج إذا لم توجد صورة للنكهة
+                mediaContainer.innerHTML = productMediaHtml(product);
+            }
+        });
+    }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
