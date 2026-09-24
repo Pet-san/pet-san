@@ -9,10 +9,31 @@
   <title>سان ستور | متجر مستلزمات الحيوانات الأليفة</title>
   <meta name="description" content="متجر عراقي لمستلزمات القطط والكلاب والطيور والأسماك — طلب سهل عبر واتساب وتوصيل سريع.">
   <link rel="icon" href="assets/logo/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=25">
+  <link rel="stylesheet" href="css/style.css?v=28">
 <style>
   /* === التعديلات التنسيقية وسلايدر الإعلانات === */
-  .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; }
+  .hero-art { background: none !important; box-shadow: none !important; border-radius: 0 !important; width: 100% !important; }
+  
+  /* إصلاح الحجم والتقسيم في وضع سطح المكتب (الشاشات الكبيرة) */
+  @media (min-width: 768px) {
+      .hero-inner {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          gap: 40px !important;
+      }
+      .hero-copy {
+          flex: 1.2 !important;
+          text-align: right !important;
+      }
+      .hero-art {
+          flex: 1 !important;
+          max-width: 600px !important;
+          min-width: 350px !important;
+          margin: 0 auto !important;
+      }
+  }
+
   .ads-slider-container {
       position: relative; width: 100%; aspect-ratio: 16 / 9;
       border-radius: var(--radius-lg, 16px); overflow: hidden;
@@ -28,7 +49,9 @@
   .hero-art-default { position: relative; aspect-ratio: 1 / 1; border-radius: 55% 45% 60% 40% / 50% 55% 45% 50%; background: linear-gradient(155deg, var(--olive-500), var(--olive-700)); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lift); }
   .hero-art-default img { width: 46%; filter: drop-shadow(0 12px 18px rgba(0,0,0,.18)); }
 
+  /* تنسيقات الهواتف والشاشات الصغيرة */
   @media (max-width: 768px) {
+    .hero-art { margin-top: 20px !important; }
     .section { padding-block: 14px !important; }
     .hero { padding-block: 16px 20px !important; }
     .section-head { margin-bottom: 10px !important; }
@@ -181,14 +204,13 @@
   </section>
 </main>
   
-
 <div id="site-footer"></div>
 
-<script src="js/config.js?v=25"></script>
-<script src="js/icons.js?v=25"></script>
-<script src="js/store.js?v=25"></script>
-<script src="js/whatsapp.js?v=26"></script>
-<script src="js/app.js?v=27"></script>
+<script src="js/config.js?v=28"></script>
+<script src="js/icons.js?v=28"></script>
+<script src="js/store.js?v=28"></script>
+<script src="js/whatsapp.js?v=28"></script>
+<script src="js/app.js?v=28"></script>
 <script>
   let slideInterval = null;
 
