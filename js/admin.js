@@ -1,8 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات
-   مع اعتماد مباشر لقناة ImageKit CDN بدون Fallback.
+   تم التحديث: إجبار التحويل إلى WebP مع سقف صارم 100KB للمنتجات (max_bytes-100000)
    ========================================================================== */
 
 let editingProductId = null;
@@ -72,10 +71,10 @@ async function uploadToImgBB(file, isBanner = false) {
         cleanPath = cleanPath.replace("i.ibb.co/", "");
       }
       
-      // الإعلانات: دقة فائقة - المنتجات: حد أقصى صارم 100 كيلوبايت (100,000 بايت)
+      // الإعلانات: دقة فائقة - المنتجات: أبعاد 800 مع جودة 80 وتحويل إجباري لـ WebP الخفيف بحد أقصى 100KB
       const transform = isBanner
-        ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
-        : "tr:w-900,max_bytes-100000,e-sharpen-8,f-auto";
+        ? "tr:w-1400,q-95,e-sharpen-12,f-webp"
+        : "tr:w-800,q-80,max_bytes-100000,e-sharpen-8,f-webp";
 
       // اعتماد رابط ImageKit مباشرة وتجاوز رابط ImgBB الخام
       return `${imageKitEndpoint}/${transform}/${cleanPath}`;
