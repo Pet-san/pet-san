@@ -295,12 +295,12 @@ function initProductDetailPage() {
   let variantsHtml = "";
   if (product.variants && product.variants.length > 0) {
       variantsHtml = '<div class="field" style="margin-bottom: 20px;">' +
-                     '<label class="variant-label">الخيارات المتوفرة:</label>' +
-                     '<div class="variant-options" id="variantOptions">' +
-                       product.variants.map(function (v, i) {
-                         return '<button type="button" class="variant-chip' + (i === 0 ? ' active' : '') + '" data-variant="' + v + '">' + v + '</button>';
+                     '<label class="variant-label" style="display:block; margin-bottom:8px; font-weight:600;">الخيارات المتوفرة:</label>' +
+                     '<select id="variantOptions" style="width:100%; padding:12px 16px; border-radius:var(--radius-sm); border:1px solid var(--line-strong); background:var(--white); font-family:var(--font-body); font-size:1rem; color:var(--ink-900); cursor:pointer; appearance:auto;">' +
+                       product.variants.map(function (v) {
+                         return '<option value="' + v + '">' + v + '</option>';
                        }).join('') +
-                     '</div></div>';
+                     '</select></div>';
   }
 
   mount.innerHTML =
@@ -310,7 +310,11 @@ function initProductDetailPage() {
         "<h1>" + product.name + "</h1>" +
         '<div class="stock-line"><span class="dot' + (outOfStock ? " dot-out" : "") + '"></span>' + (outOfStock ? "غير متوفر حاليًا" : "متوفر — الكمية " + product.stock) + "</div>" +
         '<div class="detail-price">' + formatPrice(product.price) + "</div>" +
-        "<p>" + product.description + "</p>" +
+        '<div id="descWrapper" style="position:relative; overflow:hidden; max-height:80px; transition: max-height 0.4s ease;">' +
+          '<p style="margin:0;">' + product.description + '</p>' +
+          '<div id="descFade" style="position:absolute; bottom:0; left:0; right:0; height:40px; background:linear-gradient(transparent, var(--cream));"></div>' +
+        '</div>' +
+        '<button id="descToggle" style="background:none; border:none; color:var(--olive-700); font-weight:700; font-size:0.9rem; padding:4px 0; margin-bottom:12px; cursor:pointer;">قراءة المزيد ↓</button>' +
         variantsHtml + 
         (outOfStock ? "" : '<div class="qty-stepper"><button type="button" id="qtyMinus">−</button><input type="number" id="qtyInput" value="1" min="1" max="' + product.stock + '"><button type="button" id="qtyPlus">+</button></div>') +
         '<div class="detail-actions">' +
@@ -325,8 +329,7 @@ function initProductDetailPage() {
   const variantOptions = document.getElementById("variantOptions");
   function getSelectedVariant() {
     if (!variantOptions) return null;
-    const active = variantOptions.querySelector(".variant-chip.active");
-    return active ? active.dataset.variant : null;
+    return variantOptions.value || null;
   }
 
   if (!outOfStock) {
@@ -352,21 +355,30 @@ function initProductDetailPage() {
     });
   }
 
-  // برمجة تغيير الصورة + تحديد الزر النشط فور اختيار نكهة أو حجم مختلف
+  // برمجة تغيير الصورة عند اختيار خيار من القائمة المنسدلة
   if (variantOptions) {
-    variantOptions.querySelectorAll(".variant-chip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        variantOptions.querySelectorAll(".variant-chip").forEach(function (c) { c.classList.remove("active"); });
-        chip.classList.add("active");
+    variantOptions.addEventListener("change", function () {
+      const selectedVal = variantOptions.value;
+      const mediaContainer = document.querySelector(".detail-media");
+      if (product.variantImages && product.variantImages[selectedVal]) {
+        mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
+      } else {
+        mediaContainer.innerHTML = productMediaHtml(product);
+      }
+    });
+  }
 
-        const selectedVal = chip.dataset.variant;
-        const mediaContainer = document.querySelector(".detail-media");
-        if (product.variantImages && product.variantImages[selectedVal]) {
-          mediaContainer.innerHTML = '<img src="' + product.variantImages[selectedVal] + '" style="width:100%;height:100%;object-fit:cover;border-radius:16px;">';
-        } else {
-          mediaContainer.innerHTML = productMediaHtml(product);
-        }
-      });
+  // برمجة زر قراءة المزيد / إخفاء
+  const descWrapper = document.getElementById("descWrapper");
+  const descToggle = document.getElementById("descToggle");
+  const descFade = document.getElementById("descFade");
+  if (descToggle && descWrapper) {
+    let expanded = false;
+    descToggle.addEventListener("click", function () {
+      expanded = !expanded;
+      descWrapper.style.maxHeight = expanded ? descWrapper.scrollHeight + "px" : "80px";
+      descFade.style.display = expanded ? "none" : "block";
+      descToggle.textContent = expanded ? "إخفاء ↑" : "قراءة المزيد ↓";
     });
   }
 }
