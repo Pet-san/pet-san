@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث: ربط مباشر ونظيف بين ImgBB و ImageKit لضمان أقصى سرعة.
+   تم التحديث: حل مشكلة عدم ظهور الصورة بعد الرفع وإزالة الفحص المسبب للتأخير.
    ========================================================================== */
 
 let editingProductId = null;
@@ -66,10 +66,16 @@ async function uploadToImgBB(file, isBanner = false) {
     }
 
     const rawUrl = data.data.url; // مثال: https://i.ibb.co/xyz/image.png
-    const imageKitEndpoint = "https://ik.imagekit.io/petshop"; // المعرف الخاص بك
     
-    // 2. استخراج المسار الصافي للصورة
-    const cleanPath = rawUrl.split("i.ibb.co/")[1];
+    // 2. معالجة الرابط ببساطة وأمان
+    let cleanPath = rawUrl.replace(/^https?:\/\//i, ""); // مسح http:// أو https://
+    
+    // إزالة i.ibb.co سواء كان مع شرطة مائلة أو بدونها
+    if (cleanPath.startsWith("i.ibb.co/")) {
+      cleanPath = cleanPath.substring("i.ibb.co/".length);
+    }
+
+    const imageKitEndpoint = "https://ik.imagekit.io/petshop"; // المعرف الخاص بك
     
     // 3. تحديد الأبعاد والتحويل الذكي لـ WebP (f-auto)
     const transform = isBanner
@@ -79,7 +85,7 @@ async function uploadToImgBB(file, isBanner = false) {
     // 4. بناء الرابط النهائي الصاروخي
     const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
 
-    // 5. إرجاع الرابط مباشرة ليتم حفظه في فايربيس
+    // 5. إرجاع الرابط مباشرة ليتم حفظه في فايربيس (بدون فحص يسبب التأخير)
     return cdnUrl;
 }
 
