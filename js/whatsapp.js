@@ -127,7 +127,7 @@ const messageLines = [
 
 function buildWhatsAppUrl(message) {
   const number = whatsappDigitsOnly(Store.getSettings().whatsapp);
-  return "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
+  return "https://wa.me/" + number + "?text=" + encodeURI(message);
 }
 
 // تعديل دالة الطلب لمنتج واحد لتعرض النافذة أولاً
