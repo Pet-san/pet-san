@@ -1,7 +1,8 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات.
+   تم التحديث: ضغط ذكي وآمن للصور داخل المتصفح (Client-Side Compression) 
+   لضمان حجم 100KB كحد أقصى للمنتجات وتجاوز مشاكل ImageKit تماماً.
    ========================================================================== */
 
 let editingProductId = null;
@@ -10,7 +11,7 @@ let editingAdId = null;
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
 let pendingAdImage = null; 
-let pendingVariantImages = {}; // لحفظ صور النكهات/الخيارات
+let pendingVariantImages = {}; 
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -46,51 +47,84 @@ function initAdminPage() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* رفع الصور ومعالجتها الذكية عبر ImageKit CDN                            */
+/* دالة الضغط المحلي (Client-Side Compression) قبل الرفع                   */
 /* ---------------------------------------------------------------------- */
+function compressImageClientSide(file, isBanner) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
+        // تحديد الأبعاد: 1200 للإعلانات، 800 للمنتجات
+        let maxWidth = isBanner ? 1200 : 800;
+        let scale = maxWidth / img.width;
+        if (scale > 1) scale = 1; // لا نكبر الصورة إذا كانت أصغر
+
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        if (isBanner) {
+          // الإعلانات: جودة 90% للحفاظ على الفخامة
+          canvas.toBlob((blob) => resolve(blob), "image/webp", 0.90);
+        } else {
+          // المنتجات: حلقة ذكية تضغط الصورة حتى تصبح أقل من 100,000 بايت (100KB)
+          let quality = 0.85;
+          const compressStep = () => {
+            canvas.toBlob((blob) => {
+              if (blob.size > 100000 && quality > 0.2) {
+                quality -= 0.15; // تقليل الجودة بنسبة 15% إذا تجاوزت 100KB
+                compressStep();
+              } else {
+                resolve(blob);
+              }
+            }, "image/webp", quality);
+          };
+          compressStep();
+        }
+      };
+      img.onerror = (e) => reject(e);
+    };
+    reader.onerror = (e) => reject(e);
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* رفع الصور إلى ImgBB بعد ضغطها وتخفيفها                                 */
+/* ---------------------------------------------------------------------- */
 async function uploadToImgBB(file, isBanner = false) {
-    const apiKey = "556361ffe3b34464a10010ce71544776";
-    const formData = new FormData();
-    formData.append("image", file);
-    
-    const response = await fetch("https://api.imgbb.com/1/upload?key=" + apiKey, {
-      method: "POST",
-      body: formData
-    });
-    
-    const data = await response.json();
-    if (data.success) {
-      const rawUrl = data.data.url;
-      const imageKitEndpoint = "https://ik.imagekit.io/petshop";
-      
-      // إزالة البروتوكول وتنظيف المسار
-      let cleanPath = rawUrl.replace(/^https?:\/\//i, "");
-      
-      if (cleanPath.startsWith("i.ibb.co/")) {
-        cleanPath = cleanPath.replace("i.ibb.co/", "");
-      }
-      
-      // الإعلانات: دقة فائقة - المنتجات: حد أقصى صارم 100 كيلوبايت (100,000 بايت)
-      const transform = isBanner
-        ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
-        : "tr:w-900,max_bytes-100000,e-sharpen-8,f-auto";
+    try {
+        // 1. ضغط الصورة بحد الـ 100KB داخل جهازك أولاً
+        const compressedBlob = await compressImageClientSide(file, isBanner);
 
-      const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
-
-      // فحص سريع للصورة لضمان عدم اختفائها في حال تعثر الـ CDN
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(cdnUrl);
-        img.onerror = () => {
-          console.warn("تعذر تحميل الصورة عبر CDN، تم الاعتماد على الرابط المباشر.");
-          resolve(rawUrl);
-        };
-        img.src = cdnUrl;
-      });
-
-    } else {
-      throw new Error(data.error.message);
+        // 2. رفع الصورة المضغوطة للسيرفر
+        const apiKey = "556361ffe3b34464a10010ce71544776";
+        const formData = new FormData();
+        
+        // إعادة التسمية التلقائية لتفادي أخطاء الأسماء العربية
+        const fileName = isBanner ? "banner_img.webp" : "product_img.webp";
+        formData.append("image", compressedBlob, fileName);
+        
+        const response = await fetch("https://api.imgbb.com/1/upload?key=" + apiKey, {
+          method: "POST",
+          body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          // إرجاع رابط ImgBB المباشر (المضمون 100%) والصورة بالفعل مضغوطة ومجهزة
+          return data.data.url; 
+        } else {
+          throw new Error(data.error.message);
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        throw error;
     }
 }
 
@@ -235,7 +269,7 @@ function renderVariantImageUploaders(variantsArr) {
         const file = this.files[0];
         if(!file) return;
         try {
-          showToast(`جاري رفع صورة (${v})...`);
+          showToast(`جاري ضغط ورفع صورة (${v})...`);
           const imageUrl = await uploadToImgBB(file, false);
           pendingVariantImages[v] = imageUrl;
           showToast(`تم رفع الصورة بنجاح!`);
@@ -274,7 +308,7 @@ function wireProductModal() {
       if (!file) return;
       
       try {
-        showToast("جاري رفع الصورة لسيرفر التخزين...");
+        showToast("جاري المعالجة والرفع للسيرفر...");
         const imageUrl = await uploadToImgBB(file, false);
         pendingProductImage = imageUrl;
         document.getElementById("productImagePreview").innerHTML = '<img src="' + imageUrl + '">';
@@ -484,7 +518,7 @@ function wireCategoryModal() {
       if (!file) return;
 
       try {
-        showToast("جاري رفع صورة القسم...");
+        showToast("جاري المعالجة والرفع...");
         const imageUrl = await uploadToImgBB(file, false);
         pendingCategoryImage = imageUrl;
         const preview = document.getElementById("categoryImagePreview");
@@ -642,7 +676,7 @@ function wireAdModal() {
       const file = imageInput.files[0];
       if (!file) return;
       try {
-        showToast("جاري رفع الإعلان بدقة عالية واحترافية...");
+        showToast("جاري المعالجة والرفع...");
         const imageUrl = await uploadToImgBB(file, true);
         pendingAdImage = imageUrl;
         const preview = document.getElementById("adImagePreview");
