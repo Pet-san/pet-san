@@ -206,15 +206,22 @@ function renderFooter() {
             "<li>" + settings.address + "</li>" +
           "</ul></div>" +
         "</div>" +
-        // التعديل هنا: محاذاة في المنتصف، مسافات متناسقة، وتحديد اتجاه الرقم بشكل مستقل
         "<div class='footer-bottom' style='text-align: center; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 30px; color: #a1a1aa; line-height: 1.8; font-size: 0.9rem;'>" +
           "<div style='margin-bottom: 8px;'>&copy; " + new Date().getFullYear() + " " + settings.storeName + " - جميع الحقوق محفوظة.</div>" +
-          "<div style='font-size: 0.85rem; color: #82828b; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;'>" +
-            "<span>تصميم وتطوير:</span>" +
-            "<a href='https://instagram.com/az_6ui' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;'>م. أمير (az_6ui)</a>" +
+          "<div style='font-size: 0.85rem; color: #82828b; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;'>" +
+            
+            "<div style='display: flex; align-items: center; gap: 4px; white-space: nowrap;'>" +
+              "<span>تصميم وتطوير:</span>" +
+              "<a href='https://instagram.com/az_6ui' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;'>م. أمير (az_6ui)</a>" +
+            "</div>" +
+            
             "<span style='opacity: 0.5;'>|</span>" +
-            "<span>واتساب:</span>" +
-            "<a href='https://wa.me/9647813623682' target='_blank' style='display: inline-block; color: var(--olive-400); font-weight: bold; text-decoration: none;' dir='ltr'>+964 781 362 3682</a>" +
+            
+            "<div style='display: flex; align-items: center; gap: 4px; white-space: nowrap;'>" +
+              "<span>واتساب:</span>" +
+              "<a href='https://wa.me/9647813623682' target='_blank' style='color: var(--olive-400); font-weight: bold; text-decoration: none;' dir='ltr'>+964 781 362 3682</a>" +
+            "</div>" +
+            
           "</div>" +
         "</div>" +
       "</div>" +
