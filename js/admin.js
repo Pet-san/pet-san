@@ -1,7 +1,8 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات.
+   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات
+   مع اعتماد مباشر لقناة ImageKit CDN بدون Fallback.
    ========================================================================== */
 
 let editingProductId = null;
@@ -76,19 +77,8 @@ async function uploadToImgBB(file, isBanner = false) {
         ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
         : "tr:w-900,max_bytes-100000,e-sharpen-8,f-auto";
 
-      const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
-
-      // فحص سريع للصورة لضمان عدم اختفائها في حال تعثر الـ CDN
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(cdnUrl);
-        img.onerror = () => {
-          console.warn("تعذر تحميل الصورة عبر CDN، تم الاعتماد على الرابط المباشر.");
-          resolve(rawUrl);
-        };
-        img.src = cdnUrl;
-      });
-
+      // اعتماد رابط ImageKit مباشرة وتجاوز رابط ImgBB الخام
+      return `${imageKitEndpoint}/${transform}/${cleanPath}`;
     } else {
       throw new Error(data.error.message);
     }
