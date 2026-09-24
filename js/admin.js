@@ -1,7 +1,7 @@
 /* ==========================================================================
    admin.js
    منطق لوحة تحكم الأدمن بالكامل (admin.html). 
-   تم التحديث: سقف صارم 100KB للمنتجات (max_bytes-100000) ودقة فائقة للإعلانات.
+   تم التحديث: ربط مباشر ونظيف بين ImgBB و ImageKit لضمان أقصى سرعة.
    ========================================================================== */
 
 let editingProductId = null;
@@ -10,7 +10,7 @@ let editingAdId = null;
 let pendingProductImage = null; 
 let pendingCategoryImage = null; 
 let pendingAdImage = null; 
-let pendingVariantImages = {}; // لحفظ صور النكهات/الخيارات
+let pendingVariantImages = {}; 
 
 function initAdminPage() {
   const app = document.getElementById("adminApp");
@@ -54,44 +54,33 @@ async function uploadToImgBB(file, isBanner = false) {
     const formData = new FormData();
     formData.append("image", file);
     
+    // 1. الرفع الفعلي لـ ImgBB
     const response = await fetch("https://api.imgbb.com/1/upload?key=" + apiKey, {
       method: "POST",
       body: formData
     });
     
     const data = await response.json();
-    if (data.success) {
-      const rawUrl = data.data.url;
-      const imageKitEndpoint = "https://ik.imagekit.io/petshop";
-      
-      // إزالة البروتوكول وتنظيف المسار
-      let cleanPath = rawUrl.replace(/^https?:\/\//i, "");
-      
-      if (cleanPath.startsWith("i.ibb.co/")) {
-        cleanPath = cleanPath.replace("i.ibb.co/", "");
-      }
-      
-      // الإعلانات: دقة فائقة - المنتجات: حد أقصى صارم 100 كيلوبايت (100,000 بايت)
-      const transform = isBanner
-        ? "tr:w-1400,q-95,e-sharpen-12,f-auto"
-        : "tr:w-900,max_bytes-100000,e-sharpen-8,f-auto";
-
-      const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
-
-      // فحص سريع للصورة لضمان عدم اختفائها في حال تعثر الـ CDN
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(cdnUrl);
-        img.onerror = () => {
-          console.warn("تعذر تحميل الصورة عبر CDN، تم الاعتماد على الرابط المباشر.");
-          resolve(rawUrl);
-        };
-        img.src = cdnUrl;
-      });
-
-    } else {
+    if (!data.success) {
       throw new Error(data.error.message);
     }
+
+    const rawUrl = data.data.url; // مثال: https://i.ibb.co/xyz/image.png
+    const imageKitEndpoint = "https://ik.imagekit.io/petshop"; // المعرف الخاص بك
+    
+    // 2. استخراج المسار الصافي للصورة
+    const cleanPath = rawUrl.split("i.ibb.co/")[1];
+    
+    // 3. تحديد الأبعاد والتحويل الذكي لـ WebP (f-auto)
+    const transform = isBanner
+      ? "tr:w-1200,q-90,f-auto"
+      : "tr:w-800,q-80,f-auto";
+
+    // 4. بناء الرابط النهائي الصاروخي
+    const cdnUrl = `${imageKitEndpoint}/${transform}/${cleanPath}`;
+
+    // 5. إرجاع الرابط مباشرة ليتم حفظه في فايربيس
+    return cdnUrl;
 }
 
 /* ---------------------------------------------------------------------- */
