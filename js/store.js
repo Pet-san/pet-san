@@ -49,6 +49,26 @@ function pushToFirebase() {
 
 async function pullFromFirebase() {
   try {
+    // --- 1. نظام التخزين المؤقت الذكي لتوفير الاستهلاك ---
+    const lastSync = localStorage.getItem("last_pull_time");
+    const now = Date.now();
+    const cooldownMinutes = 15; // المدة بالدقائق (يمكنك تغييرها)
+    const cooldownMs = cooldownMinutes * 60 * 1000;
+
+    // إذا لم تمر 15 دقيقة، استخدم البيانات المحفوظة مسبقاً بجهاز الزائر
+    if (lastSync && (now - parseInt(lastSync)) < cooldownMs) {
+        console.log("استخدام الكاش المحلي - لم يتم استهلاك بيانات من فايربيس");
+        const notifySync = () => document.dispatchEvent(new CustomEvent("store:synced"));
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", notifySync, { once: true });
+        } else {
+          notifySync();
+        }
+        return; // إنهاء الدالة هنا وتوفير الباقة!
+    }
+    // -----------------------------------------------------
+
+    // --- 2. الجلب الفعلي من فايربيس (يحدث مرة واحدة كل 15 دقيقة للزائر) ---
     const res = await fetch(FIREBASE_DB_URL + "/data.json");
     const data = await res.json();
     
@@ -57,19 +77,19 @@ async function pullFromFirebase() {
         return;
     }
 
-    // تحديث البيانات المحلية ببيانات السحابة مباشرة
     localStorage.setItem(DB_KEYS.products, JSON.stringify(data.products || []));
     localStorage.setItem(DB_KEYS.categories, JSON.stringify(data.categories || []));
     localStorage.setItem(DB_KEYS.settings, JSON.stringify(data.settings || {}));
     localStorage.setItem(DB_KEYS.ads, JSON.stringify(data.ads || []));
     if (data.orders) localStorage.setItem(DB_KEYS.orders, JSON.stringify(data.orders));
     
-    // دالة إرسال إشارة المزامنة
+    // --- 3. تسجيل وقت آخر جلب لضمان عدم التكرار ---
+    localStorage.setItem("last_pull_time", now.toString());
+
     const notifySync = () => {
       document.dispatchEvent(new CustomEvent("store:synced"));
     };
 
-    // ضمان إطلاق الحدث بعد أن تكون عناصر DOM جاهزة تماماً للاستماع
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", notifySync, { once: true });
     } else {
