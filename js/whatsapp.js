@@ -73,7 +73,7 @@ function showDeliveryModal(onConfirm) {
 function buildProductWhatsAppLink(product, qty, info) {
   const quantity = Math.max(1, qty || 1);
   const total = product.price * quantity;
-  const productUrl = location.origin + location.pathname.replace(/[^/]*$/, "") + "product.html?id=" + product.id;
+ 
 
   const lines = [
   "👋 السلام عليكم، أود طلب هذا المنتج:",
@@ -82,7 +82,6 @@ function buildProductWhatsAppLink(product, qty, info) {
   "▪️ اسم المنتج: *" + product.name + "*",
   "▪️ الكمية: " + quantity,
   "▪️ السعر: *" + formatPrice(total) + "* (غير شامل أجور التوصيل)",
-  "🔗 رابط المنتج: " + productUrl,
   "",
   "📍 *معلومات التوصيل:*",
   "▪️ المحافظة: *" + info.gov + "*",
