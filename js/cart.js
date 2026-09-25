@@ -5,25 +5,33 @@
    ========================================================================== */
 
 function cartLineHtml(line, product) {
-  const media = product.image
-    ? '<img src="' + product.image + '" alt="' + product.name + '">'
+  // استخدام صورة الخيار (النكهة) إذا وجدت، وإلا صورة المنتج الأساسية
+  const mediaUrl = (product.variantImages && line.variant && product.variantImages[line.variant])
+    ? product.variantImages[line.variant]
+    : product.image;
+
+  const media = mediaUrl
+    ? '<img src="' + mediaUrl + '" alt="' + product.name + '">'
     : '<div class="placeholder-icon-wrap">' + iconSvg(
         (Store.getCategories().find(function (c) { return c.id === product.categoryId; }) || {}).icon || "paw"
       ) + "</div>";
 
+  // إضافة اسم الخيار (النكهة) بجانب اسم المنتج لتمييزه في السلة
+  const displayName = product.name + (line.variant ? ' <span style="color:var(--olive-600); font-size: 0.85em;">(' + line.variant + ')</span>' : '');
+
   return (
-    '<div class="cart-item" data-id="' + product.id + '">' +
+    '<div class="cart-item" data-id="' + line.itemKey + '">' +
       media +
       '<div>' +
-        "<h4>" + product.name + "</h4>" +
+        "<h4>" + displayName + "</h4>" +
         '<div class="unit-price">' + formatPrice(product.price) + " / قطعة</div>" +
-        '<button type="button" class="remove-btn" onclick="removeCartLine(\'' + product.id + '\')">إزالة من السلة</button>' +
+        '<button type="button" class="remove-btn" onclick="removeCartLine(\'' + line.itemKey + '\')">إزالة من السلة</button>' +
       "</div>" +
       '<div class="qty-stepper">' +
-        '<button type="button" onclick="stepCartQty(\'' + product.id + '\', -1)">−</button>' +
+        '<button type="button" onclick="stepCartQty(\'' + line.itemKey + '\', -1)">−</button>' +
         '<input type="number" min="1" max="' + product.stock + '" value="' + line.qty + '" ' +
-          'onchange="setCartQty(\'' + product.id + '\', this.value)">' +
-        '<button type="button" onclick="stepCartQty(\'' + product.id + '\', 1)">+</button>' +
+          'onchange="setCartQty(\'' + line.itemKey + '\', this.value)">' +
+        '<button type="button" onclick="stepCartQty(\'' + line.itemKey + '\', 1)">+</button>' +
       "</div>" +
       '<div class="price">' + formatPrice(product.price * line.qty) + "</div>" +
     "</div>"
@@ -75,27 +83,31 @@ function renderCartPage() {
   }
 }
 
-function stepCartQty(productId, delta) {
+function stepCartQty(itemKey, delta) {
   const cart = Store.getCart();
-  const line = cart.find(function (l) { return l.productId === productId; });
-  const product = Store.getProduct(productId);
-  if (!line || !product) return;
+  const line = cart.find(function (l) { return l.itemKey === itemKey; });
+  if (!line) return;
+  const product = Store.getProduct(line.productId);
+  if (!product) return;
   const next = Math.max(1, Math.min(product.stock, line.qty + delta));
-  Store.setQty(productId, next);
+  Store.setQty(itemKey, next);
   renderCartPage();
 }
 
-function setCartQty(productId, value) {
-  const product = Store.getProduct(productId);
+function setCartQty(itemKey, value) {
+  const cart = Store.getCart();
+  const line = cart.find(function (l) { return l.itemKey === itemKey; });
+  if (!line) return;
+  const product = Store.getProduct(line.productId);
   if (!product) return;
   let qty = parseInt(value, 10) || 1;
   qty = Math.max(1, Math.min(product.stock, qty));
-  Store.setQty(productId, qty);
+  Store.setQty(itemKey, qty);
   renderCartPage();
 }
 
-function removeCartLine(productId) {
-  Store.removeFromCart(productId);
+function removeCartLine(itemKey) {
+  Store.removeFromCart(itemKey);
   renderCartPage();
 }
 
