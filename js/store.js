@@ -51,12 +51,14 @@ async function pullFromFirebase() {
   try {
     // --- 1. نظام التخزين المؤقت الذكي لتوفير الاستهلاك ---
     const lastSync = localStorage.getItem("last_pull_time");
+     const hasData = localStorage.getItem(DB_KEYS.products) !== null && localStorage.getItem(DB_KEYS.products) !== "[]";
     const now = Date.now();
     const cooldownMinutes = 15; // المدة بالدقائق (يمكنك تغييرها)
     const cooldownMs = cooldownMinutes * 60 * 1000;
 
     // إذا لم تمر 15 دقيقة، استخدم البيانات المحفوظة مسبقاً بجهاز الزائر
-    if (lastSync && (now - parseInt(lastSync)) < cooldownMs) {
+    if (lastSync && (now - parseInt(lastSync)) < cooldownMs && hasData) {
+
         console.log("استخدام الكاش المحلي - لم يتم استهلاك بيانات من فايربيس");
         const notifySync = () => document.dispatchEvent(new CustomEvent("store:synced"));
         if (document.readyState === "loading") {
