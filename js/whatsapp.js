@@ -33,6 +33,7 @@ function showDeliveryModal(onConfirm) {
           '<div class="field"><label>المحافظة</label><input type="text" id="delGov" placeholder="مثال: بغداد" required></div>' +
           '<div class="field"><label>المنطقة</label><input type="text" id="delArea" placeholder="مثال: المنصور" required></div>' +
           '<div class="field"><label>أقرب نقطة دالة (اختياري)</label><input type="text" id="delLandmark" placeholder="مثال: قرب مول المنصور"></div>' +
+          '<div class="field"><label>رقم الهاتف</label><input type="tel" id="delPhone" placeholder="مثال: 07700000000" required></div>' +
           '<button type="submit" class="btn btn-whatsapp btn-block" style="margin-top:20px;">تأكيد وإرسال عبر واتساب</button>' +
         '</form>' +
       '</div>';
@@ -48,6 +49,7 @@ function showDeliveryModal(onConfirm) {
   document.getElementById("delGov").value = "";
   document.getElementById("delArea").value = "";
   document.getElementById("delLandmark").value = "";
+  document.getElementById("delPhone").value = "";
 
   const form = document.getElementById("deliveryForm");
   const newForm = form.cloneNode(true);
@@ -62,7 +64,8 @@ function showDeliveryModal(onConfirm) {
     const info = {
       gov: document.getElementById("delGov").value.trim(),
       area: document.getElementById("delArea").value.trim(),
-      landmark: document.getElementById("delLandmark").value.trim() || "لا يوجد"
+      landmark: document.getElementById("delLandmark").value.trim() || "لا يوجد",
+      phone: document.getElementById("delPhone").value.trim()
     };
     modal.classList.remove("open"); // إخفاء النافذة
     onConfirm(info); // إرسال البيانات لتوليد رابط الواتساب
@@ -74,7 +77,6 @@ function buildProductWhatsAppLink(product, qty, info) {
   const quantity = Math.max(1, qty || 1);
   const total = product.price * quantity;
  
-
   const lines = [
   "👋 السلام عليكم، أود طلب هذا المنتج:",
   "",
@@ -87,6 +89,7 @@ function buildProductWhatsAppLink(product, qty, info) {
   "▪️ المحافظة: *" + info.gov + "*",
   "▪️ المنطقة: *" + info.area + "*",
   "▪️ أقرب نقطة دالة: " + info.landmark,
+  "▪️ رقم الهاتف: *" + info.phone + "*",
   "",
   "أنتظر تأكيدكم لإتمام الطلب، شكراً لكم! 🐾"
 ];
@@ -118,6 +121,7 @@ const messageLines = [
   messageLines.push("▪️ المحافظة: *" + info.gov + "*");
   messageLines.push("▪️ المنطقة: *" + info.area + "*");
   messageLines.push("▪️ أقرب نقطة دالة: " + info.landmark);
+  messageLines.push("▪️ رقم الهاتف: *" + info.phone + "*");
   messageLines.push("");
   messageLines.push("أنتظر تأكيدكم لإتمام الطلب، شكراً لكم! 🐾");
 
