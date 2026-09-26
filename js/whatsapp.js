@@ -17,7 +17,6 @@ function whatsappDigitsOnly(number) {
 function showDeliveryModal(onConfirm) {
   let modal = document.getElementById("deliveryModal");
   
-  // إنشاء النافذة إذا لم تكن موجودة مسبقاً في الصفحة
   if (!modal) {
     modal = document.createElement("div");
     modal.id = "deliveryModal";
@@ -39,13 +38,11 @@ function showDeliveryModal(onConfirm) {
       '</div>';
     document.body.appendChild(modal);
 
-    // زر إغلاق النافذة
     document.getElementById("closeDeliveryModal").addEventListener("click", function() {
       modal.classList.remove("open");
     });
   }
 
-  // تصفير الحقول في كل مرة تفتح فيها النافذة
   document.getElementById("delGov").value = "";
   document.getElementById("delArea").value = "";
   document.getElementById("delLandmark").value = "";
@@ -55,10 +52,8 @@ function showDeliveryModal(onConfirm) {
   const newForm = form.cloneNode(true);
   form.parentNode.replaceChild(newForm, form);
 
-  // إظهار النافذة
   modal.classList.add("open");
 
-  // عند الضغط على تأكيد
   newForm.addEventListener("submit", function(e) {
     e.preventDefault();
     const info = {
@@ -67,12 +62,11 @@ function showDeliveryModal(onConfirm) {
       landmark: document.getElementById("delLandmark").value.trim() || "لا يوجد",
       phone: document.getElementById("delPhone").value.trim()
     };
-    modal.classList.remove("open"); // إخفاء النافذة
-    onConfirm(info); // إرسال البيانات لتوليد رابط الواتساب
+    modal.classList.remove("open"); 
+    onConfirm(info); 
   });
 }
 
-// بناء رسالة منتج واحد
 function buildProductWhatsAppLink(product, qty, info) {
   const quantity = Math.max(1, qty || 1);
   const total = product.price * quantity;
@@ -97,7 +91,6 @@ function buildProductWhatsAppLink(product, qty, info) {
   return buildWhatsAppUrl(lines.join("\n"));
 }
 
-// بناء رسالة السلة كاملة
 function buildCartWhatsAppLink(cartLines, products, info) {
 const messageLines = [
     "👋 السلام عليكم، أود طلب هذه المنتجات من السلة:",
@@ -130,10 +123,9 @@ const messageLines = [
 
 function buildWhatsAppUrl(message) {
   const number = whatsappDigitsOnly(Store.getSettings().whatsapp);
-  return "https://wa.me/" + number + "?text=" + encodeURI(message);
+  return "https://wa.me/" + number + "?text=" + encodeURIComponent(message);
 }
 
-// تعديل دالة الطلب لمنتج واحد لتعرض النافذة أولاً
 function orderSingleProductViaWhatsApp(product, qty) {
   showDeliveryModal(function(info) {
     Store.logOrder({
@@ -145,7 +137,6 @@ function orderSingleProductViaWhatsApp(product, qty) {
   });
 }
 
-// تعديل دالة الطلب للسلة لتعرض النافذة أولاً
 function orderCartViaWhatsApp() {
   const cart = Store.getCart();
   if (!cart.length) return;
