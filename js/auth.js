@@ -1,57 +1,48 @@
 /* ==========================================================================
-   auth.js (النسخة المدعومة بـ Firebase Authentication)
+   auth.js
+   يُحمَّل في login.html (نموذج الدخول) وفي admin.html (كحارس مسار يمنع أي
+   زائر غير مسجّل دخوله من رؤية لوحة التحكم). التحقق هنا من جهة العميل فقط
+   داخل موقع ثابت — راجع ملاحظة الأمان في README المرفق مع المشروع.
    ========================================================================== */
 
 function initLoginPage() {
   const form = document.getElementById("loginForm");
-  const errorBox = document.getElementById("loginError");
-
   if (!form) return;
 
-  // التحقق: إذا كان الأدمن مسجل الدخول بالفعل، انقله فوراً للوحة التحكم
-  firebase.auth().onAuthStateChanged(function(user) {
-    if (user) {
-      window.location.href = "admin.html";
-    }
-  });
+  // لو كان الأدمن مسجّل دخوله مسبقًا في هذه الجلسة، انتقل مباشرة للوحة التحكم
+  if (Store.isLoggedIn()) {
+    window.location.href = "admin.html";
+    return;
+  }
 
-  // عند الضغط على زر "دخول"
+  const errorBox = document.getElementById("loginError");
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
-    const email = document.getElementById("loginEmail").value.trim();
+    const username = document.getElementById("loginUsername").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    // إرسال الطلب لفايربيس للتحقق
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(function(userCredential) {
-        // تم تسجيل الدخول بنجاح! سيتم توجيهك تلقائياً عبر الكود بالأعلى
-      })
-      .catch(function(error) {
-        // في حال أخطأت في البريد أو كلمة المرور
-        if (errorBox) {
-          errorBox.textContent = "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
-          errorBox.style.display = "block";
-        }
-      });
+    if (Store.login(username, password)) {
+      window.location.href = "admin.html";
+    } else if (errorBox) {
+      errorBox.textContent = "اسم المستخدم أو كلمة المرور غير صحيحة.";
+      errorBox.style.display = "block";
+    }
   });
 }
 
-// حارس المسار — لمنع الغرباء من فتح لوحة التحكم
+// حارس المسار — يُستدعى في بداية admin.html قبل رسم أي محتوى حسّاس
 function requireAdminAuth() {
-  firebase.auth().onAuthStateChanged(function(user) {
-    if (!user) {
-      // إذا لم يكن مسجلاً، اطرده لصفحة تسجيل الدخول
-      window.location.href = "login.html";
-    }
-  });
+  if (!Store.isLoggedIn()) {
+    window.location.href = "login.html";
+    return false;
+  }
   return true;
 }
 
-// دالة تسجيل الخروج
 function handleAdminLogout() {
-  firebase.auth().signOut().then(function() {
-    window.location.href = "login.html";
-  });
+  Store.logout();
+  window.location.href = "login.html";
 }
 
 document.addEventListener("DOMContentLoaded", initLoginPage);
