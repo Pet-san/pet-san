@@ -854,3 +854,29 @@ html, body { overflow-x: hidden; max-width: 100%; }
     .detail-actions .btn { width: 100%; }
     .qty-stepper { width: 100%; justify-content: center; }
 }
+
+/* إصلاح حجم لوحة الإعلانات في شاشات الحاسوب والأجهزة اللوحية */
+@media (min-width: 768px) {
+    /* استهداف حاوية الإعلان لتأخذ كامل العرض المتاح */
+    .hero-image,
+    .ads-slider,
+    .swiper-slide {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* إجبار الصورة على التمدد بذكاء دون تشويه */
+    .hero-image img,
+    .ads-slider img,
+    .swiper-slide img {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 300px;
+        max-height: 400px;
+        object-fit: cover !important; /* تغطية المساحة بالكامل مع الحفاظ على الأبعاد */
+        border-radius: 16px; /* حواف دائرية أنيقة */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* ظل خفيف لإبراز الإعلان */
+    }
+}
